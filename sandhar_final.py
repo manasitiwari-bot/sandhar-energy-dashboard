@@ -227,7 +227,7 @@ st.title("🌱 Sandhar Dynamic Energy Matrix Workspace")
 st.caption("Ecosystem monitoring interface equipped with bubble metrics, variable tracking parameters, and unified asset streams.")
 st.markdown("---")
 
-# 🟢 1. RESTORED & CONVERTED BUBBLE KPI DESIGN CARD PATTERN
+# 🟢 1. BUBBLE KPI DESIGN CARD PATTERN
 total_grid = df_filtered['grid_mvah'].sum()
 total_mit = df_filtered['mitigation'].sum()
 total_emi = df_filtered['emission'].sum()
@@ -284,7 +284,6 @@ st.markdown("""
 
 # --- 3. UNIFIED BAR MATRIX GRAPH (GRID DATA + CAPEX + OPEX PACKED INSIDE) ---
 if st.session_state["matrix_chart_target"] == "emission":
-    # Group Emissions with Grid, Capex Gen, and Opex Gen
     df_melted = df_filtered.melt(
         id_vars=["unit"], 
         value_vars=["emission", "grid_mvah", "capex_gen", "opex_gen"],
@@ -302,7 +301,6 @@ if st.session_state["matrix_chart_target"] == "emission":
         color_discrete_sequence=["#ef4444", "#0ea5e9", "#f59e0b", "#10b981"]
     )
 else:
-    # Group Offsets/Mitigation with Grid, Capex Gen, and Opex Gen
     df_melted = df_filtered.melt(
         id_vars=["unit"], 
         value_vars=["mitigation", "grid_mvah", "capex_gen", "opex_gen"],
@@ -357,3 +355,38 @@ for idx, row in df_filtered.iterrows():
         col_s2.metric("CAPEX Solar Generation", f"{row['capex_gen']:,.2f} MWh")
         col_s3.metric("OPEX Solar Generation", f"{row['opex_gen']:,.2f} MWh")
         col_s4.metric("Mitigation/Emission Ratio", f"{int(row['mitigation'])} / {int(row['emission'])} MT")
+
+st.markdown("---")
+
+# --- 6. RESTORED INLINE AI AGENT TERMINAL ---
+st.subheader("🤖 Systems Telemetry Chatbot Link")
+if "chat_history" not in st.session_state:
+    st.session_state["chat_history"] = [{"role": "assistant", "content": "Telemetry AI systems active. Ask me anything about Grid, CAPEX, or OPEX variables."}]
+
+chat_box = st.container(height=240)
+for message in st.session_state["chat_history"]:
+    chat_box.chat_message(message["role"]).write(message["content"])
+
+if prompt_str := st.chat_input("Query any operational asset criteria..."):
+    st.session_state["chat_history"].append({"role": "user", "content": prompt_str})
+    chat_box.chat_message("user").write(prompt_str)
+    
+    clean_prompt = prompt_str.lower().strip()
+    ai_response = ""
+    
+    if "grid" in clean_prompt or "drawdown" in clean_prompt:
+        ai_response = f"⚡ **Grid Power Audit:** Combined grid utility usage amounts to **{df_master['grid_mvah'].sum():,.2f} MVAh** across all industrial nodes."
+    elif "capex" in clean_prompt or "opex" in clean_prompt:
+        ai_response = f"💰 **Financial Solar Summary:** Total CAPEX generation capacity logs sit at **{df_master['capex_gen'].sum():,.2f} MWh**, while active OPEX generation accounts for **{df_master['opex_gen'].sum():,.2f} MWh**."
+    else:
+        located = False
+        for _, r in df_master.iterrows():
+            if r['unit'].lower() in clean_prompt:
+                ai_response = f"🔍 **Record Matrix [{r['unit']}]:** Grid: {r['grid_mvah']} MVAh | CAPEX Solar Gen: {r['capex_gen']} MWh | OPEX Solar Gen: {r['opex_gen']} MWh."
+                located = True
+                break
+        if not located:
+            ai_response = "Telemetry context unparsed. Try querying 'yearly grid usage', 'capex generation values', or enter a localized asset token code like 'SAD'."
+            
+    st.session_state["chat_history"].append({"role": "assistant", "content": ai_response})
+    chat_box.chat_message("assistant").write(ai_response)
