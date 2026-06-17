@@ -10,19 +10,62 @@ st.set_page_config(
     layout="wide"
 )
 
-# 🎨 HIGH-PERFORMANCE CUSTOM LAYER (Shapes, Themes & Animations)
+# 🎨 HIGH-PERFORMANCE CUSTOM VISUAL SHEET (Bubbles, Shapes & Graph Tweak)
 st.markdown("""
     <style>
-    /* Global Fade-In Entry Animation */
-    @keyframes smoothScaleUp {
-        from { opacity: 0; transform: translateY(15px); }
-        to { opacity: 1; transform: translateY(0); }
+    /* Global Entrance Animation */
+    @keyframes entryReveal {
+        from { opacity: 0; transform: scale(0.96) translateY(10px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
     }
-    div[data-testid="stMetric"], .stExpander, .stPlotlyChart {
-        animation: smoothScaleUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    .kpi-bubble-container, .shape-row, .stPlotlyChart, .stExpander {
+        animation: entryReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
-    /* Container Alignment for Visual Buttons */
+    /* 🟢 BUBBLE KPI CARD STYLING */
+    .bubble-wrapper {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 35px;
+    }
+    .kpi-circle-card {
+        width: 190px;
+        height: 190px;
+        background: radial-gradient(circle at 30% 30%, #ffffff, #f1f5f9);
+        border: 2px solid #e2e8f0;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s;
+        text-align: center;
+        padding: 15px;
+    }
+    .kpi-circle-card:hover {
+        transform: translateY(-6px) scale(1.03);
+        box-shadow: 0 15px 32px rgba(16, 185, 129, 0.15);
+        border-color: #10b981;
+    }
+    .bubble-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+    .bubble-value {
+        font-size: 16px;
+        font-weight: 800;
+        color: #1e293b;
+    }
+
+    /* Container Alignment for Interaction Shapes */
     .shape-row {
         display: flex;
         justify-content: center;
@@ -30,7 +73,7 @@ st.markdown("""
         margin: 20px 0;
     }
 
-    /* 💧 CSS DROPLET SHAPE BUTTON */
+    /* 💧 DROPLET TOGGLE BUTTON */
     .droplet-node {
         width: 100px;
         height: 100px;
@@ -53,11 +96,11 @@ st.markdown("""
         transform: rotate(-45deg);
         color: white;
         font-weight: bold;
-        font-size: 13px;
+        font-size: 12px;
         text-align: center;
     }
 
-    /* 🌱 CSS LEAF SHAPE BUTTON */
+    /* 🌱 LEAF TOGGLE BUTTON */
     .leaf-node {
         width: 100px;
         height: 100px;
@@ -78,19 +121,8 @@ st.markdown("""
     .leaf-inner-text {
         color: white;
         font-weight: bold;
-        font-size: 13px;
+        font-size: 12px;
         text-align: center;
-    }
-    
-    /* Interactive Highlight Borders */
-    div[data-testid="stMetric"], .stExpander {
-        border-radius: 14px !important;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04) !important;
-        transition: transform 0.3s ease, box-shadow 0.3s ease !important;
-    }
-    div[data-testid="stMetric"]:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 22px rgba(16, 185, 129, 0.12) !important;
     }
 
     /* Login Portal Banner Styling */
@@ -103,7 +135,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 2. Portal Security Wall (FIXED & RESTORED)
+# 2. Portal Security Wall
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
@@ -124,7 +156,7 @@ if not st.session_state["authenticated"]:
                 st.error("System access codes rejected.")
     st.stop()
 
-# 3. Load Dataset Matrix
+# 3. Load Matrix Spreadsheet
 @st.cache_data
 def load_verified_spreadsheet_matrix():
     csv_data = """vertical,unit,location,grid_mvah,capex_capacity,opex_capacity,replacement_pct,dg,mitigation,emission,capex_gen,opex_gen,lat,lon
@@ -176,13 +208,13 @@ Plastic Business,SCD,Gurugram,2538.911,110,132,42,52045,772,1846,0.0,237.971,28.
 
 df_master = load_verified_spreadsheet_matrix()
 
-# --- INSTANT SCRIPTING CACHE INITIALIZER ---
+# --- TOGGLE STATE COMPONENT ---
 if "matrix_chart_target" not in st.session_state:
     st.session_state["matrix_chart_target"] = "emission"
 
-# --- SIDEBAR INTERFACE ---
-st.sidebar.markdown("🔒 **Telemetry Link Connected**")
-if st.sidebar.button("Log Out"):
+# --- SIDEBAR CONTROL CONTROL PANEL ---
+st.sidebar.markdown("🔒 **Telemetry Context Logged**")
+if st.sidebar.button("Log Out Node Context"):
     st.session_state["authenticated"] = False
     st.rerun()
 
@@ -190,21 +222,35 @@ st.sidebar.header("🕹️ Workspace Filters")
 selected_vertical = st.sidebar.selectbox("Business Verticals", ["All Segments"] + list(df_master['vertical'].unique()))
 df_filtered = df_master.copy() if selected_vertical == "All Segments" else df_master[df_master['vertical'] == selected_vertical].copy()
 
-# --- MAIN DASHBOARD FRAME ---
-st.title("🌱 Sandhar Energy Ecosystem Matrix Workspace")
-st.caption("Complete operational intelligence layout featuring live shape-toggled metrics, spatial maps, and structural ledger logs.")
+# --- DASHBOARD HEADER ---
+st.title("🌱 Sandhar Dynamic Energy Matrix Workspace")
+st.caption("Ecosystem monitoring interface equipped with bubble metrics, variable tracking parameters, and unified asset streams.")
 st.markdown("---")
 
-# 📊 1. THE KPI CARDS BLOCK
-m1, m2, m3 = st.columns(3)
-m1.metric("⚡ Combined Grid Drawdown", f"{df_filtered['grid_mvah'].sum():,.2f} MVAh")
-m2.metric("🌱 Mitigated Carbon Slices", f"{int(df_filtered['mitigation'].sum()):,} MT CO₂")
-m3.metric("🛢️ Grid Footprint Emissions", f"{int(df_filtered['emission'].sum()):,} MT CO₂")
+# 🟢 1. RESTORED & CONVERTED BUBBLE KPI DESIGN CARD PATTERN
+total_grid = df_filtered['grid_mvah'].sum()
+total_mit = df_filtered['mitigation'].sum()
+total_emi = df_filtered['emission'].sum()
 
-st.markdown("<br>", unsafe_allow_html=True)
+st.markdown(f"""
+    <div class="bubble-wrapper">
+        <div class="kpi-circle-card">
+            <div class="bubble-title">⚡ Grid Drawdown</div>
+            <div class="bubble-value">{total_grid:,.1f}<br><span style="font-size:11px; font-weight:normal;">MVAh</span></div>
+        </div>
+        <div class="kpi-circle-card">
+            <div class="bubble-title">🌱 Carbon Mitigated</div>
+            <div class="bubble-value">{int(total_mit):,}<br><span style="font-size:11px; font-weight:normal;">MT CO₂</span></div>
+        </div>
+        <div class="kpi-circle-card">
+            <div class="bubble-title">🛢️ Gross Emissions</div>
+            <div class="bubble-value">{int(total_emi):,}<br><span style="font-size:11px; font-weight:normal;">MT CO₂</span></div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-# 💧 & 🌱 2. INTERACTIVE VISUAL TUNER SHAPES
-st.subheader("🎨 Matrix Tuning Nodes (Click Shapes to Toggle Main Graph)")
+# 💧 & 🌱 2. METRIC MODAL TUNING NODES
+st.subheader("🎨 Graph Selection Tuning Layers")
 col_d, col_l = st.columns(2)
 
 with col_d:
@@ -219,64 +265,89 @@ with col_l:
         st.session_state["matrix_chart_target"] = "mitigation"
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Custom Javascript Injector to convert standard buttons into custom Droplet/Leaf styling
+# CSS/JS execution layer for button shapes transformation
 st.markdown("""
     <script>
     var elements = window.parent.document.getElementsByTagName('button');
     for (var i = 0; i < elements.length; i++) {
         if (elements[i].innerText.includes('Carbon Mode')) {
             elements[i].className = 'droplet-node';
-            elements[i].innerHTML = '<div class="droplet-inner-text">💧<br>Carbon View</div>';
+            elements[i].innerHTML = '<div class="droplet-inner-text">💧<br>Carbon + Utility</div>';
         }
         if (elements[i].innerText.includes('Green Mode')) {
             elements[i].className = 'leaf-node';
-            elements[i].innerHTML = '<div class="leaf-inner-text">🌱<br>Green View</div>';
+            elements[i].innerHTML = '<div class="leaf-inner-text">🌱<br>Green + Utility</div>';
         }
     }
     </script>
     """, unsafe_allow_html=True)
 
-# --- 3. DYNAMIC BAR GRAPH VIEW ---
+# --- 3. UNIFIED BAR MATRIX GRAPH (GRID DATA + CAPEX + OPEX PACKED INSIDE) ---
 if st.session_state["matrix_chart_target"] == "emission":
+    # Group Emissions with Grid, Capex Gen, and Opex Gen
+    df_melted = df_filtered.melt(
+        id_vars=["unit"], 
+        value_vars=["emission", "grid_mvah", "capex_gen", "opex_gen"],
+        var_name="Telemetry Metric", value_name="Scale Value"
+    )
+    df_melted["Telemetry Metric"] = df_melted["Telemetry Metric"].replace({
+        "emission": "🏭 Gross Emissions (MT CO₂)",
+        "grid_mvah": "⚡ Grid Drawdown (MVAh)",
+        "capex_gen": "☀️ Solar CAPEX Gen (MWh)",
+        "opex_gen": "⚙️ Solar OPEX Gen (MWh)"
+    })
     fig_primary = px.bar(
-        df_filtered, x="unit", y="emission", color="vertical",
-        title="🏭 Active Gross Emissions Stack (MT CO₂)", color_discrete_sequence=px.colors.sequential.Blues_r
+        df_melted, x="unit", y="Scale Value", color="Telemetry Metric", barmode="group",
+        title="📊 Facility Output Matrix: Carbon Profile vs Energy Utilities",
+        color_discrete_sequence=["#ef4444", "#0ea5e9", "#f59e0b", "#10b981"]
     )
 else:
-    fig_primary = px.bar(
-        df_filtered, x="unit", y="mitigation", color="vertical",
-        title="🍏 Active Offsets & Mitigation Profile (MT CO₂)", color_discrete_sequence=px.colors.sequential.Greens_r
+    # Group Offsets/Mitigation with Grid, Capex Gen, and Opex Gen
+    df_melted = df_filtered.melt(
+        id_vars=["unit"], 
+        value_vars=["mitigation", "grid_mvah", "capex_gen", "opex_gen"],
+        var_name="Telemetry Metric", value_name="Scale Value"
     )
-fig_primary.update_layout(height=360, margin=dict(t=30, b=10, l=10, r=10))
+    df_melted["Telemetry Metric"] = df_melted["Telemetry Metric"].replace({
+        "mitigation": "🍏 Carbon Mitigated (MT CO₂)",
+        "grid_mvah": "⚡ Grid Drawdown (MVAh)",
+        "capex_gen": "☀️ Solar CAPEX Gen (MWh)",
+        "opex_gen": "⚙️ Solar OPEX Gen (MWh)"
+    })
+    fig_primary = px.bar(
+        df_melted, x="unit", y="Scale Value", color="Telemetry Metric", barmode="group",
+        title="📊 Facility Output Matrix: Green Mitigation profile vs Energy Utilities",
+        color_discrete_sequence=["#22c55e", "#0ea5e9", "#f59e0b", "#10b981"]
+    )
+
+fig_primary.update_layout(height=420, margin=dict(t=40, b=15, l=10, r=10), hovermode="x unified")
 st.plotly_chart(fig_primary, use_container_width=True)
 
 st.markdown("---")
 
-# --- 4. THE MAP SECTION ---
-st.subheader("🗺️ Telemetry Geospatial Node Allocation Map")
+# --- 4. GEOSPATIAL MAP SEGMENT ---
+st.subheader("🗺️ Telepatial Asset Distribution Node Map")
 fig_global_map = px.scatter_mapbox(
     df_filtered, lat="lat", lon="lon",
     size="total_energy_footprint", color="vertical",
     hover_name="unit", hover_data=["location", "grid_mvah", "emission"],
-    zoom=4.0, height=450, color_discrete_sequence=px.colors.qualitative.Prism
+    zoom=4.0, height=450, color_discrete_sequence=px.colors.qualitative.Safe
 )
 fig_global_map.update_layout(mapbox_style="carto-positron", margin=dict(l=0, r=0, t=0, b=0))
 st.plotly_chart(fig_global_map, use_container_width=True)
 
 st.markdown("---")
 
-# --- 5. THE DATA EXPANDERS (CAPEX, OPEX, GRID DRAWDOWN DETAILS) ---
-st.subheader("📋 Infrastructure Node Register & Financial Ledger")
-st.caption("Expand any node block below to pull complete engineering parameters, financial distributions, and carbon mitigation scales.")
-
+# --- 5. DETAILED PLANT LOGS LEDGER ---
+st.subheader("📋 Infrastructure Node Register Details")
 for idx, row in df_filtered.iterrows():
-    card_title = f"📦 [{row['unit']}] Location: {row['location']} — Sourced Grid: {row['grid_mvah']:,.2f} MVAh"
+    card_title = f"📦 [{row['unit']}] Facility Location: {row['location']} — Annual Sourced Grid: {row['grid_mvah']:,.2f} MVAh"
     
     with st.expander(card_title):
         col_f1, col_f2, col_f3, col_f4 = st.columns(4)
-        col_f1.metric("Yearly Grid Sourcing", f"{row['grid_mvah']:,.2f} MVAh")
+        col_f1.metric("Yearly Grid Drawdown", f"{row['grid_mvah']:,.2f} MVAh")
         col_f2.metric("Green Shift Percentage", f"{row['replacement_pct']}%")
-        col_f3.metric("Diesel (DG) Sideload", f"{int(row['dg']):,} Liters")
+        col_f3.metric("Diesel (DG) Load Volume", f"{int(row['dg']):,} Liters")
         col_f4.metric("CAPEX Array Capacity", f"{int(row['capex_capacity']):,} kWp")
         
         st.markdown("<div style='margin-top: 12px;'></div>", unsafe_allow_html=True)
@@ -286,38 +357,3 @@ for idx, row in df_filtered.iterrows():
         col_s2.metric("CAPEX Solar Generation", f"{row['capex_gen']:,.2f} MWh")
         col_s3.metric("OPEX Solar Generation", f"{row['opex_gen']:,.2f} MWh")
         col_s4.metric("Mitigation/Emission Ratio", f"{int(row['mitigation'])} / {int(row['emission'])} MT")
-
-st.markdown("---")
-
-# --- 6. INLINE AI AGENT WINDOW ---
-st.subheader("🤖 Systems Telemetry Chatbot Link")
-if "chat_history" not in st.session_state:
-    st.session_state["chat_history"] = [{"role": "assistant", "content": "Ecosystem data sync complete. Audit requests active."}]
-
-chat_box = st.container(height=240)
-for message in st.session_state["chat_history"]:
-    chat_box.chat_message(message["role"]).write(message["content"])
-
-if prompt_str := st.chat_input("Enter evaluation criteria query..."):
-    st.session_state["chat_history"].append({"role": "user", "content": prompt_str})
-    chat_box.chat_message("user").write(prompt_str)
-    
-    clean_prompt = prompt_str.lower().strip()
-    ai_response = ""
-    
-    if "grid" in clean_prompt or "drawdown" in clean_prompt:
-        ai_response = f"⚡ **Grid Power Audit:** Combined grid utility usage amounts to **{df_master['grid_mvah'].sum():,.2f} MVAh** across all manufacturing sectors."
-    elif "capex" in clean_prompt or "opex" in clean_prompt:
-        ai_response = f"💰 **Solar Allocation Summary:** Combined CAPEX capacity setup metrics stand at **{int(df_master['capex_capacity'].sum()):,} kWp**, while active OPEX frameworks track at **{int(df_master['opex_capacity'].sum()):,} kWp**."
-    else:
-        located = False
-        for _, r in df_master.iterrows():
-            if r['unit'].lower() in clean_prompt:
-                ai_response = f"🔍 **Record Matrix [{r['unit']}]:** Grid: {r['grid_mvah']} MVAh | CAPEX Solar Gen: {r['capex_gen']} MWh | OPEX Solar Gen: {r['opex_gen']} MWh."
-                located = True
-                break
-        if not located:
-            ai_response = "Telemetry context unparsed. Try querying 'yearly grid usage', 'capex capacity values', or enter a localized asset token code like 'SAD'."
-            
-    st.session_state["chat_history"].append({"role": "assistant", "content": ai_response})
-    chat_box.chat_message("assistant").write(ai_response)
