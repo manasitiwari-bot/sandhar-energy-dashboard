@@ -132,7 +132,7 @@ st.sidebar.header("🕹️ Filter Options")
 selected_vertical = st.sidebar.selectbox("Business Vertical Slices", ["All Business Verticals"] + list(df_master['vertical'].unique()))
 df_filtered = df_master.copy() if selected_vertical == "All Business Verticals" else df_master[df_master['vertical'] == selected_vertical].copy()
 
-# 🎚️ COOL FEATURE 1: Interactive Dynamic Goal Slider
+# 🎚️ Sustainability Simulator Slider
 st.sidebar.markdown("---")
 st.sidebar.subheader("🎯 Sustainability Goal Simulator")
 emission_target = st.sidebar.slider("Target Max Emission Allowance per Unit (MT)", 50, 15000, 5000, step=100)
@@ -225,7 +225,7 @@ if page_routing == "📊 Performance Dashboard":
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Layout split: Charts on left, moving Leaderboard on right
+    # Layout split: Fixed line with custom structural width parameters
     col_chart, col_leaderboard = st.columns()
     
     with col_chart:
@@ -241,7 +241,6 @@ if page_routing == "📊 Performance Dashboard":
             "opex_gen": "OPEX Solar Gen (MWh)"
         })
         
-        # Premium Glow/Dark Chart configuration
         fig_master = px.bar(
             df_chart_melted, x="unit", y="Energy Metrics", color="Energy Utility Type",
             barmode="group", color_discrete_sequence=["#2563eb", "#f59e0b", "#10b981"]
@@ -258,7 +257,6 @@ if page_routing == "📊 Performance Dashboard":
     with col_leaderboard:
         st.subheader("🏆 Carbon Leaderboards")
         
-        # Calculate dynamic leaders
         top_mitigators = df_master.nlargest(3, 'mitigation')[['unit', 'mitigation']]
         over_emitters = df_master[df_master['emission'] > emission_target][['unit', 'emission']]
         
@@ -282,7 +280,6 @@ if page_routing == "📊 Performance Dashboard":
     # Expandable Plant Level Ledger Cards 
     st.subheader("📋 Plant Level Assets Operational Ledger")
     for idx, row in df_filtered.iterrows():
-        # Visual color cue matching our target slider
         status_icon = "🛑" if row['emission'] > emission_target else "📦"
         card_title = f"{status_icon} [{row['unit']}] Location: {row['location']} — Verified Grid: {row['grid_mvah']:,.3f} MVAh"
         
