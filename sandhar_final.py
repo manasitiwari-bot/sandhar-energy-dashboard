@@ -106,53 +106,76 @@ df_filtered = df_master.copy() if selected_vertical == "All Business Verticals" 
 
 page_routing = st.sidebar.radio("🧭 Navigate Workspace", ["📊 Performance Dashboard", "🗺️ Interactive Map View"])
 
-# --- 🤖 INTEGRATED SIDEBAR DATA CHATBOT ---
+# --- 🤖 UPGRADED SIDEBAR DATA CHATBOT ---
 st.sidebar.markdown("---")
 st.sidebar.subheader("🤖 Sandhar Telemetry AI")
 
 if "chat_history" not in st.session_state:
-    st.session_state["chat_history"] = [{"role": "assistant", "content": "Ask me anything about Sandhar's energy footprint!"}]
+    st.session_state["chat_history"] = [{"role": "assistant", "content": "Hi! Ask me anything about Sandhar's energy footprint or type 'summary' for an insight report."}]
 
 # Chat display box
-chat_container = st.sidebar.container(height=240)
+chat_container = st.sidebar.container(height=260)
 for msg in st.session_state["chat_history"]:
     chat_container.chat_message(msg["role"]).write(msg["content"])
 
 # User query logic processing the internal dataframe
-if user_query := st.sidebar.chat_input("Ask about units, emissions..."):
+if user_query := st.sidebar.chat_input("Say hi, ask for a summary, or a plant..."):
     st.session_state["chat_history"].append({"role": "user", "content": user_query})
     chat_container.chat_message("user").write(user_query)
     
-    query_lower = user_query.lower()
+    query_lower = user_query.lower().strip()
     response = ""
     
-    if "total emission" in query_lower or "emissions" in query_lower:
+    # 1. GREETING CONTEXT LAYER
+    if query_lower in ["hi", "hii", "hello", "hey", "hola", "good morning", "good afternoon", "wassup"]:
+        response = "Hello! I am ready to parse telemetry data. You can ask for calculations like 'average emission', plant metrics like 'tell me about ACM', or type 'summary'!"
+    
+    # 2. AUTOMATED EXECUTIVE SUMMARY REPORT
+    elif "summary" in query_lower or "report" in query_lower or "insights" in query_lower:
+        total_plants = len(df_master)
+        max_emit_row = df_master.loc[df_master['emission'].idxmax()]
+        max_mit_row = df_master.loc[df_master['mitigation'].idxmax()]
+        avg_grid = df_master['grid_mvah'].mean()
+        
+        response = (
+            f"📊 **Sandhar Asset Intelligence Report:**\n\n"
+            f"• **Operational Scale:** Tracking {total_plants} active factory infrastructure nodes.\n"
+            f"• **Highest Green Asset:** Unit **{max_mit_row['unit']}** has successfully mitigated the most carbon at {max_mit_row['mitigation']:,} MT.\n"
+            f"• **Critical Focus Area:** Unit **{max_emit_row['unit']}** has the highest emission footprint at {max_emit_row['emission']:,} MT.\n"
+            f"• **Grid Intensity:** Average grid sourcing across all nodes stands at {avg_grid:,.2f} MVAh."
+        )
+        
+    # 3. ON-THE-FLY STATISTICAL MATH COMPUTATIONS
+    elif "average emission" in query_lower or "avg emission" in query_lower:
+        avg_emit = df_master['emission'].mean()
+        response = f"The average carbon emission across our operational footprint is **{avg_emit:,.2f} MT** per facility."
+    elif "total solar" in query_lower or "solar gen" in query_lower or "generation" in query_lower:
+        total_solar = df_master['capex_gen'].sum() + df_master['opex_gen'].sum()
+        response = f"Sandhar generated a combined total of **{total_solar:,.2f} MWh** of green energy across all solar arrays."
+    elif "total emission" in query_lower or "emissions" in query_lower:
         total_emit = int(df_master['emission'].sum())
-        response = f"The total carbon emissions across all operational facilities is {total_emit:,} MT."
+        response = f"The total carbon emissions across all operational facilities combined is {total_emit:,} MT."
     elif "highest grid" in query_lower or "max grid" in query_lower:
         max_row = df_master.loc[df_master['grid_mvah'].idxmax()]
-        response = f"Unit {max_row['unit']} located in {max_row['location']} has the highest grid sourcing at {max_row['grid_mvah']:,.2f} MVAh."
+        response = f"Unit {max_row['unit']} located in {max_row['location']} has the highest grid drawing capacity at {max_row['grid_mvah']:,.2f} MVAh."
     elif "total mitigation" in query_lower or "carbon saved" in query_lower or "mitigation" in query_lower:
         total_mit = int(df_master['mitigation'].sum())
-        response = f"Sandhar has successfully mitigated {total_mit:,} MT of carbon footprint via active green infrastructure."
-    elif "highest emission" in query_lower or "worst unit" in query_lower:
-        max_emit = df_master.loc[df_master['emission'].idxmax()]
-        response = f"Unit {max_emit['unit']} ({max_emit['vertical']}) has the highest emission footprint at {max_emit['emission']:,} MT."
+        response = f"Sandhar has successfully mitigated {total_mit:,} MT of carbon emissions via green infrastructure investments."
     elif "list units" in query_lower or "how many units" in query_lower:
-        response = f"There are currently {len(df_master)} active physical nodes tracking energy ledger telemetries."
+        response = f"There are currently {len(df_master)} active physical nodes tracking matrix data inputs."
+        
+    # 4. FUZZY MATCH PLANT DATA CARDS
     else:
-        # Clean and normalize the query to match units safely
         matched_unit = None
         u_data = None
         
-        # Look through the actual dataframe rows directly
+        # Iterates and matches unit sequences safely
         for idx, row in df_master.iterrows():
             if row['unit'].lower() in query_lower:
                 matched_unit = row['unit']
-                u_data = row.to_dict()  # Convert the matched row directly to a clean dictionary
+                u_data = row.to_dict()
                 break
         
-        # Fallback check to match fragments (e.g. typing "SAD" matches "SAD & SPB")
         if not matched_unit:
             for idx, row in df_master.iterrows():
                 if any(part.strip().lower() in query_lower for part in row['unit'].split('&')):
@@ -160,11 +183,10 @@ if user_query := st.sidebar.chat_input("Ask about units, emissions..."):
                     u_data = row.to_dict()
                     break
 
-        # FIXED: Generates response using safe dictionary structure populated right from the loops
         if matched_unit and u_data:
             response = f"**Asset Ledger [{matched_unit}]:** Located in {u_data['location']}. Grid Drawdown: {u_data['grid_mvah']:,.2f} MVAh, Mitigated Carbon: {u_data['mitigation']} MT, Total Emission Footprint: {u_data['emission']} MT."
         else:
-            response = "I can compute total metrics instantly! Try asking: 'What is the total emission?', 'Which unit has the highest grid sourcing?', or search a specific unit like 'Tell me about ACM'."
+            response = "I couldn't quite find that. Try saying 'hi', 'summary', or naming a specific unit code like 'SAD' or 'ACM'!"
 
     st.session_state["chat_history"].append({"role": "assistant", "content": response})
     chat_container.chat_message("assistant").write(response)
