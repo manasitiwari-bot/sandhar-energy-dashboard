@@ -10,10 +10,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# 🎨 PREMIUM GRAPHICS & MOVING STUFF ENGINE (Custom CSS)
+# 🎨 PREMIUM GRAPHICS ENGINE (Custom CSS)
 st.markdown("""
     <style>
-    /* Pulse Animation for Live Effect */
     @keyframes pulse {
         0% { transform: scale(0.95); opacity: 0.5; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
         70% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
@@ -29,23 +28,13 @@ st.markdown("""
         animation: pulse 2s infinite;
         vertical-align: middle;
     }
-    
-    /* Sleek Cards Framework */
     div[data-testid="stMetric"] {
         background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
         border: 1px solid #e2e8f0;
         border-radius: 12px !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         padding: 1rem !important;
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     }
-    div[data-testid="stMetric"]:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        border-color: #cbd5e1;
-    }
-    
-    /* Typography Overhauls */
     h1 { font-family: 'Inter', sans-serif; font-weight: 800 !important; color: #0f172a !important; }
     h2 { font-family: 'Inter', sans-serif; font-weight: 700 !important; color: #1e293b !important; }
     </style>
@@ -132,7 +121,7 @@ st.sidebar.header("🕹️ Filter Options")
 selected_vertical = st.sidebar.selectbox("Business Vertical Slices", ["All Business Verticals"] + list(df_master['vertical'].unique()))
 df_filtered = df_master.copy() if selected_vertical == "All Business Verticals" else df_master[df_master['vertical'] == selected_vertical].copy()
 
-# 🎚️ Sustainability Simulator Slider
+# Sustainability Simulator Slider
 st.sidebar.markdown("---")
 st.sidebar.subheader("🎯 Sustainability Goal Simulator")
 emission_target = st.sidebar.slider("Target Max Emission Allowance per Unit (MT)", 50, 15000, 5000, step=100)
@@ -212,7 +201,6 @@ if user_query := st.sidebar.chat_input("Say hi, ask for a summary, or a plant...
 
 # --- WORKSPACE PAGE 1: DASHBOARD PERFORMANCE ---
 if page_routing == "📊 Performance Dashboard":
-    # Glowing title banner
     st.markdown('<h1><span class="live-indicator"></span>Sandhar Energy Analytics Matrix</h1>', unsafe_allow_html=True)
     st.caption("Live asset summary across active industrial infrastructure nodes.")
     st.markdown("---")
@@ -225,55 +213,52 @@ if page_routing == "📊 Performance Dashboard":
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Layout split: Fixed line with custom structural width parameters
-    col_chart, col_leaderboard = st.columns()
+    # 🌟 FIXED SECTION: Stacked elements to ensure zero layout exceptions
+    st.subheader("📈 High-Contrast Performance Matrix")
+    df_chart_melted = df_filtered.melt(
+        id_vars=["unit"], 
+        value_vars=["grid_mvah", "capex_gen", "opex_gen"],
+        var_name="Energy Utility Type", value_name="Energy Metrics"
+    )
+    df_chart_melted["Energy Utility Type"] = df_chart_melted["Energy Utility Type"].replace({
+        "grid_mvah": "Yearly Grid Sourcing (MVAh)",
+        "capex_gen": "CAPEX Solar Gen (MWh)",
+        "opex_gen": "OPEX Solar Gen (MWh)"
+    })
     
-    with col_chart:
-        st.subheader("📈 High-Contrast Performance Matrix")
-        df_chart_melted = df_filtered.melt(
-            id_vars=["unit"], 
-            value_vars=["grid_mvah", "capex_gen", "opex_gen"],
-            var_name="Energy Utility Type", value_name="Energy Metrics"
-        )
-        df_chart_melted["Energy Utility Type"] = df_chart_melted["Energy Utility Type"].replace({
-            "grid_mvah": "Yearly Grid Sourcing (MVAh)",
-            "capex_gen": "CAPEX Solar Gen (MWh)",
-            "opex_gen": "OPEX Solar Gen (MWh)"
-        })
-        
-        fig_master = px.bar(
-            df_chart_melted, x="unit", y="Energy Metrics", color="Energy Utility Type",
-            barmode="group", color_discrete_sequence=["#2563eb", "#f59e0b", "#10b981"]
-        )
-        fig_master.update_layout(
-            plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-            margin=dict(l=10, r=10, t=20, b=10), height=400,
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-            xaxis=dict(gridcolor="#f1f5f9", title=""),
-            yaxis=dict(gridcolor="#f1f5f9")
-        )
-        st.plotly_chart(fig_master, use_container_width=True)
+    fig_master = px.bar(
+        df_chart_melted, x="unit", y="Energy Metrics", color="Energy Utility Type",
+        barmode="group", color_discrete_sequence=["#2563eb", "#f59e0b", "#10b981"]
+    )
+    fig_master.update_layout(
+        plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=10, r=10, t=20, b=10), height=400,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        xaxis=dict(gridcolor="#f1f5f9", title=""),
+        yaxis=dict(gridcolor="#f1f5f9")
+    )
+    st.plotly_chart(fig_master, use_container_width=True)
 
-    with col_leaderboard:
-        st.subheader("🏆 Carbon Leaderboards")
-        
-        top_mitigators = df_master.nlargest(3, 'mitigation')[['unit', 'mitigation']]
-        over_emitters = df_master[df_master['emission'] > emission_target][['unit', 'emission']]
-        
-        tab1, tab2 = st.tabs(["🌱 Top Green Units", "🚨 Exceeding Target"])
-        
-        with tab1:
-            for _, row in top_mitigators.iterrows():
-                st.write(f"🍏 **{row['unit']}**: {int(row['mitigation'])} MT saved")
-                st.progress(min(int(row['mitigation']) / 8000, 1.0))
-                
-        with tab2:
-            if over_emitters.empty:
-                st.success("All plants are operating clean under your selected target!")
-            else:
-                for _, row in over_emitters.iterrows():
-                    st.write(f"🛑 **{row['unit']}**: {int(row['emission'])} MT (Over Target!)")
-                    st.progress(min(int(row['emission']) / 14000, 1.0))
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.subheader("🏆 Carbon Leaderboards")
+    
+    top_mitigators = df_master.nlargest(3, 'mitigation')[['unit', 'mitigation']]
+    over_emitters = df_master[df_master['emission'] > emission_target][['unit', 'emission']]
+    
+    tab1, tab2 = st.tabs(["🌱 Top Green Units", "🚨 Exceeding Target"])
+    
+    with tab1:
+        for _, row in top_mitigators.iterrows():
+            st.write(f"🍏 **{row['unit']}**: {int(row['mitigation'])} MT saved")
+            st.progress(min(int(row['mitigation']) / 8000, 1.0))
+            
+    with tab2:
+        if over_emitters.empty:
+            st.success("All plants are operating clean under your selected target!")
+        else:
+            for _, row in over_emitters.iterrows():
+                st.write(f"🛑 **{row['unit']}**: {int(row['emission'])} MT (Over Target!)")
+                st.progress(min(int(row['emission']) / 14000, 1.0))
 
     st.markdown("<br>", unsafe_allow_html=True)
     
