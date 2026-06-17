@@ -283,7 +283,7 @@ st.markdown("""
     </script>
     """, unsafe_allow_html=True)
 
-# --- 3. THE UNIFIED DATA MATRIX GRAPH (GRID DATA + CAPEX + OPEX MOVED HERE) ---
+# --- 3. THE UNIFIED DATA MATRIX GRAPH ---
 if st.session_state["matrix_chart_target"] == "emission":
     df_melted = df_filtered.melt(
         id_vars=["unit"], 
@@ -359,35 +359,44 @@ for idx, row in df_filtered.iterrows():
 
 st.markdown("---")
 
-# --- 6. THE RESTORED CHATBOT TERMINAL ---
+# --- 6. 🤖 INTELLIGENT UPGRADED CONVERSATIONAL CHATBOT LOOP ---
 st.subheader("🤖 Sandhar Energy Intelligence Agent")
 if "chat_history" not in st.session_state:
-    st.session_state["chat_history"] = [{"role": "assistant", "content": "Sandhar Energy context linked. Ask me details on Grid sourcing timelines, solar investments or plant metrics."}]
+    st.session_state["chat_history"] = [{"role": "assistant", "content": "Hello! I am your Sandhar Energy Assistant. What would you like to know about our metrics today?"}]
 
-chat_box = st.container(height=240)
+chat_box = st.container(height=260)
 for message in st.session_state["chat_history"]:
     chat_box.chat_message(message["role"]).write(message["content"])
 
-if prompt_str := st.chat_input("Ask a question regarding Sandhar Energy metrics..."):
+if prompt_str := st.chat_input("Ask about Sandhar's power metrics or say hi..."):
     st.session_state["chat_history"].append({"role": "user", "content": prompt_str})
     chat_box.chat_message("user").write(prompt_str)
     
     clean_prompt = prompt_str.lower().strip()
     ai_response = ""
     
-    if "grid" in clean_prompt or "drawdown" in clean_prompt:
-        ai_response = f"⚡ **Sandhar Energy Audit:** Combined grid operational consumption trends hit a gross matrix line of **{df_master['grid_mvah'].sum():,.2f} MVAh** globally."
+    # Check for friendly greeting
+    if clean_prompt in ["hi", "hii", "hello", "hey", "yo"]:
+        ai_response = "Hello! 👋 Great to have you here. What would you like to know about Sandhar's energy tracking metrics?"
+    # Check for grid analytics
+    elif "grid" in clean_prompt or "drawdown" in clean_prompt:
+        ai_response = f"⚡ **Sandhar Energy Audit:** Combined grid utility usage amounts to **{df_master['grid_mvah'].sum():,.2f} MVAh** across all active manufacturing installations."
+    # Check for financial setup profiles
     elif "capex" in clean_prompt or "opex" in clean_prompt:
-        ai_response = f"💰 **Ecosystem Solar Yields:** Collective CAPEX solar arrays generate **{df_master['capex_gen'].sum():,.2f} MWh** and active OPEX layouts yield **{df_master['opex_gen'].sum():,.2f} MWh**."
+        ai_response = f"💰 **Solar Infrastructure Metrics:** Collective CAPEX solar arrays generate **{df_master['capex_gen'].sum():,.2f} MWh**, while active OPEX layout models yield **{df_master['opex_gen'].sum():,.2f} MWh**."
+    # Check for a specific localized plant identifier
     else:
         located = False
         for _, r in df_master.iterrows():
             if r['unit'].lower() in clean_prompt:
-                ai_response = f"🔍 **Ecosystem Record [{r['unit']}]:** Grid Sourced: {r['grid_mvah']} MVAh | Solar Generation (CAPEX): {r['capex_gen']} MWh | Solar Generation (OPEX): {r['opex_gen']} MWh."
+                ai_response = f"🔍 **Ecosystem Record Matrix [{r['unit']}]:** Grid Sourced: {r['grid_mvah']} MVAh | Solar Gen (CAPEX): {r['capex_gen']} MWh | Solar Gen (OPEX): {r['opex_gen']} MWh."
                 located = True
                 break
         if not located:
-            ai_response = "Energy signature not identified. Inquire about terms like 'yearly grid drawdowns', 'total capex investment fields', or specify operational plant identifiers like 'SAD'."
+            ai_response = "I couldn't quite map that. You can ask me about terms like 'yearly grid drawdowns', 'total capex fields', or inspect a specific location index like 'SAD'."
+
+    # Appending the dynamic "What else do you want to know?" loop closer
+    ai_response += " \n\n*Please let me know what else you want to know!*"
             
     st.session_state["chat_history"].append({"role": "assistant", "content": ai_response})
     chat_box.chat_message("assistant").write(ai_response)
