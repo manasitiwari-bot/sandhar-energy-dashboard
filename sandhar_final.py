@@ -5,72 +5,97 @@ import io
 
 # 1. Page Configuration
 st.set_page_config(
-    page_title="Sandhar Green Matrix Workspace",
+    page_title="Sandhar Ecosystem Matrix",
     page_icon="🌱",
     layout="wide"
 )
 
-# 🎨 THE HIGH-PERFORMANCE ANIMATION LAYER (Custom CSS)
+# 🎨 CUSTOM STYLESHEET FOR DYNAMIC DROPLETS AND LEAVES
 st.markdown("""
     <style>
-    /* 1. Global Page Component Entry Animation */
-    @keyframes slideUpEntrance {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Apply entry animation cleanly to key framework layout zones */
-    div[data-testid="stMetric"], .stExpander, .stPlotlyChart, div[data-testid="stChatMessage"] {
-        animation: slideUpEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-    }
-
-    /* Staggered delay for rows to create a smooth sequenced ripple load effect */
-    div[data-testid="stMetric"]:nth-child(1) { animation-delay: 0.1s; }
-    div[data-testid="stMetric"]:nth-child(2) { animation-delay: 0.2s; }
-    div[data-testid="stMetric"]:nth-child(3) { animation-delay: 0.3s; }
-
-    /* 2. Interactive Magnetic Lift & Shadow Hover Responses */
-    div[data-testid="stMetric"], .stExpander {
-        border-radius: 14px !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
-        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s !important;
+    /* Global Entry Reset */
+    @keyframes shapeFade {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     
-    div[data-testid="stMetric"]:hover, .stExpander:hover {
-        transform: translateY(-5px) scale(1.01);
-        box-shadow: 0 12px 24px rgba(16, 185, 129, 0.15) !important;
-        border-color: rgba(16, 185, 129, 0.4) !important;
+    /* Container Row Setup */
+    .shape-container {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        margin: 30px 0;
+        animation: shapeFade 0.5s ease-out;
     }
 
-    /* 3. Live Glowing Heartbeat Indicator */
-    @keyframes greenPulse {
-        0% { transform: scale(0.92); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); opacity: 0.6; }
-        70% { transform: scale(1.08); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); opacity: 1; }
-        100% { transform: scale(0.92); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); opacity: 0.6; }
+    /* 💧 THE LIQUID DROPLET BUTTON STYLE */
+    .droplet-btn {
+        width: 110px;
+        height: 110px;
+        background: linear-gradient(135deg, #38bdf8, #0284c7);
+        border-radius: 0% 100% 100% 100%;
+        transform: rotate(45deg);
+        box-shadow: 0 8px 20px rgba(2, 132, 199, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: none;
     }
-    .live-indicator {
-        display: inline-block;
-        width: 14px;
-        height: 14px;
-        background-color: #10b981;
-        border-radius: 50%;
-        margin-right: 12px;
-        animation: greenPulse 2.2s ease-in-out infinite;
-        vertical-align: middle;
+    .droplet-btn:hover {
+        transform: rotate(45deg) scale(1.08);
+        box-shadow: 0 12px 28px rgba(2, 132, 199, 0.5);
     }
-    
-    /* Login Framework Structure */
-    .portal-banner {
+    .droplet-text {
+        transform: rotate(-45deg);
+        color: white;
+        font-weight: bold;
+        font-size: 14px;
         text-align: center;
-        border-bottom: 3px solid #10b981;
-        padding-bottom: 15px;
-        margin-bottom: 25px;
+        font-family: sans-serif;
+    }
+
+    /* 🌱 THE ECO LEAF BUTTON STYLE */
+    .leaf-btn {
+        width: 110px;
+        height: 110px;
+        background: linear-gradient(135deg, #4ade80, #16a34a);
+        border-radius: 100% 0% 100% 0%;
+        box-shadow: 0 8px 20px rgba(22, 163, 74, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: none;
+    }
+    .leaf-btn:hover {
+        transform: scale(1.08) rotate(5deg);
+        box-shadow: 0 12px 28px rgba(22, 163, 74, 0.5);
+    }
+    .leaf-text {
+        color: white;
+        font-weight: bold;
+        font-size: 14px;
+        text-align: center;
+        font-family: sans-serif;
+    }
+    
+    /* Clean text for details segment */
+    .info-pane {
+        padding: 20px;
+        border-radius: 16px;
+        border-left: 5px solid #0284c7;
+        margin-top: 15px;
+        background-color: rgba(2, 132, 199, 0.05);
+    }
+    .info-pane-green {
+        padding: 20px;
+        border-radius: 16px;
+        border-left: 5px solid #16a34a;
+        margin-top: 15px;
+        background-color: rgba(22, 163, 74, 0.05);
     }
     </style>
     """, unsafe_allow_html=True)
@@ -83,7 +108,7 @@ if not st.session_state["authenticated"]:
     _, col_center, _ = st.columns([1, 1.4, 1])
     
     with col_center:
-        st.markdown('<div class="portal-banner"><h2>🌱 Sandhar Green Portal</h2><p>Telemetry Identity Verification Terminal</p></div>', unsafe_allow_html=True)
+        st.markdown('<div style="text-align:center; padding: 20px; border-bottom:3px solid #16a34a;"><h2>🌱 Sandhar Eco Portal</h2><p>Identity Verification Terminal</p></div>', unsafe_allow_html=True)
         username = st.text_input("Matrix Operator Key", placeholder="Username ID")
         password = st.text_input("Access Authorization Token", type="password", placeholder="••••••••")
         
@@ -96,7 +121,7 @@ if not st.session_state["authenticated"]:
                 st.error("System access codes rejected.")
     st.stop()
 
-# 3. Secure Master Data Matrix
+# 3. Load Dataset Matrix
 @st.cache_data
 def load_verified_spreadsheet_matrix():
     csv_data = """vertical,unit,location,grid_mvah,capex_capacity,opex_capacity,replacement_pct,dg,mitigation,emission,capex_gen,opex_gen,lat,lon
@@ -148,158 +173,118 @@ Plastic Business,SCD,Gurugram,2538.911,110,132,42,52045,772,1846,0.0,237.971,28.
 
 df_master = load_verified_spreadsheet_matrix()
 
-# --- SIDEBAR CONTROL PANEL ---
-st.sidebar.markdown("🔒 **Telemetry Link Connected**")
-if st.sidebar.button("Log Out Node Context"):
-    st.session_state["authenticated"] = False
-    st.rerun()
+# --- INITIALIZE ACTIVE TRIGGER STATE ---
+if "active_matrix_view" not in st.session_state:
+    st.session_state["active_matrix_view"] = "carbon"  # default view
 
-st.sidebar.header("🕹️ Filter Options")
-selected_vertical = st.sidebar.selectbox("Business Vertical Slices", ["All Business Verticals"] + list(df_master['vertical'].unique()))
-df_filtered = df_master.copy() if selected_vertical == "All Business Verticals" else df_master[df_master['vertical'] == selected_vertical].copy()
-
-st.sidebar.markdown("---")
-st.sidebar.subheader("🎯 Safety Emissions Target")
-emission_target = st.sidebar.slider("Tag Out Warning Limit (MT)", 50, 15000, 5000, step=100)
-
-# --- MAIN INDUSTRIAL WORKSPACE ---
-st.markdown('<h1><span class="live-indicator"></span>Sandhar Energy Animated Matrix</h1>', unsafe_allow_html=True)
-st.caption("Responsive layout with interactive graphs, active geospatial map indexing, and an inline AI auditor.")
+# --- MAIN INTERACTIVE CANVAS ---
+st.title("🌱 Sandhar Nature-Inspired Matrix Workspace")
+st.caption("Click on the Droplet shape or Leaf shape to seamlessly filter and reveal operational telemetry data layers.")
 st.markdown("---")
 
-# Core Aggregations
-m1, m2, m3 = st.columns(3)
-m1.metric("⚡ Combined Grid Drawdown", f"{df_filtered['grid_mvah'].sum():,.2f} MVAh")
-m2.metric("🌱 Mitigated Carbon Slices", f"{int(df_filtered['mitigation'].sum()):,} MT CO₂")
-m3.metric("🛢️ Grid Footprint Emissions", f"{int(df_filtered['emission'].sum()):,} MT CO₂")
+# 💧 & 🌱 THE DYNAMIC ACTIVE GRID ROW
+col_left_drop, col_right_leaf = st.columns(2)
+
+with col_left_drop:
+    st.markdown('<div class="shape-container">', unsafe_allow_html=True)
+    if st.button("💧\nCarbon\nEmission", key="trigger_droplet", use_container_width=False):
+        st.session_state["active_matrix_view"] = "carbon"
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; font-weight:bold;'>Click Droplet for Carbon Emissions Matrix</p>", unsafe_allow_html=True)
+
+with col_right_leaf:
+    st.markdown('<div class="shape-container">', unsafe_allow_html=True)
+    if st.button("🌱\nGreen\nOffset", key="trigger_leaf", use_container_width=False):
+        st.session_state["active_matrix_view"] = "mitigation"
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; font-weight:bold;'>Click Leaf for Green Mitigation Matrix</p>", unsafe_allow_html=True)
+
+# CSS trick to injection format native buttons to shapes
+st.markdown("""
+    <script>
+    var buttons = window.parent.document.getElementsByTagName('button');
+    for (var i = 0; i < buttons.length; i++) {
+        if (buttons[i].innerText.includes('Carbon')) {
+            buttons[i].className = 'droplet-btn';
+            buttons[i].innerHTML = '<div class="droplet-text">💧<br>Carbon<br>Output</div>';
+        }
+        if (buttons[i].innerText.includes('Offset')) {
+            buttons[i].className = 'leaf-btn';
+            buttons[i].innerHTML = '<div class="leaf-text">🌱<br>Green<br>Mitigate</div>';
+        }
+    }
+    </script>
+    """, unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# 🌐 ROW 1: ANIMATED BAR GRAPH SIDE-BY-SIDE WITH AI CHATBOT
-col_left_graph, col_right_ai = st.columns([1.6, 1])
+# --- DYNAMIC DATA RENDERING PANE ---
+if st.session_state["active_matrix_view"] == "carbon":
+    st.markdown('<div class="info-pane"><h3>💧 Dynamic Readout: Carbon Footprint Matrix</h3></div>', unsafe_allow_html=True)
+    
+    # Render Carbon Graph Matrix
+    fig_carbon = px.bar(
+        df_master, x="unit", y="emission", color="vertical",
+        title="Total Factory Plant Footprint Output (MT CO₂)",
+        color_discrete_sequence=px.colors.sequential.Blues_r
+    )
+    fig_carbon.update_layout(xaxis={'categoryorder':'total descending'}, height=400)
+    st.plotly_chart(fig_carbon, use_container_width=True)
+    
+    # Context Metric Metrics
+    c1, c2 = st.columns(2)
+    c1.metric("🚨 Total Gross Emissions Across All Slices", f"{int(df_master['emission'].sum()):,} MT")
+    c2.metric("📊 Average Branch Output Scale", f"{df_master['emission'].mean():,.1f} MT")
 
-with col_left_graph:
-    st.subheader("📈 High-Contrast Asset Utility Performance")
-    df_chart_melted = df_filtered.melt(
-        id_vars=["unit"], 
-        value_vars=["grid_mvah", "capex_gen", "opex_gen"],
-        var_name="Utility", value_name="Metrics"
-    )
-    df_chart_melted["Utility"] = df_chart_melted["Utility"].replace({
-        "grid_mvah": "Grid Sourcing (MVAh)",
-        "capex_gen": "CAPEX Solar Array (MWh)",
-        "opex_gen": "OPEX Solar Array (MWh)"
-    })
+else:
+    st.markdown('<div class="info-pane-green"><h3>🌱 Dynamic Readout: Green Mitigation Matrix</h3></div>', unsafe_allow_html=True)
     
-    fig_master = px.bar(
-        df_chart_melted, x="unit", y="Metrics", color="Utility",
-        barmode="group", color_discrete_sequence=["#0ea5e9", "#f59e0b", "#10b981"]
+    # Render Green Mitigation Graphs
+    fig_mitigation = px.bar(
+        df_master, x="unit", y="mitigation", color="vertical",
+        title="Clean Energy Offset Slices by Plant Node (MT CO₂)",
+        color_discrete_sequence=px.colors.sequential.Greens_r
     )
-    fig_master.update_layout(
-        margin=dict(t=10, l=10, r=10, b=10), height=380,
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        xaxis=dict(title="Operational Plant Units"),
-        yaxis=dict(title="Metrics Output"),
-        hovermode="x unified"
-    )
-    st.plotly_chart(fig_master, use_container_width=True)
-
-with col_right_ai:
-    st.subheader("🤖 Telemetry AI Assistant")
+    fig_mitigation.update_layout(xaxis={'categoryorder':'total descending'}, height=400)
+    st.plotly_chart(fig_mitigation, use_container_width=True)
     
-    if "chat_history" not in st.session_state:
-        st.session_state["chat_history"] = [{"role": "assistant", "content": "Telemetry Node link active. Ask me about a specific facility like 'ACM' or type 'summary'."}]
-    
-    # Message board scroller window
-    chat_window = st.container(height=300)
-    for msg in st.session_state["chat_history"]:
-        chat_window.chat_message(msg["role"]).write(msg["content"])
-        
-    if user_query := st.chat_input("Input command criteria..."):
-        st.session_state["chat_history"].append({"role": "user", "content": user_query})
-        chat_window.chat_message("user").write(user_query)
-        
-        raw_input = user_query.lower().strip()
-        reply = ""
-        
-        if any(greet in raw_input for greet in ["hi", "hello", "hey"]):
-            reply = "Session verified. Query individual plant names (e.g. 'tell me about SAD'), request math, or type 'summary'."
-        elif "summary" in raw_input:
-            max_mit = df_master.loc[df_master['mitigation'].idxmax()]
-            reply = f"📊 **Matrix Ledger Digest:** Tracking {len(df_master)} units. Top performing clean energy node is **{max_mit['unit']}** with {max_mit['mitigation']:,} MT carbon saved."
-        elif "average emission" in raw_input:
-            reply = f"The calculated footprint average stands at **{df_master['emission'].mean():,.2f} MT**."
-        else:
-            matched = None
-            for _, row in df_master.iterrows():
-                if row['unit'].lower() in raw_input:
-                    matched = row.to_dict()
-                    break
-            if matched:
-                reply = f"📌 **Asset Record [{matched['unit']}]:** Sourced Grid: {matched['grid_mvah']:,.2f} MVAh. Mitigated Balance: {matched['mitigation']} MT."
-            else:
-                reply = "Context string unparsed. Query facility acronym tokens (e.g. 'SAD') or type 'summary'."
-                
-        st.session_state["chat_history"].append({"role": "assistant", "content": reply})
-        chat_window.chat_message("assistant").write(reply)
+    # Context Metric Metrics
+    w1, w2 = st.columns(2)
+    w1.metric("🍏 Combined Offset Saved Volume", f"{int(df_master['mitigation'].sum()):,} MT")
+    w2.metric("☀️ Mean Replacement Efficiency Percentage", f"{df_master['replacement_pct'].mean():,.1f} %")
 
 st.markdown("---")
 
-# 🗺️ ROW 2: GEOSPATIAL MAP VIEW
-st.subheader("🗺️ Geospatial Node Telemetry Infrastructure Map")
-st.caption("Asset scale sizes bound dynamically to combined operational footprint equations.")
+# --- ROW 2: TELEMETRY AI CONSOLE ---
+st.subheader("🤖 Context-Aware AI Telemetry Assistant")
+if "chat_history" not in st.session_state:
+    st.session_state["chat_history"] = [{"role": "assistant", "content": "Ecosystem active. You can request direct metrics regarding any shape layer or plant id."}]
 
-fig_map = px.scatter_mapbox(
-    df_filtered, lat="lat", lon="lon",
-    size="total_energy_footprint", color="vertical",
-    hover_name="unit", hover_data=["location", "grid_mvah", "emission"],
-    zoom=4.2, height=500, color_discrete_sequence=px.colors.qualitative.Safe
-)
-fig_map.update_layout(
-    mapbox_style="carto-positron", 
-    margin=dict(l=0, r=0, t=0, b=0),
-    legend=dict(orientation="h", yanchor="bottom", y=0.01, xanchor="left", x=0.01)
-)
-st.plotly_chart(fig_map, use_container_width=True)
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# 🏆 ROW 3: STANDINGS & LEDGER EXPANDERS
-st.subheader("🏆 Carbon Asset Standings")
-top_mitigators = df_master.nlargest(3, 'mitigation')[['unit', 'mitigation']]
-over_emitters = df_master[df_master['emission'] > emission_target][['unit', 'emission']]
-
-tab1, tab2 = st.tabs(["🍏 Top Carbon Mitigators", "🚨 Exceeding Target Warning"])
-with tab1:
-    for _, row in top_mitigators.iterrows():
-        st.write(f"🍏 **Unit {row['unit']}**: Offset {int(row['mitigation'])} MT Carbon")
-        st.progress(min(int(row['mitigation']) / 8000, 1.0))
-with tab2:
-    if over_emitters.empty:
-        st.success("All operational units tracking safely below target thresholds.")
+chat_window = st.container(height=260)
+for msg in st.session_state["chat_history"]:
+    chat_window.chat_message(msg["role"]).write(msg["content"])
+    
+if user_query := st.chat_input("Enter natural text audit criteria..."):
+    st.session_state["chat_history"].append({"role": "user", "content": user_query})
+    chat_window.chat_message("user").write(user_query)
+    
+    raw_input = user_query.lower().strip()
+    reply = ""
+    
+    if "carbon" in raw_input or "emission" in raw_input:
+        reply = f"💧 **Carbon Ledger Pull:** Combined emissions are currently tracking at **{int(df_master['emission'].sum()):,} MT**, with an average output scale of {df_master['emission'].mean():,.1f} MT per branch node."
+    elif "green" in raw_input or "mitigation" in raw_input or "offset" in raw_input:
+        reply = f"🌱 **Ecosystem Leaf Ledger Pull:** Total green offsets accounted for are **{int(df_master['mitigation'].sum()):,} MT** with an average solar generation shift ratio of {df_master['replacement_pct'].mean():,.1f}%."
     else:
-        for _, row in over_emitters.iterrows():
-            st.write(f"🛑 **Unit {row['unit']}**: Emitting {int(row['emission'])} MT")
-            st.progress(min(int(row['emission']) / 14000, 1.0))
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-st.subheader("📋 Detailed Infrastructure Node Registers")
-for idx, row in df_filtered.iterrows():
-    status_icon = "🛑" if row['emission'] > emission_target else "📦"
-    card_title = f"{status_icon} [{row['unit']}] Location: {row['location']} — Sourced Grid: {row['grid_mvah']:,.2f} MVAh"
-    
-    with st.expander(card_title):
-        r1, r2, r3, r4 = st.columns(4)
-        r1.metric("Yearly Grid Drawdown", f"{row['grid_mvah']:,.2f} MVAh")
-        r2.metric("Green Replacement Ratio", f"{row['replacement_pct']}%")
-        r3.metric("Diesel Volume", f"{int(row['dg']):,} L")
-        r4.metric("CAPEX Frame Capacity", f"{int(row['capex_capacity']):,} kWp")
-        
-        st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
-        
-        w1, w2, w3, w4 = st.columns(4)
-        w1.metric("OPEX Frame Capacity", f"{int(row['opex_capacity']):,} kWp")
-        w2.metric("CAPEX Generation", f"{row['capex_gen']:,.2f} MWh")
-        w3.metric("OPEX Generation", f"{row['opex_gen']:,.2f} MWh")
-        w4.metric("Mitigation / Emission Balance", f"{int(row['mitigation'])} / {int(row['emission'])} MT")
+        matched = None
+        for _, row in df_master.iterrows():
+            if row['unit'].lower() in raw_input:
+                matched = row.to_dict()
+                break
+        if matched:
+            reply = f"📌 **Node [{matched['unit']}]:** Carbon Footprint: {matched['emission']} MT | Green Mitigation Balance: {matched['mitigation']} MT."
+        else:
+            reply = "I didn't quite catch that. Try asking about 'carbon metrics', 'green offsets', or query a specific factory plant code like 'ACM'."
+            
+    st.session_state["chat_history"].append({"role": "assistant", "content": reply})
+    chat_window.chat_message("assistant").write(reply)
