@@ -5,38 +5,130 @@ import io
 
 # 1. Page Configuration
 st.set_page_config(
-    page_title="Sandhar Energy Matrix Dashboard",
-    page_icon="⚡",
+    page_title="Sandhar Green Energy Matrix",
+    page_icon="🌱",
     layout="wide"
 )
 
-# 🎨 PREMIUM GRAPHICS ENGINE (Custom CSS)
+# 🎨 EXTREME GREEN ENERGY VISUAL ENGINE (Custom CSS & Canvas Animations)
 st.markdown("""
     <style>
-    @keyframes pulse {
-        0% { transform: scale(0.95); opacity: 0.5; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-        70% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-        100% { transform: scale(0.95); opacity: 0.5; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    /* Premium Tech Dark/Green Theme Background */
+    .stApp {
+        background: radial-gradient(circle at 50% 50%, #041d13 0%, #020b07 100%);
+        color: #e2f1ea !important;
+    }
+    
+    /* Global Text Styling to match theme */
+    h1, h2, h3, p, span, label, div {
+        color: #e2f1ea !important;
+    }
+
+    /* Ambient Floating Particles Background Animation */
+    @keyframes floatParticles {
+        0% { background-position: 0px 0px, 0px 0px; }
+        100% { background-position: 500px 1000px, 400px 400px; }
+    }
+    body {
+        background-image: 
+            radial-gradient(rgba(16, 185, 129, 0.1) 1px, transparent 0),
+            radial-gradient(rgba(16, 185, 129, 0.05) 2px, transparent 0);
+        background-size: 40px 40px, 60px 60px;
+        animation: floatParticles 80s linear infinite;
+    }
+
+    /* Live Pulsing Indicator for Title */
+    @keyframes neonGlow {
+        0% { transform: scale(0.95); box-shadow: 0 0 4px #10b981; opacity: 0.7; }
+        50% { transform: scale(1.05); box-shadow: 0 0 20px #10b981; opacity: 1; }
+        100% { transform: scale(0.95); box-shadow: 0 0 4px #10b981; opacity: 0.7; }
     }
     .live-indicator {
         display: inline-block;
-        width: 12px;
-        height: 12px;
+        width: 14px;
+        height: 14px;
         background-color: #10b981;
         border-radius: 50%;
-        margin-right: 8px;
-        animation: pulse 2s infinite;
+        margin-right: 12px;
+        animation: neonGlow 2.5s infinite;
         vertical-align: middle;
     }
-    div[data-testid="stMetric"] {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        border: 1px solid #e2e8f0;
-        border-radius: 12px !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        padding: 1rem !important;
+
+    /* Modern Glassmorphism Cards for Metrics & Data */
+    div[data-testid="stMetric"], .stExpander {
+        background: rgba(6, 37, 26, 0.6) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(16, 185, 129, 0.2) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+        padding: 1.2rem !important;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
     }
-    h1 { font-family: 'Inter', sans-serif; font-weight: 800 !important; color: #0f172a !important; }
-    h2 { font-family: 'Inter', sans-serif; font-weight: 700 !important; color: #1e293b !important; }
+    div[data-testid="stMetric"]:hover, .stExpander:hover {
+        transform: translateY(-5px) scale(1.01);
+        border-color: rgba(16, 185, 129, 0.6) !important;
+        box-shadow: 0 0 25px rgba(16, 185, 129, 0.2) !important;
+    }
+
+    /* Login Board Custom Frame */
+    .login-box {
+        background: rgba(4, 28, 19, 0.85);
+        border: 2px solid #10b981;
+        box-shadow: 0 0 35px rgba(16, 185, 129, 0.25);
+        border-radius: 20px;
+        padding: 40px;
+        margin-top: 50px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* CSS Green Energy Sketch: Moving Wind Turbine Blueprint */
+    .turbine-container {
+        width: 100%;
+        height: 120px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        margin-bottom: 20px;
+        position: relative;
+    }
+    .turbine-mast {
+        width: 4px;
+        height: 90px;
+        background: linear-gradient(to top, rgba(16, 185, 129, 0), rgba(16, 185, 129, 0.8));
+        position: absolute;
+    }
+    @keyframes spinBlades {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .turbine-blades {
+        width: 80px;
+        height: 80px;
+        border: 2px dashed rgba(16, 185, 129, 0.6);
+        border-radius: 50%;
+        position: absolute;
+        top: 0px;
+        animation: spinBlades 6s linear infinite;
+    }
+    .turbine-blades::before, .turbine-blades::after {
+        content: '';
+        position: absolute;
+        top: 50%; left: 50%;
+        width: 100%; height: 2px;
+        background: rgba(16, 185, 129, 0.8);
+        transform: translate(-50%, -50%);
+    }
+    .turbine-blades::after {
+        transform: translate(-50%, -50%) rotate(90deg);
+    }
+    
+    /* Input adjustments for dark green mode */
+    input {
+        background-color: rgba(2, 15, 10, 0.8) !important;
+        color: #e2f1ea !important;
+        border: 1px solid rgba(16, 185, 129, 0.4) !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -45,18 +137,31 @@ if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
 if not st.session_state["authenticated"]:
-    st.write("<br><br>", unsafe_allow_html=True)
-    st.markdown("<h2 style='color: #0f172a;'>🔐 Sandhar Portal Login</h2>", unsafe_allow_html=True)
+    # Center the login panel visually
+    _, col_center, _ = st.columns([1, 1.8, 1])
     
-    username = st.text_input("Username", placeholder="e.g., sandhar")
-    password = st.text_input("Password", type="password", placeholder="••••••••")
-    
-    if st.button("Sign In", type="primary"):
-        if username == "sandhar" and password == "telemetry2026":
-            st.session_state["authenticated"] = True
-            st.rerun()
-        else:
-            st.error("Invalid credentials.")
+    with col_center:
+        st.markdown("""
+        <div class="login-box">
+            <div class="turbine-container">
+                <div class="turbine-mast"></div>
+                <div class="turbine-blades"></div>
+            </div>
+            <h2 style='text-align: center; margin-top:0;'>🌱 Sandhar Green Matrix</h2>
+            <p style='text-align: center; color: #a3ccc4 !important; font-size: 14px;'>Secure Telemetry Gateway</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        username = st.text_input("Matrix Operator Identity", placeholder="Username")
+        password = st.text_input("Access Verification Key", type="password", placeholder="Password")
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("Initialize Matrix Session", type="primary", use_container_width=True):
+            if username == "sandhar" and password == "telemetry2026":
+                st.session_state["authenticated"] = True
+                st.rerun()
+            else:
+                st.error("Access codes failed verification authorization.")
     st.stop()
 
 # 3. Secure Master Data Matrix
@@ -112,8 +217,8 @@ Plastic Business,SCD,Gurugram,2538.911,110,132,42,52045,772,1846,0.0,237.971,28.
 df_master = load_verified_spreadsheet_matrix()
 
 # --- SIDEBAR CONFIGURATIONS ---
-st.sidebar.markdown("**Active Environment:** Secure Corporate Portal")
-if st.sidebar.button("Exit Dashboard Context", type="secondary"):
+st.sidebar.markdown("**⚡ Telemetry Node Active**")
+if st.sidebar.button("Close Secure Session", type="secondary"):
     st.session_state["authenticated"] = False
     st.rerun()
 
@@ -133,50 +238,36 @@ st.sidebar.markdown("---")
 st.sidebar.subheader("🤖 Sandhar Telemetry AI")
 
 if "chat_history" not in st.session_state:
-    st.session_state["chat_history"] = [{"role": "assistant", "content": "Hi! Ask me anything about Sandhar's energy footprint or type 'summary' for an insight report."}]
+    st.session_state["chat_history"] = [{"role": "assistant", "content": "Ready to scan. Ask me about Sandhar green metrics or type 'summary'."}]
 
-chat_container = st.sidebar.container(height=200)
+chat_container = st.sidebar.container(height=180)
 for msg in st.session_state["chat_history"]:
     chat_container.chat_message(msg["role"]).write(msg["content"])
 
-if user_query := st.sidebar.chat_input("Say hi, ask for a summary, or a plant..."):
+if user_query := st.sidebar.chat_input("Query the matrix..."):
     st.session_state["chat_history"].append({"role": "user", "content": user_query})
     chat_container.chat_message("user").write(user_query)
     
     query_lower = user_query.lower().strip()
     response = ""
     
-    if query_lower in ["hi", "hii", "hello", "hey", "hola", "good morning", "good afternoon", "wassup"]:
-        response = "Hello! I am ready to parse telemetry data. You can ask for calculations like 'average emission', plant metrics like 'tell me about ACM', or type 'summary'!"
-    elif "summary" in query_lower or "report" in query_lower or "insights" in query_lower:
+    if query_lower in ["hi", "hello", "hey"]:
+        response = "System online. Ask for calculations like 'average emission', plant metrics like 'tell me about ACM', or type 'summary'!"
+    elif "summary" in query_lower:
         total_plants = len(df_master)
         max_emit_row = df_master.loc[df_master['emission'].idxmax()]
         max_mit_row = df_master.loc[df_master['mitigation'].idxmax()]
-        avg_grid = df_master['grid_mvah'].mean()
         response = (
-            f"📊 **Sandhar Asset Intelligence Report:**\n\n"
-            f"• **Operational Scale:** Tracking {total_plants} active factory infrastructure nodes.\n"
-            f"• **Highest Green Asset:** Unit **{max_mit_row['unit']}** has successfully mitigated the most carbon at {max_mit_row['mitigation']:,} MT.\n"
-            f"• **Critical Focus Area:** Unit **{max_emit_row['unit']}** has the highest emission footprint at {max_emit_row['emission']:,} MT.\n"
-            f"• **Grid Intensity:** Average grid sourcing across all nodes stands at {avg_grid:,.2f} MVAh."
+            f"📊 **Matrix Report:**\n\n"
+            f"• Tracking {total_plants} operational facilities.\n"
+            f"• **Top Green Node:** {max_mit_row['unit']} mitigated {max_mit_row['mitigation']:,} MT of CO₂.\n"
+            f"• **Peak Emission Node:** {max_emit_row['unit']} carbon output at {max_emit_row['emission']:,} MT."
         )
-    elif "average emission" in query_lower or "avg emission" in query_lower:
-        avg_emit = df_master['emission'].mean()
-        response = f"The average carbon emission across our operational footprint is **{avg_emit:,.2f} MT** per facility."
-    elif "total solar" in query_lower or "solar gen" in query_lower or "generation" in query_lower:
+    elif "average emission" in query_lower:
+        response = f"Average node carbon emission footprint: **{df_master['emission'].mean():,.2f} MT**."
+    elif "total solar" in query_lower or "generation" in query_lower:
         total_solar = df_master['capex_gen'].sum() + df_master['opex_gen'].sum()
-        response = f"Sandhar generated a combined total of **{total_solar:,.2f} MWh** of green energy across all solar arrays."
-    elif "total emission" in query_lower or "emissions" in query_lower:
-        total_emit = int(df_master['emission'].sum())
-        response = f"The total carbon emissions across all operational facilities combined is {total_emit:,} MT."
-    elif "highest grid" in query_lower or "max grid" in query_lower:
-        max_row = df_master.loc[df_master['grid_mvah'].idxmax()]
-        response = f"Unit {max_row['unit']} located in {max_row['location']} has the highest grid drawing capacity at {max_row['grid_mvah']:,.2f} MVAh."
-    elif "total mitigation" in query_lower or "carbon saved" in query_lower or "mitigation" in query_lower:
-        total_mit = int(df_master['mitigation'].sum())
-        response = f"Sandhar has successfully mitigated {total_mit:,} MT of carbon emissions via green infrastructure investments."
-    elif "list units" in query_lower or "how many units" in query_lower:
-        response = f"There are currently {len(df_master)} active physical nodes tracking matrix data inputs."
+        response = f"Aggregate green matrix production output: **{total_solar:,.2f} MWh**."
     else:
         matched_unit = None
         u_data = None
@@ -185,119 +276,118 @@ if user_query := st.sidebar.chat_input("Say hi, ask for a summary, or a plant...
                 matched_unit = row['unit']
                 u_data = row.to_dict()
                 break
-        if not matched_unit:
-            for idx, row in df_master.iterrows():
-                if any(part.strip().lower() in query_lower for part in row['unit'].split('&')):
-                    matched_unit = row['unit']
-                    u_data = row.to_dict()
-                    break
         if matched_unit and u_data:
-            response = f"**Asset Ledger [{matched_unit}]:** Located in {u_data['location']}. Grid Drawdown: {u_data['grid_mvah']:,.2f} MVAh, Mitigated Carbon: {u_data['mitigation']} MT, Total Emission Footprint: {u_data['emission']} MT."
+            response = f"**Asset Vector [{matched_unit}]:** Grid Draw: {u_data['grid_mvah']:,.2f} MVAh, Mitigated CO₂: {u_data['mitigation']} MT, Total Emission: {u_data['emission']} MT."
         else:
-            response = "I couldn't quite find that. Try saying 'hi', 'summary', or naming a specific unit code like 'SAD' or 'ACM'!"
+            response = "Query unrecognized. Use syntax report names like 'ACM' or commands like 'summary'."
 
     st.session_state["chat_history"].append({"role": "assistant", "content": response})
     chat_container.chat_message("assistant").write(response)
 
 # --- WORKSPACE PAGE 1: DASHBOARD PERFORMANCE ---
 if page_routing == "📊 Performance Dashboard":
-    st.markdown('<h1><span class="live-indicator"></span>Sandhar Energy Analytics Matrix</h1>', unsafe_allow_html=True)
-    st.caption("Live asset summary across active industrial infrastructure nodes.")
+    st.markdown('<h1><span class="live-indicator"></span>Sandhar Green Energy Framework</h1>', unsafe_allow_html=True)
+    st.caption("Cybernetic matrix processing clean generation arrays and asset carbon footprints.")
     st.markdown("---")
     
-    # KPIs Layout
+    # Glowing Metrics
     m1, m2, m3 = st.columns(3)
-    m1.metric("⚡ Total Grid Sourcing", f"{df_filtered['grid_mvah'].sum():,.3f} MVAh")
-    m2.metric("🌱 Total Mitigated Carbon", f"{int(df_filtered['mitigation'].sum()):,} MT")
-    m3.metric("🛢️ Total Footprint Emissions", f"{int(df_filtered['emission'].sum()):,} MT")
+    m1.metric("⚡ Combined Grid Drawdown", f"{df_filtered['grid_mvah'].sum():,.2f} MVAh")
+    m2.metric("🟢 Mitigated Carbon Assets", f"{int(df_filtered['mitigation'].sum()):,} MT CO₂")
+    m3.metric("🔥 Operational Emissions", f"{int(df_filtered['emission'].sum()):,} MT CO₂")
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # 🌟 FIXED SECTION: Stacked elements to ensure zero layout exceptions
-    st.subheader("📈 High-Contrast Performance Matrix")
+    # Bar Matrix Graphic Upgrades (Neon Glow Layout Configuration)
+    st.subheader("📈 High-Contrast Telemetry Chart")
     df_chart_melted = df_filtered.melt(
         id_vars=["unit"], 
         value_vars=["grid_mvah", "capex_gen", "opex_gen"],
-        var_name="Energy Utility Type", value_name="Energy Metrics"
+        var_name="Utility", value_name="Metrics"
     )
-    df_chart_melted["Energy Utility Type"] = df_chart_melted["Energy Utility Type"].replace({
-        "grid_mvah": "Yearly Grid Sourcing (MVAh)",
-        "capex_gen": "CAPEX Solar Gen (MWh)",
-        "opex_gen": "OPEX Solar Gen (MWh)"
+    df_chart_melted["Utility"] = df_chart_melted["Utility"].replace({
+        "grid_mvah": "Grid Sourcing (MVAh)",
+        "capex_gen": "CAPEX Solar Array (MWh)",
+        "opex_gen": "OPEX Solar Array (MWh)"
     })
     
     fig_master = px.bar(
-        df_chart_melted, x="unit", y="Energy Metrics", color="Energy Utility Type",
-        barmode="group", color_discrete_sequence=["#2563eb", "#f59e0b", "#10b981"]
+        df_chart_melted, x="unit", y="Metrics", color="Utility",
+        barmode="group", color_discrete_sequence=["#0ea5e9", "#f59e0b", "#10b981"]
     )
     fig_master.update_layout(
-        plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=10, r=10, t=20, b=10), height=400,
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        xaxis=dict(gridcolor="#f1f5f9", title=""),
-        yaxis=dict(gridcolor="#f1f5f9")
+        plot_bgcolor="rgba(0,0,0,0)", 
+        paper_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="#e2f1ea"),
+        margin=dict(l=10, r=10, t=20, b=10), height=420,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#e2f1ea")),
+        xaxis=dict(gridcolor="rgba(16,185,129,0.1)", title=""),
+        yaxis=dict(gridcolor="rgba(16,185,129,0.1)")
     )
     st.plotly_chart(fig_master, use_container_width=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.subheader("🏆 Carbon Leaderboards")
     
+    # Leaderboard Tabs
+    st.subheader("🏆 Matrix Clean Asset Standings")
     top_mitigators = df_master.nlargest(3, 'mitigation')[['unit', 'mitigation']]
     over_emitters = df_master[df_master['emission'] > emission_target][['unit', 'emission']]
     
-    tab1, tab2 = st.tabs(["🌱 Top Green Units", "🚨 Exceeding Target"])
+    tab1, tab2 = st.tabs(["🍃 Certified Green Nodes", "⚠️ Critical Emissions Limits"])
     
     with tab1:
         for _, row in top_mitigators.iterrows():
-            st.write(f"🍏 **{row['unit']}**: {int(row['mitigation'])} MT saved")
+            st.write(f"🟢 **Node {row['unit']}** -> Successfully offset {int(row['mitigation'])} MT of carbon elements.")
             st.progress(min(int(row['mitigation']) / 8000, 1.0))
             
     with tab2:
         if over_emitters.empty:
-            st.success("All plants are operating clean under your selected target!")
+            st.success("All facilities operating safely below target limits.")
         else:
             for _, row in over_emitters.iterrows():
-                st.write(f"🛑 **{row['unit']}**: {int(row['emission'])} MT (Over Target!)")
+                st.write(f"🚨 **Node {row['unit']}** -> Alert! Emission footprint reading {int(row['emission'])} MT.")
                 st.progress(min(int(row['emission']) / 14000, 1.0))
 
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Expandable Plant Level Ledger Cards 
+    # Operational Cards
     st.subheader("📋 Plant Level Assets Operational Ledger")
     for idx, row in df_filtered.iterrows():
-        status_icon = "🛑" if row['emission'] > emission_target else "📦"
-        card_title = f"{status_icon} [{row['unit']}] Location: {row['location']} — Verified Grid: {row['grid_mvah']:,.3f} MVAh"
+        status_icon = "⚡" if row['emission'] <= emission_target else "🔥"
+        card_title = f"{status_icon} Node Matrix Reference ID: [{row['unit']}] — {row['location']}"
         
         with st.expander(card_title):
             r1, r2, r3, r4 = st.columns(4)
-            r1.metric("⚡ Yearly Grid Drawdown", f"{row['grid_mvah']:,.3f} MVAh")
-            r2.metric("🟢 Replacement Ratio", f"{row['replacement_pct']}%")
-            r3.metric("⛽ DG Sourced Diesel", f"{int(row['dg']):,} lt")
-            r4.metric("☀️ CAPEX Capacity", f"{int(row['capex_capacity']):,} kWp")
+            r1.metric("Grid Drawing", f"{row['grid_mvah']:,.2f} MVAh")
+            r2.metric("Green Replacement Ratio", f"{row['replacement_pct']}%")
+            r3.metric("Diesel Vol Sourced", f"{int(row['dg']):,} L")
+            r4.metric("CAPEX Frame Cap", f"{int(row['capex_capacity']):,} kWp")
             
-            st.markdown("<div style='margin-top: 8px;'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='margin-top: 12px;'></div>", unsafe_allow_html=True)
             
             w1, w2, w3, w4 = st.columns(4)
-            w1.metric("🏢 OPEX Capacity", f"{int(row['opex_capacity']):,} kWp")
-            w2.metric("🌅 CAPEX Solar Generation", f"{row['capex_gen']:,.3f} MWh")
-            w3.metric("🌿 OPEX Solar Generation", f"{row['opex_gen']:,.3f} MWh")
-            w4.metric("🌱 Mitigated vs Emitted Carbon", f"{int(row['mitigation'])} / {int(row['emission'])} MT")
+            w1.metric("OPEX Frame Cap", f"{int(row['opex_capacity']):,} kWp")
+            w2.metric("CAPEX Solar Array Gen", f"{row['capex_gen']:,.2f} MWh")
+            w3.metric("OPEX Solar Array Gen", f"{row['opex_gen']:,.2f} MWh")
+            w4.metric("Mitigated / Output Carbon", f"{int(row['mitigation'])} / {int(row['emission'])} MT")
 
 # --- WORKSPACE PAGE 2: MAP ASSET VIEW ---
 else:
-    st.markdown('<h1><span class="live-indicator"></span>Asset Power Infrastructure Map</h1>', unsafe_allow_html=True)
-    st.caption("Visualizing node size scaled dynamically against total energy metrics.")
+    st.markdown('<h1><span class="live-indicator"></span>Global Node Telemetry Grid Map</h1>', unsafe_allow_html=True)
+    st.caption("Active geospatial arrays scaled dynamically against node generation values.")
     st.markdown("---")
     
     fig_map = px.scatter_mapbox(
         df_filtered, lat="lat", lon="lon",
         size="total_energy_footprint", color="vertical",
         hover_name="unit", hover_data=["location", "grid_mvah", "emission"],
-        zoom=4.2, height=600, color_discrete_sequence=px.colors.qualitative.Bold
+        zoom=4.2, height=600, color_discrete_sequence=px.colors.qualitative.G10
     )
     fig_map.update_layout(
-        mapbox_style="carto-positron", margin=dict(l=0, r=0, t=0, b=0),
-        legend=dict(orientation="h", yanchor="bottom", y=0.01, xanchor="left", x=0.01)
+        mapbox_style="carto-darkmatter", 
+        paper_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=0, r=0, t=0, b=0),
+        legend=dict(orientation="h", yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(color="#e2f1ea"))
     )
     st.plotly_chart(fig_map, use_container_width=True)
     
