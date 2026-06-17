@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# 🎨 HIGH-PERFORMANCE CUSTOM LAYER (Shapes & Animations)
+# 🎨 HIGH-PERFORMANCE CUSTOM LAYER (Shapes, Themes & Animations)
 st.markdown("""
     <style>
     /* Global Fade-In Entry Animation */
@@ -92,10 +92,39 @@ st.markdown("""
         transform: translateY(-3px);
         box-shadow: 0 8px 22px rgba(16, 185, 129, 0.12) !important;
     }
+
+    /* Login Portal Banner Styling */
+    .portal-banner {
+        text-align: center;
+        border-bottom: 3px solid #16a34a;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. Secure Master Data Matrix
+# 2. Portal Security Wall (FIXED & RESTORED)
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
+
+if not st.session_state["authenticated"]:
+    _, col_center, _ = st.columns([1, 1.4, 1])
+    
+    with col_center:
+        st.markdown('<div class="portal-banner"><h2>🌱 Sandhar Eco Portal</h2><p>Identity Verification Terminal</p></div>', unsafe_allow_html=True)
+        username = st.text_input("Matrix Operator Key", placeholder="Username ID")
+        password = st.text_input("Access Authorization Token", type="password", placeholder="••••••••")
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("Initialize Secure Workspace", type="primary", use_container_width=True):
+            if username == "sandhar" and password == "telemetry2026":
+                st.session_state["authenticated"] = True
+                st.rerun()
+            else:
+                st.error("System access codes rejected.")
+    st.stop()
+
+# 3. Load Dataset Matrix
 @st.cache_data
 def load_verified_spreadsheet_matrix():
     csv_data = """vertical,unit,location,grid_mvah,capex_capacity,opex_capacity,replacement_pct,dg,mitigation,emission,capex_gen,opex_gen,lat,lon
@@ -152,6 +181,11 @@ if "matrix_chart_target" not in st.session_state:
     st.session_state["matrix_chart_target"] = "emission"
 
 # --- SIDEBAR INTERFACE ---
+st.sidebar.markdown("🔒 **Telemetry Link Connected**")
+if st.sidebar.button("Log Out"):
+    st.session_state["authenticated"] = False
+    st.rerun()
+
 st.sidebar.header("🕹️ Workspace Filters")
 selected_vertical = st.sidebar.selectbox("Business Verticals", ["All Segments"] + list(df_master['vertical'].unique()))
 df_filtered = df_master.copy() if selected_vertical == "All Segments" else df_master[df_master['vertical'] == selected_vertical].copy()
@@ -161,7 +195,7 @@ st.title("🌱 Sandhar Energy Ecosystem Matrix Workspace")
 st.caption("Complete operational intelligence layout featuring live shape-toggled metrics, spatial maps, and structural ledger logs.")
 st.markdown("---")
 
-# 📊 1. THE RESTORED KPI CARDS BLOCK
+# 📊 1. THE KPI CARDS BLOCK
 m1, m2, m3 = st.columns(3)
 m1.metric("⚡ Combined Grid Drawdown", f"{df_filtered['grid_mvah'].sum():,.2f} MVAh")
 m2.metric("🌱 Mitigated Carbon Slices", f"{int(df_filtered['mitigation'].sum()):,} MT CO₂")
