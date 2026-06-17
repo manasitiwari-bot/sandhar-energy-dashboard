@@ -5,25 +5,53 @@ import io
 
 # 1. Page Configuration
 st.set_page_config(
-    page_title="Sandhar Energy Dashboard",
+    page_title="Sandhar Energy Matrix Dashboard",
     page_icon="⚡",
     layout="wide"
 )
 
-# Visual Layout Theme Engine
+# 🎨 PREMIUM GRAPHICS & MOVING STUFF ENGINE (Custom CSS)
 st.markdown("""
     <style>
-    .block-container { padding-top: 1rem; padding-bottom: 1rem; }
-    h1 { font-weight: 900 !important; color: #0f172a !important; font-size: 2.2rem !important; margin-bottom: 0.5rem !important; }
-    h2 { font-size: 1.4rem !important; font-weight: 700 !important; color: #1e293b !important; margin-top: 1rem !important; }
-    div[data-testid="stMetricValue"] { color: #0f172a !important; font-weight: 800 !important; font-size: 1.3rem !important; }
-    div[data-testid="stMetricLabel"] { font-size: 0.8rem !important; font-weight: 600 !important; color: #475569 !important; }
-    .stMetric { background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 0.5rem 0.75rem; border-radius: 0.375rem; }
-    .stExpander { border: 1px solid #cbd5e1 !important; border-radius: 0.5rem !important; background-color: #ffffff !important; margin-bottom: 0.5rem !important; }
+    /* Pulse Animation for Live Effect */
+    @keyframes pulse {
+        0% { transform: scale(0.95); opacity: 0.5; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); opacity: 0.5; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    .live-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        background-color: #10b981;
+        border-radius: 50%;
+        margin-right: 8px;
+        animation: pulse 2s infinite;
+        vertical-align: middle;
+    }
+    
+    /* Sleek Cards Framework */
+    div[data-testid="stMetric"] {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid #e2e8f0;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        padding: 1rem !important;
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    div[data-testid="stMetric"]:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        border-color: #cbd5e1;
+    }
+    
+    /* Typography Overhauls */
+    h1 { font-family: 'Inter', sans-serif; font-weight: 800 !important; color: #0f172a !important; }
+    h2 { font-family: 'Inter', sans-serif; font-weight: 700 !important; color: #1e293b !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. Portal Security Wall (Allows secure access from ANY computer)
+# 2. Portal Security Wall
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
@@ -42,7 +70,7 @@ if not st.session_state["authenticated"]:
             st.error("Invalid credentials.")
     st.stop()
 
-# 3. Secure Master Data Matrix (CSV Stream Block)
+# 3. Secure Master Data Matrix
 @st.cache_data
 def load_verified_spreadsheet_matrix():
     csv_data = """vertical,unit,location,grid_mvah,capex_capacity,opex_capacity,replacement_pct,dg,mitigation,emission,capex_gen,opex_gen,lat,lon
@@ -104,21 +132,24 @@ st.sidebar.header("🕹️ Filter Options")
 selected_vertical = st.sidebar.selectbox("Business Vertical Slices", ["All Business Verticals"] + list(df_master['vertical'].unique()))
 df_filtered = df_master.copy() if selected_vertical == "All Business Verticals" else df_master[df_master['vertical'] == selected_vertical].copy()
 
+# 🎚️ COOL FEATURE 1: Interactive Dynamic Goal Slider
+st.sidebar.markdown("---")
+st.sidebar.subheader("🎯 Sustainability Goal Simulator")
+emission_target = st.sidebar.slider("Target Max Emission Allowance per Unit (MT)", 50, 15000, 5000, step=100)
+
 page_routing = st.sidebar.radio("🧭 Navigate Workspace", ["📊 Performance Dashboard", "🗺️ Interactive Map View"])
 
-# --- 🤖 UPGRADED SIDEBAR DATA CHATBOT ---
+# --- 🤖 DATA CHATBOT ---
 st.sidebar.markdown("---")
 st.sidebar.subheader("🤖 Sandhar Telemetry AI")
 
 if "chat_history" not in st.session_state:
     st.session_state["chat_history"] = [{"role": "assistant", "content": "Hi! Ask me anything about Sandhar's energy footprint or type 'summary' for an insight report."}]
 
-# Chat display box
-chat_container = st.sidebar.container(height=260)
+chat_container = st.sidebar.container(height=200)
 for msg in st.session_state["chat_history"]:
     chat_container.chat_message(msg["role"]).write(msg["content"])
 
-# User query logic processing the internal dataframe
 if user_query := st.sidebar.chat_input("Say hi, ask for a summary, or a plant..."):
     st.session_state["chat_history"].append({"role": "user", "content": user_query})
     chat_container.chat_message("user").write(user_query)
@@ -126,17 +157,13 @@ if user_query := st.sidebar.chat_input("Say hi, ask for a summary, or a plant...
     query_lower = user_query.lower().strip()
     response = ""
     
-    # 1. GREETING CONTEXT LAYER
     if query_lower in ["hi", "hii", "hello", "hey", "hola", "good morning", "good afternoon", "wassup"]:
         response = "Hello! I am ready to parse telemetry data. You can ask for calculations like 'average emission', plant metrics like 'tell me about ACM', or type 'summary'!"
-    
-    # 2. AUTOMATED EXECUTIVE SUMMARY REPORT
     elif "summary" in query_lower or "report" in query_lower or "insights" in query_lower:
         total_plants = len(df_master)
         max_emit_row = df_master.loc[df_master['emission'].idxmax()]
         max_mit_row = df_master.loc[df_master['mitigation'].idxmax()]
         avg_grid = df_master['grid_mvah'].mean()
-        
         response = (
             f"📊 **Sandhar Asset Intelligence Report:**\n\n"
             f"• **Operational Scale:** Tracking {total_plants} active factory infrastructure nodes.\n"
@@ -144,8 +171,6 @@ if user_query := st.sidebar.chat_input("Say hi, ask for a summary, or a plant...
             f"• **Critical Focus Area:** Unit **{max_emit_row['unit']}** has the highest emission footprint at {max_emit_row['emission']:,} MT.\n"
             f"• **Grid Intensity:** Average grid sourcing across all nodes stands at {avg_grid:,.2f} MVAh."
         )
-        
-    # 3. ON-THE-FLY STATISTICAL MATH COMPUTATIONS
     elif "average emission" in query_lower or "avg emission" in query_lower:
         avg_emit = df_master['emission'].mean()
         response = f"The average carbon emission across our operational footprint is **{avg_emit:,.2f} MT** per facility."
@@ -163,26 +188,20 @@ if user_query := st.sidebar.chat_input("Say hi, ask for a summary, or a plant...
         response = f"Sandhar has successfully mitigated {total_mit:,} MT of carbon emissions via green infrastructure investments."
     elif "list units" in query_lower or "how many units" in query_lower:
         response = f"There are currently {len(df_master)} active physical nodes tracking matrix data inputs."
-        
-    # 4. FUZZY MATCH PLANT DATA CARDS
     else:
         matched_unit = None
         u_data = None
-        
-        # Iterates and matches unit sequences safely
         for idx, row in df_master.iterrows():
             if row['unit'].lower() in query_lower:
                 matched_unit = row['unit']
                 u_data = row.to_dict()
                 break
-        
         if not matched_unit:
             for idx, row in df_master.iterrows():
                 if any(part.strip().lower() in query_lower for part in row['unit'].split('&')):
                     matched_unit = row['unit']
                     u_data = row.to_dict()
                     break
-
         if matched_unit and u_data:
             response = f"**Asset Ledger [{matched_unit}]:** Located in {u_data['location']}. Grid Drawdown: {u_data['grid_mvah']:,.2f} MVAh, Mitigated Carbon: {u_data['mitigation']} MT, Total Emission Footprint: {u_data['emission']} MT."
         else:
@@ -191,10 +210,10 @@ if user_query := st.sidebar.chat_input("Say hi, ask for a summary, or a plant...
     st.session_state["chat_history"].append({"role": "assistant", "content": response})
     chat_container.chat_message("assistant").write(response)
 
-
 # --- WORKSPACE PAGE 1: DASHBOARD PERFORMANCE ---
 if page_routing == "📊 Performance Dashboard":
-    st.title("📊 Sandhar Energy Analytics Matrix")
+    # Glowing title banner
+    st.markdown('<h1><span class="live-indicator"></span>Sandhar Energy Analytics Matrix</h1>', unsafe_allow_html=True)
     st.caption("Live asset summary across active industrial infrastructure nodes.")
     st.markdown("---")
     
@@ -206,60 +225,67 @@ if page_routing == "📊 Performance Dashboard":
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Grouped Graph Engine
-    st.subheader("📈 Energy Metrics Comparison Matrix")
-    df_chart_melted = df_filtered.melt(
-        id_vars=["unit"], 
-        value_vars=["grid_mvah", "capex_gen", "opex_gen"],
-        var_name="Energy Utility Type", value_name="Energy Metrics"
-    )
+    # Layout split: Charts on left, moving Leaderboard on right
+    col_chart, col_leaderboard = st.columns()
     
-    df_chart_melted["Energy Utility Type"] = df_chart_melted["Energy Utility Type"].replace({
-        "grid_mvah": "<b>Yearly Grid Sourcing (MVAh)</b>",
-        "capex_gen": "<b>CAPEX Solar Generation (MWh)</b>",
-        "opex_gen": "<b>OPEX Solar Generation (MWh)</b>"
-    })
-    
-    color_map = {
-        "<b>Yearly Grid Sourcing (MVAh)</b>": "#4472C4",
-        "<b>CAPEX Solar Generation (MWh)</b>": "#f59e0b",
-        "<b>OPEX Solar Generation (MWh)</b>": "#10b981"
-    }
-    
-    fig_master = px.bar(
-        df_chart_melted, x="unit", y="Energy Metrics", color="Energy Utility Type",
-        barmode="group", color_discrete_map=color_map, text_auto=".1f"
-    )
-    
-    fig_master.update_layout(
-        plot_bgcolor="#ffffff", paper_bgcolor="#ffffff",
-        margin=dict(l=10, r=10, t=25, b=10), height=480,
-        font=dict(color="#000000", size=14),
-        legend=dict(
-            orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1,
-            title=dict(font=dict(size=15, color="#000000")),
-            font=dict(size=14, color="#000000")
-        ),
-        xaxis=dict(
-            tickfont=dict(size=14, color="#000000"),
-            title=dict(text="<b>Plant Operational Unit</b>", font=dict(size=15, color="#000000")),
-            gridcolor="#f1f5f9"
-        ),
-        yaxis=dict(
-            tickfont=dict(size=14, color="#000000"),
-            title=dict(text="<b>Energy Metrics</b>", font=dict(size=15, color="#000000")),
-            gridcolor="#f1f5f9"
+    with col_chart:
+        st.subheader("📈 High-Contrast Performance Matrix")
+        df_chart_melted = df_filtered.melt(
+            id_vars=["unit"], 
+            value_vars=["grid_mvah", "capex_gen", "opex_gen"],
+            var_name="Energy Utility Type", value_name="Energy Metrics"
         )
-    )
-    
-    fig_master.update_traces(textposition="outside", textfont=dict(color="#000000", size=11))
-    st.plotly_chart(fig_master, use_container_width=True)
+        df_chart_melted["Energy Utility Type"] = df_chart_melted["Energy Utility Type"].replace({
+            "grid_mvah": "Yearly Grid Sourcing (MVAh)",
+            "capex_gen": "CAPEX Solar Gen (MWh)",
+            "opex_gen": "OPEX Solar Gen (MWh)"
+        })
+        
+        # Premium Glow/Dark Chart configuration
+        fig_master = px.bar(
+            df_chart_melted, x="unit", y="Energy Metrics", color="Energy Utility Type",
+            barmode="group", color_discrete_sequence=["#2563eb", "#f59e0b", "#10b981"]
+        )
+        fig_master.update_layout(
+            plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+            margin=dict(l=10, r=10, t=20, b=10), height=400,
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            xaxis=dict(gridcolor="#f1f5f9", title=""),
+            yaxis=dict(gridcolor="#f1f5f9")
+        )
+        st.plotly_chart(fig_master, use_container_width=True)
+
+    with col_leaderboard:
+        st.subheader("🏆 Carbon Leaderboards")
+        
+        # Calculate dynamic leaders
+        top_mitigators = df_master.nlargest(3, 'mitigation')[['unit', 'mitigation']]
+        over_emitters = df_master[df_master['emission'] > emission_target][['unit', 'emission']]
+        
+        tab1, tab2 = st.tabs(["🌱 Top Green Units", "🚨 Exceeding Target"])
+        
+        with tab1:
+            for _, row in top_mitigators.iterrows():
+                st.write(f"🍏 **{row['unit']}**: {int(row['mitigation'])} MT saved")
+                st.progress(min(int(row['mitigation']) / 8000, 1.0))
+                
+        with tab2:
+            if over_emitters.empty:
+                st.success("All plants are operating clean under your selected target!")
+            else:
+                for _, row in over_emitters.iterrows():
+                    st.write(f"🛑 **{row['unit']}**: {int(row['emission'])} MT (Over Target!)")
+                    st.progress(min(int(row['emission']) / 14000, 1.0))
+
     st.markdown("<br>", unsafe_allow_html=True)
     
     # Expandable Plant Level Ledger Cards 
     st.subheader("📋 Plant Level Assets Operational Ledger")
     for idx, row in df_filtered.iterrows():
-        card_title = f"📦 [{row['unit']}] Location: {row['location']} — Verified Grid: {row['grid_mvah']:,.3f} MVAh"
+        # Visual color cue matching our target slider
+        status_icon = "🛑" if row['emission'] > emission_target else "📦"
+        card_title = f"{status_icon} [{row['unit']}] Location: {row['location']} — Verified Grid: {row['grid_mvah']:,.3f} MVAh"
+        
         with st.expander(card_title):
             r1, r2, r3, r4 = st.columns(4)
             r1.metric("⚡ Yearly Grid Drawdown", f"{row['grid_mvah']:,.3f} MVAh")
@@ -277,7 +303,7 @@ if page_routing == "📊 Performance Dashboard":
 
 # --- WORKSPACE PAGE 2: MAP ASSET VIEW ---
 else:
-    st.title("🗺️ Asset Power Infrastructure Map")
+    st.markdown('<h1><span class="live-indicator"></span>Asset Power Infrastructure Map</h1>', unsafe_allow_html=True)
     st.caption("Visualizing node size scaled dynamically against total energy metrics.")
     st.markdown("---")
     
@@ -285,7 +311,7 @@ else:
         df_filtered, lat="lat", lon="lon",
         size="total_energy_footprint", color="vertical",
         hover_name="unit", hover_data=["location", "grid_mvah", "emission"],
-        zoom=4.2, height=650, color_discrete_sequence=px.colors.qualitative.Bold
+        zoom=4.2, height=600, color_discrete_sequence=px.colors.qualitative.Bold
     )
     fig_map.update_layout(
         mapbox_style="carto-positron", margin=dict(l=0, r=0, t=0, b=0),
