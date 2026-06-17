@@ -31,7 +31,7 @@ st.markdown("""
         box-shadow: 0 0 10px #10b981;
     }
     
-    /* Interactive Material Design Shadows for Panels */
+    /* Interactive shadows for metrics and containers */
     div[data-testid="stMetric"], .stExpander, div[data-testid="stChatMessage"] {
         border-radius: 14px !important;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
@@ -42,7 +42,7 @@ st.markdown("""
         box-shadow: 0 8px 20px rgba(16, 185, 129, 0.15) !important;
     }
     
-    /* Lock Design Elements for Portal */
+    /* Login Canvas Formatting */
     .portal-banner {
         text-align: center;
         border-bottom: 3px solid #10b981;
@@ -139,146 +139,143 @@ st.sidebar.markdown("---")
 st.sidebar.subheader("🎯 Safety Emissions Target")
 emission_target = st.sidebar.slider("Tag Out Warning Limit (MT)", 50, 15000, 5000, step=100)
 
-page_routing = st.sidebar.radio("🧭 Workspace Navigation", ["📊 Performance Matrix", "🗺️ Geospatial Map View"])
+# --- MAIN INDUSTRIAL WORKSPACE ---
+st.markdown('<h1><span class="live-indicator"></span>Sandhar Energy Unified Matrix</h1>', unsafe_allow_html=True)
+st.caption("Real-time telemetry, spatial maps, and context-aware AI validation node.")
+st.markdown("---")
 
-# --- WORKSPACE PAGE 1: PERFORMANCES & AI AGENT ---
-if page_routing == "📊 Performance Matrix":
-    st.markdown('<h1><span class="live-indicator"></span>Sandhar Energy Architecture Workspace</h1>', unsafe_allow_html=True)
-    st.caption("Adaptive layout rendering multi-stage carbon indices and continuous AI matrix validation.")
-    st.markdown("---")
-    
-    # Core Aggregations
-    m1, m2, m3 = st.columns(3)
-    m1.metric("⚡ Combined Grid Drawdown", f"{df_filtered['grid_mvah'].sum():,.2f} MVAh")
-    m2.metric("🌱 Mitigated Carbon Slices", f"{int(df_filtered['mitigation'].sum()):,} MT CO₂")
-    m3.metric("🛢️ Grid Footprint Emissions", f"{int(df_filtered['emission'].sum()):,} MT CO₂")
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # 🤖 CORE INTERACTIVE WORKSPACE: CHATBOT SIDE-BY-SIDE WITH STAIRCASE MAP
-    col_left_graph, col_right_ai = st.columns([1.5, 1])
-    
-    with col_left_graph:
-        st.subheader("🪜 Staircase Drilldown Matrix")
-        st.caption("Click into an inner block segment to unpack plant vectors. Click the center to pull back up.")
-        
-        fig_staircase = px.sunburst(
-            df_filtered,
-            path=['vertical', 'unit'],
-            values='total_energy_footprint',
-            color='emission',
-            color_continuous_scale='Aggrnyl',
-            labels={'total_energy_footprint': 'Energy Footprint', 'emission': 'Emissions (MT)'}
-        )
-        fig_staircase.update_layout(
-            margin=dict(t=15, l=15, r=15, b=15),
-            height=440,
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)'
-        )
-        st.plotly_chart(fig_staircase, use_container_width=True)
+# Core Aggregations
+m1, m2, m3 = st.columns(3)
+m1.metric("⚡ Combined Grid Drawdown", f"{df_filtered['grid_mvah'].sum():,.2f} MVAh")
+m2.metric("🌱 Mitigated Carbon Slices", f"{int(df_filtered['mitigation'].sum()):,} MT CO₂")
+m3.metric("🛢️ Grid Footprint Emissions", f"{int(df_filtered['emission'].sum()):,} MT CO₂")
 
-    with col_right_ai:
-        st.subheader("🤖 Telemetry AI Assistant")
-        st.caption("Ask queries regarding footprint metrics or request a corporate summary statement.")
-        
-        if "chat_history" not in st.session_state:
-            st.session_state["chat_history"] = [{"role": "assistant", "content": "Telemetry Node link active. Ask me about a specific facility like 'ACM' or type 'summary'."}]
-        
-        # Interactive Chat UI Scroller Window
-        chat_window = st.container(height=340)
-        for msg in st.session_state["chat_history"]:
-            chat_window.chat_message(msg["role"]).write(msg["content"])
-            
-        if user_query := st.chat_input("Input command criteria..."):
-            st.session_state["chat_history"].append({"role": "user", "content": user_query})
-            chat_window.chat_message("user").write(user_query)
-            
-            raw_input = user_query.lower().strip()
-            reply = ""
-            
-            if any(greet in raw_input for greet in ["hi", "hello", "hey"]):
-                reply = "Session verified. You can query specific assets (e.g. 'tell me about SAD'), request average limits, or type 'summary'."
-            elif "summary" in raw_input:
-                max_mit = df_master.loc[df_master['mitigation'].idxmax()]
-                reply = f"📊 **Matrix Ledger Digest:** Tracking {len(df_master)} operational units. Top performing clean energy node is **{max_mit['unit']}** having offset {max_mit['mitigation']:,} MT of carbon."
-            elif "average emission" in raw_input or "avg emission" in air =="average":
-                reply = f"The current calculated average carbon intensity output stands at **{df_master['emission'].mean():,.2f} MT**."
-            else:
-                matched = None
-                for _, row in df_master.iterrows():
-                    if row['unit'].lower() in raw_input:
-                        matched = row.to_dict()
-                        break
-                if matched:
-                    reply = f"📌 **Asset Record [{matched['unit']}]:** Location: {matched['location']}. Grid Sourced: {matched['grid_mvah']:,.2f} MVAh. Mitigated Balance: {matched['mitigation']} MT."
-                else:
-                    reply = "Command string context not recognized. Query specific unit identifiers (e.g. 'ACM') or request 'summary'."
-                    
-            st.session_state["chat_history"].append({"role": "assistant", "content": reply})
-            chat_window.chat_message("assistant").write(reply)
+st.markdown("<br>", unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
+# 🌐 ROW 1: BAR GRAPH SIDE-BY-SIDE WITH AI CHATBOT
+col_left_graph, col_right_ai = st.columns([1.6, 1])
+
+with col_left_graph:
+    st.subheader("📈 High-Contrast Asset Utility Performance")
+    df_chart_melted = df_filtered.melt(
+        id_vars=["unit"], 
+        value_vars=["grid_mvah", "capex_gen", "opex_gen"],
+        var_name="Utility", value_name="Metrics"
+    )
+    df_chart_melted["Utility"] = df_chart_melted["Utility"].replace({
+        "grid_mvah": "Grid Sourcing (MVAh)",
+        "capex_gen": "CAPEX Solar Array (MWh)",
+        "opex_gen": "OPEX Solar Array (MWh)"
+    })
     
-    # Leaderboards
-    st.subheader("🏆 Carbon Asset Standings")
-    top_mitigators = df_master.nlargest(3, 'mitigation')[['unit', 'mitigation']]
-    over_emitters = df_master[df_master['emission'] > emission_target][['unit', 'emission']]
+    fig_master = px.bar(
+        df_chart_melted, x="unit", y="Metrics", color="Utility",
+        barmode="group", color_discrete_sequence=["#0ea5e9", "#f59e0b", "#10b981"]
+    )
+    fig_master.update_layout(
+        margin=dict(t=10, l=10, r=10, b=10), height=380,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        xaxis=dict(title="Operational Plant Units"),
+        yaxis=dict(title="Metrics Output")
+    )
+    st.plotly_chart(fig_master, use_container_width=True)
+
+with col_right_ai:
+    st.subheader("🤖 Telemetry AI Assistant")
     
-    tab1, tab2 = st.tabs(["🍏 Top Carbon Mitigators", "🚨 Exceeding Sideload Targets"])
-    with tab1:
-        for _, row in top_mitigators.iterrows():
-            st.write(f"🍏 **Unit {row['unit']}**: Offset {int(row['mitigation'])} MT Carbon")
-            st.progress(min(int(row['mitigation']) / 8000, 1.0))
-    with tab2:
-        if over_emitters.empty:
-            st.success("All operational units tracking safely below limits.")
+    if "chat_history" not in st.session_state:
+        st.session_state["chat_history"] = [{"role": "assistant", "content": "Telemetry Node link active. Ask me about a specific facility like 'ACM' or type 'summary'."}]
+    
+    # Message board scroller window
+    chat_window = st.container(height=300)
+    for msg in st.session_state["chat_history"]:
+        chat_window.chat_message(msg["role"]).write(msg["content"])
+        
+    if user_query := st.chat_input("Input command criteria..."):
+        st.session_state["chat_history"].append({"role": "user", "content": user_query})
+        chat_window.chat_message("user").write(user_query)
+        
+        raw_input = user_query.lower().strip()
+        reply = ""
+        
+        if any(greet in raw_input for greet in ["hi", "hello", "hey"]):
+            reply = "Session verified. Query individual plant names (e.g. 'tell me about SAD'), request math, or type 'summary'."
+        elif "summary" in raw_input:
+            max_mit = df_master.loc[df_master['mitigation'].idxmax()]
+            reply = f"📊 **Matrix Ledger Digest:** Tracking {len(df_master)} units. Top performing clean energy node is **{max_mit['unit']}** with {max_mit['mitigation']:,} MT carbon saved."
+        elif "average emission" in raw_input:
+            reply = f"The calculated footprint average stands at **{df_master['emission'].mean():,.2f} MT**."
         else:
-            for _, row in over_emitters.iterrows():
-                st.write(f"🛑 **Unit {row['unit']}**: Emitting {int(row['emission'])} MT")
-                st.progress(min(int(row['emission']) / 14000, 1.0))
+            matched = None
+            for _, row in df_master.iterrows():
+                if row['unit'].lower() in raw_input:
+                    matched = row.to_dict()
+                    break
+            if matched:
+                reply = f"📌 **Asset Record [{matched['unit']}]:** Sourced Grid: {matched['grid_mvah']:,.2f} MVAh. Mitigated Balance: {matched['mitigation']} MT."
+            else:
+                reply = "Context string unparsed. Query facility acronym tokens (e.g. 'SAD') or type 'summary'."
+                
+        st.session_state["chat_history"].append({"role": "assistant", "content": reply})
+        chat_window.chat_message("assistant").write(reply)
 
-    st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("---")
+
+# 🗺️ ROW 2: GEOSPATIAL MAP VIEW
+st.subheader("🗺️ Geospatial Node Telemetry Infrastructure Map")
+st.caption("Asset scale sizes bound dynamically to combined operational footprint equations.")
+
+fig_map = px.scatter_mapbox(
+    df_filtered, lat="lat", lon="lon",
+    size="total_energy_footprint", color="vertical",
+    hover_name="unit", hover_data=["location", "grid_mvah", "emission"],
+    zoom=4.2, height=500, color_discrete_sequence=px.colors.qualitative.Safe
+)
+fig_map.update_layout(
+    mapbox_style="carto-positron", 
+    margin=dict(l=0, r=0, t=0, b=0),
+    legend=dict(orientation="h", yanchor="bottom", y=0.01, xanchor="left", x=0.01)
+)
+st.plotly_chart(fig_map, use_container_width=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# 🏆 ROW 3: STANDINGS & LEDGER EXPANDERS
+st.subheader("🏆 Carbon Asset Standings")
+top_mitigators = df_master.nlargest(3, 'mitigation')[['unit', 'mitigation']]
+over_emitters = df_master[df_master['emission'] > emission_target][['unit', 'emission']]
+
+tab1, tab2 = st.tabs(["🍏 Top Carbon Mitigators", "🚨 Exceeding Target Warning"])
+with tab1:
+    for _, row in top_mitigators.iterrows():
+        st.write(f"🍏 **Unit {row['unit']}**: Offset {int(row['mitigation'])} MT Carbon")
+        st.progress(min(int(row['mitigation']) / 8000, 1.0))
+with tab2:
+    if over_emitters.empty:
+        st.success("All operational units tracking safely below target thresholds.")
+    else:
+        for _, row in over_emitters.iterrows():
+            st.write(f"🛑 **Unit {row['unit']}**: Emitting {int(row['emission'])} MT")
+            st.progress(min(int(row['emission']) / 14000, 1.0))
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+st.subheader("📋 Detailed Infrastructure Node Registers")
+for idx, row in df_filtered.iterrows():
+    status_icon = "🛑" if row['emission'] > emission_target else "📦"
+    card_title = f"{status_icon} [{row['unit']}] Location: {row['location']} — Sourced Grid: {row['grid_mvah']:,.2f} MVAh"
     
-    # Plant Ledger
-    st.subheader("📋 Infrastructure Node Register")
-    for idx, row in df_filtered.iterrows():
-        status_icon = "🛑" if row['emission'] > emission_target else "📦"
-        card_title = f"{status_icon} [{row['unit']}] Location: {row['location']} — Sourced Grid: {row['grid_mvah']:,.2f} MVAh"
+    with st.expander(card_title):
+        r1, r2, r3, r4 = st.columns(4)
+        r1.metric("Yearly Grid Drawdown", f"{row['grid_mvah']:,.2f} MVAh")
+        r2.metric("Green Replacement Ratio", f"{row['replacement_pct']}%")
+        r3.metric("Diesel Volume", f"{int(row['dg']):,} L")
+        r4.metric("CAPEX Frame Capacity", f"{int(row['capex_capacity']):,} kWp")
         
-        with st.expander(card_title):
-            r1, r2, r3, r4 = st.columns(4)
-            r1.metric("Yearly Grid Drawdown", f"{row['grid_mvah']:,.2f} MVAh")
-            r2.metric("Green Replacement Ratio", f"{row['replacement_pct']}%")
-            r3.metric("Diesel Volume", f"{int(row['dg']):,} L")
-            r4.metric("CAPEX Frame Capacity", f"{int(row['capex_capacity']):,} kWp")
-            
-            st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
-            
-            w1, w2, w3, w4 = st.columns(4)
-            w1.metric("OPEX Frame Capacity", f"{int(row['opex_capacity']):,} kWp")
-            w2.metric("CAPEX Generation", f"{row['capex_gen']:,.2f} MWh")
-            w3.metric("OPEX Generation", f"{row['opex_gen']:,.2f} MWh")
-            w4.metric("Mitigation / Emission Balance", f"{int(row['mitigation'])} / {int(row['emission'])} MT")
-
-# --- WORKSPACE PAGE 2: MAP ASSET VIEW ---
-else:
-    st.markdown('<h1><span class="live-indicator"></span>Geospatial Node Telemetry Map</h1>', unsafe_allow_html=True)
-    st.caption("Active geographic layout mapping facility scales.")
-    st.markdown("---")
-    
-    fig_map = px.scatter_mapbox(
-        df_filtered, lat="lat", lon="lon",
-        size="total_energy_footprint", color="vertical",
-        hover_name="unit", hover_data=["location", "grid_mvah", "emission"],
-        zoom=4.2, height=600, color_discrete_sequence=px.colors.qualitative.Safe
-    )
-    fig_map.update_layout(
-        mapbox_style="carto-positron", 
-        margin=dict(l=0, r=0, t=0, b=0),
-        legend=dict(orientation="h", yanchor="bottom", y=0.01, xanchor="left", x=0.01)
-    )
-    st.plotly_chart(fig_map, use_container_width=True)
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.dataframe(df_filtered.drop(columns=["lat", "lon", "total_energy_footprint"]), use_container_width=True, hide_index=True)
+        st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+        
+        w1, w2, w3, w4 = st.columns(4)
+        w1.metric("OPEX Frame Capacity", f"{int(row['opex_capacity']):,} kWp")
+        w2.metric("CAPEX Generation", f"{row['capex_gen']:,.2f} MWh")
+        w3.metric("OPEX Generation", f"{row['opex_gen']:,.2f} MWh")
+        w4.metric("Mitigation / Emission Balance", f"{int(row['mitigation'])} / {int(row['emission'])} MT")
