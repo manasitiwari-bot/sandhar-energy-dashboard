@@ -10,156 +10,204 @@ st.set_page_config(
     layout="wide"
 )
 
-# 🎨 HIGH-PERFORMANCE CUSTOM LAYER (Global Themes, Bubbles, & Rotating Earth Portal Background)
-st.markdown("""
-    <style>
-    @keyframes smoothScaleUp {
-        from { opacity: 0; transform: translateY(15px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .bubble-wrapper, .shape-row, .stPlotlyChart, .stExpander {
-        animation: smoothScaleUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-    }
-
-    /* 🟢 BUBBLE KPI CARD DESIGN */
-    .bubble-wrapper {
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 20px;
-        margin: 30px 0;
-    }
-    .kpi-circle-card {
-        width: 195px;
-        height: 195px;
-        background: radial-gradient(circle at 30% 30%, #ffffff, #f8fafc);
-        border: 2px solid #e2e8f0;
-        border-radius: 50%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s, border-color 0.4s;
-        text-align: center;
-        padding: 15px;
-    }
-    .kpi-circle-card:hover {
-        transform: translateY(-8px) scale(1.05);
-        box-shadow: 0 20px 35px rgba(16, 185, 129, 0.18);
-        border-color: #10b981;
-    }
-    .bubble-title {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        color: #64748b;
-        font-weight: 700;
-        margin-bottom: 6px;
-    }
-    .bubble-value {
-        font-size: 17px;
-        font-weight: 800;
-        color: #0f172a;
-        line-height: 1.2;
-    }
-
-    .shape-row {
-        display: flex;
-        justify-content: center;
-        gap: 50px;
-        margin: 25px 0;
-    }
-
-    /* 💧 CSS DROPLET SHAPE BUTTON */
-    .droplet-node {
-        width: 110px;
-        height: 110px;
-        background: linear-gradient(135deg, #38bdf8, #0284c7);
-        border-radius: 0% 100% 100% 100%;
-        transform: rotate(45deg);
-        box-shadow: 0 8px 22px rgba(2, 132, 199, 0.25);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        border: none;
-    }
-    .droplet-node:hover {
-        transform: rotate(45deg) scale(1.08);
-        box-shadow: 0 12px 26px rgba(2, 132, 199, 0.45);
-    }
-    .droplet-inner-text {
-        transform: rotate(-45deg);
-        color: white;
-        font-weight: bold;
-        font-size: 11px;
-        text-align: center;
-    }
-
-    /* 🌱 CSS LEAF SHAPE BUTTON */
-    .leaf-node {
-        width: 110px;
-        height: 110px;
-        background: linear-gradient(135deg, #4ade80, #16a34a);
-        border-radius: 100% 0% 100% 0%;
-        box-shadow: 0 8px 22px rgba(22, 163, 74, 0.25);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        border: none;
-    }
-    .leaf-node:hover {
-        transform: scale(1.08) rotate(5deg);
-        box-shadow: 0 12px 26px rgba(22, 163, 74, 0.45);
-    }
-    .leaf-inner-text {
-        color: white;
-        font-weight: bold;
-        font-size: 11px;
-        text-align: center;
-    }
-    
-    /* 🌍 PORTAL THEME BACKGROUND ANIMATIONS */
-    .portal-banner {
-        text-align: center;
-        border-bottom: 3px solid #16a34a;
-        padding-bottom: 15px;
-        margin-bottom: 25px;
-    }
-
-    @keyframes rotateGlobe {
-        0% { background-position: 0 0; }
-        100% { background-position: 400px 0; }
-    }
-    .rotating-earth-node {
-        width: 100px;
-        height: 100px;
-        margin: 0 auto 20px auto;
-        border-radius: 50%;
-        background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Earthmap1000x500compac.jpg/640px-Earthmap1000x500compac.jpg');
-        background-size: cover;
-        box-shadow: inset 15px 0 30px rgba(0,0,0,0.7), 0 0 20px rgba(22,163,74,0.4);
-        animation: rotateGlobe 12s linear infinite;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-# 2. Portal Security Wall with Live Rotating Theme Background
+# --- INITIAL STATE MANAGEMENT ---
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
+if "matrix_chart_target" not in st.session_state:
+    st.session_state["matrix_chart_target"] = "emission"
+
+# 🎨 HIGH-PERFORMANCE CUSTOM LAYER (Global Themes, Bubbles, & IMMERSIVE ROTATING EARTH)
 if not st.session_state["authenticated"]:
-    _, col_center, _ = st.columns([1, 1.4, 1])
+    # Full-screen massive planet background styling for login space view
+    st.markdown("""
+        <style>
+        /* Force full screen viewport overlay for space scene */
+        .stApp {
+            background: radial-gradient(circle at center, #0B1D3A 0%, #030A16 100%) !important;
+            overflow: hidden;
+        }
+        
+        /* The Massive Rotating Earth Background Component */
+        .big-rotating-earth {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 650px;
+            height: 650px;
+            border-radius: 50%;
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/c/c4/Earthmap1000x500compac.jpg');
+            background-size: cover;
+            background-repeat: repeat-x;
+            box-shadow: 
+                inset 40px 0 120px rgba(0, 0, 0, 0.95),
+                inset -20px 0 60px rgba(34, 197, 94, 0.3),
+                0 0 80px rgba(14, 165, 233, 0.15);
+            animation: megaSpin 35s linear infinite;
+            opacity: 0.45;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @keyframes megaSpin {
+            0% { background-position: 0 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        /* Glassmorphism wrapper for login card to stand out cleanly over planet */
+        div[data-testid="stVerticalBlock"] > div:has(.auth-card-wrap) {
+            background: rgba(15, 23, 42, 0.75) !important;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 35px !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            position: relative;
+        }
+        
+        .portal-banner h2 {
+            color: #4ade80 !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.5px;
+        }
+        .portal-banner p {
+            color: #94a3b8 !important;
+        }
+        label {
+            color: #e2e8f0 !important;
+        }
+        </style>
+        <div class="big-rotating-earth"></div>
+        """, unsafe_allow_html=True)
+else:
+    # Standard light/clean CSS layout layer for active dashboard usage
+    st.markdown("""
+        <style>
+        @keyframes smoothScaleUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .bubble-wrapper, .shape-row, .stPlotlyChart, .stExpander {
+            animation: smoothScaleUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        /* 🟢 BUBBLE KPI CARD DESIGN */
+        .bubble-wrapper {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .kpi-circle-card {
+            width: 195px;
+            height: 195px;
+            background: radial-gradient(circle at 30% 30%, #ffffff, #f8fafc);
+            border: 2px solid #e2e8f0;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s, border-color 0.4s;
+            text-align: center;
+            padding: 15px;
+        }
+        .kpi-circle-card:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 20px 35px rgba(16, 185, 129, 0.18);
+            border-color: #10b981;
+        }
+        .bubble-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #64748b;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .bubble-value {
+            font-size: 17px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+
+        .shape-row {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin: 25px 0;
+        }
+
+        /* 💧 CSS DROPLET SHAPE BUTTON */
+        .droplet-node {
+            width: 110px;
+            height: 110px;
+            background: linear-gradient(135deg, #38bdf8, #0284c7);
+            border-radius: 0% 100% 100% 100%;
+            transform: rotate(45deg);
+            box-shadow: 0 8px 22px rgba(2, 132, 199, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+        .droplet-node:hover {
+            transform: rotate(45deg) scale(1.08);
+            box-shadow: 0 12px 26px rgba(2, 132, 199, 0.45);
+        }
+        .droplet-inner-text {
+            transform: rotate(-45deg);
+            color: white;
+            font-weight: bold;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        /* 🌱 CSS LEAF SHAPE BUTTON */
+        .leaf-node {
+            width: 110px;
+            height: 110px;
+            background: linear-gradient(135deg, #4ade80, #16a34a);
+            border-radius: 100% 0% 100% 0%;
+            box-shadow: 0 8px 22px rgba(22, 163, 74, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+        .leaf-node:hover {
+            transform: scale(1.08) rotate(5deg);
+            box-shadow: 0 12px 26px rgba(22, 163, 74, 0.45);
+        }
+        .leaf-inner-text {
+            color: white;
+            font-weight: bold;
+            font-size: 11px;
+            text-align: center;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+
+# 2. Portal Security Wall
+if not st.session_state["authenticated"]:
+    _, col_center, _ = st.columns([1, 1.2, 1])
     
     with col_center:
-        st.markdown('<div style="text-align:center; padding-top: 40px;"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="rotating-earth-node"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="portal-banner"><h2>🌱 Sandhar Energy Portal</h2><p>Ecosystem Identity Verification Matrix</p></div>', unsafe_allow_html=True)
+        # Invisible semantic anchor wrapper to lock CSS tracking onto this layout tree block
+        st.markdown('<div class="auth-card-wrap"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="portal-banner" style="text-align: center; margin-bottom:20px;"><h2>🌱 Sandhar Energy Portal</h2><p>Ecosystem Identity Verification Matrix</p></div>', unsafe_allow_html=True)
+        
         username = st.text_input("Matrix Operator Key", placeholder="Username ID")
         password = st.text_input("Access Authorization Token", type="password", placeholder="••••••••")
         
@@ -171,6 +219,7 @@ if not st.session_state["authenticated"]:
             else:
                 st.error("System access codes rejected.")
     st.stop()
+
 
 # 3. Load Datasets
 @st.cache_data
@@ -208,7 +257,7 @@ October'25,2250,7097,9495,26940,11282,14092,797,2779,10306,2723,7950,32049,16986
 November'25,2340,5260,8922,19260,8443,13167,761,2297,10119,2048,5220,26651,14814,28687,12762,25974,8800,5768,30739,52266
 December'25,2280,2275,9758,23075,7946,9703,339,2202,7651,1998,5076,19608,13483,20253,9214,27711,8983,5155,35319,57275
 January'26,2412,2669,9791,26570,8569,8815,160,2349,6286,1998,4036,12138,17977,21261,9772,22537,7800,3233,36920,75108
-February'26,2541,5870,12243,28750,8867,12288,527,2961,10810,2577,0,22518,26434,26236,12536,25500,8688,3274,40764,78627
+February'26,2412,5870,12243,28750,8867,12288,527,2961,10810,2577,0,22518,26434,26236,12536,25500,8688,3274,40764,78627
 March'26,2980,8118,14945,37631,13787,21774,1345,3750,13198,3110,0,24377,31963,15633,16825,30604,10728,3834,46710,89358"""
 
     df_m = pd.read_csv(io.StringIO(master_csv.strip()))
@@ -217,10 +266,6 @@ March'26,2980,8118,14945,37631,13787,21774,1345,3750,13198,3110,0,24377,31963,15
     return df_m, df_t
 
 df_master, df_monthly = load_energy_data_matrices()
-
-# --- INITIAL STATE MANAGEMENT ---
-if "matrix_chart_target" not in st.session_state:
-    st.session_state["matrix_chart_target"] = "emission"
 
 # --- SIDEBAR CONTROLS ---
 st.sidebar.markdown("🔒 **Telemetry Link Stable**")
@@ -293,9 +338,9 @@ st.markdown("""
 
 # --- 3. TIMELINE TREND LINES (MONTHLY GENERATION MATRIX) ---
 st.subheader(f"📈 Ecosystem Performance Sequence Mapping ({target_month})")
-df_month_melted = df_month_melted = df_monthly.melt(id_vars=["Month"], var_name="Unit", value_name="Generation_kWh")
+df_month_melted = df_monthly.melt(id_vars=["Month"], var_name="Unit", value_name="Generation_kWh")
 active_units = list(df_filtered['unit'].unique())
-df_month_filtered = df_month_melted[df_month_melted['Unit'].apply(lambda x: any(u in x for u in active_units))]
+df_month_filtered = df_month_melted[df_month_melted['Unit'].apply(lambda x: any(u.split() in x for u in active_units))]
 
 fig_timeline = px.line(
     df_month_filtered, x="Month", y="Generation_kWh", color="Unit", markers=True,
@@ -326,15 +371,27 @@ st.plotly_chart(fig_global_map, use_container_width=True)
 
 st.markdown("---")
 
-# --- 6. PLANT DETAILS LEDGER (FIXED TYPEERROR ITERATION DETECTOR) ---
+# --- 6. PLANT DETAILS LEDGER (BULLETPROOF LOOKUP DETECTOR) ---
 st.subheader("📋 Infrastructure Node Register Ledger Details")
+
+name_map = {
+    "SAG": "SAG", "SCD": "SCD", "SEB & SAESPL": "SEB", "SAD & SPB": "SAD",
+    "ACR": "SCR", "ATPL": "STPL", "ACM": "ACM", "CORP": "CORP", "SASPL": "SASPL",
+    "SHP": "SHP", "SAH": "SAH", "ACH": "SCH", "SIO": "SIO", "ACA": "SCA",
+    "SAB": "SAB", "SCY": "SCY", "SIP": "SIP", "SIA": "SIA", "SKC": "SKC", "SHN": "SHN"
+}
+
 for idx, row in df_filtered.iterrows():
-    # FIXED: Extracting via string token splitting to prevent list indexing faults
-    unit_token = row['unit'].split()
-    matching_col = [c for c in df_monthly.columns if unit_token in c]
-    current_mon_val = df_monthly.loc[df_monthly['Month'] == target_month, matching_col].values if matching_col else 0
+    unit_string = str(row['unit']).strip()
+    monthly_col_name = name_map.get(unit_string, None)
     
-    card_title = f"📦 [{row['unit']}] Location: {row['location']} — Selected Month ({target_month}): {current_mon_val:,} Generation Units"
+    current_mon_val = 0
+    if monthly_col_name and monthly_col_name in df_monthly.columns:
+        matching_rows = df_monthly.loc[df_monthly['Month'] == target_month, monthly_col_name].values
+        if len(matching_rows) > 0:
+            current_mon_val = matching_rows
+            
+    card_title = f"📦 [{row['unit']}] Location: {row['location']} — Selected Month ({target_month}): {int(current_mon_val):,} Generation Units"
     
     with st.expander(card_title):
         col_f1, col_f2, col_f3, col_f4 = st.columns(4)
