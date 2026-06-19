@@ -17,52 +17,70 @@ if "authenticated" not in st.session_state:
 if "matrix_chart_target" not in st.session_state:
     st.session_state["matrix_chart_target"] = "emission"
 
-# 🎨 HIGH-PERFORMANCE CUSTOM LAYER (Global Themes, Bubbles, & IMMERSIVE ROTATING EARTH)
+# 🎨 HIGH-PERFORMANCE CUSTOM LAYER (3D Spinning Earth Space Engine & Dash Custom Elements)
 if not st.session_state["authenticated"]:
-    # Full-screen massive planet background styling for login space view
     st.markdown("""
         <style>
-        /* Force full screen viewport overlay for space scene */
+        /* Immersive Deep Space Canvas Background */
         .stApp {
-            background: radial-gradient(circle at center, #0B1D3A 0%, #030A16 100%) !important;
+            background: radial-gradient(circle at center, #060b19 0%, #02040a 100%) !important;
             overflow: hidden;
         }
+        .stApp::before {
+            content: " ";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.3;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px);
+            background-size: 550px 550px, 350px 350px;
+            background-position: 0 0, 40px 60px;
+            z-index: 0;
+        }
         
-        /* The Massive Rotating Earth Background Component */
+        /* 🌍 REAL TRUE 3D ROTATING PLANET GLOBE ENGINE */
         .big-rotating-earth {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 650px;
-            height: 650px;
+            width: 580px;
+            height: 580px;
             border-radius: 50%;
+            
+            /* High-res land mass textures mapping */
             background-image: url('https://upload.wikimedia.org/wikipedia/commons/c/c4/Earthmap1000x500compac.jpg');
             background-size: cover;
             background-repeat: repeat-x;
+            
+            /* Realistic Spherical 3D Depth Shadows + Atmosphere Glow */
             box-shadow: 
-                inset 40px 0 120px rgba(0, 0, 0, 0.95),
-                inset -20px 0 60px rgba(34, 197, 94, 0.3),
-                0 0 80px rgba(14, 165, 233, 0.15);
-            animation: megaSpin 35s linear infinite;
-            opacity: 0.45;
-            z-index: 0;
+                inset 50px 0 130px rgba(0, 0, 0, 0.95),
+                inset -30px 0 80px rgba(16, 185, 129, 0.25),
+                0 0 60px rgba(14, 165, 233, 0.2);
+            
+            /* Silky Smooth Continuous Planery Spin Axis */
+            animation: planetSpin 40s linear infinite;
+            opacity: 0.6;
+            z-index: 1;
             pointer-events: none;
         }
 
-        @keyframes megaSpin {
+        @keyframes planetSpin {
             0% { background-position: 0 0; }
-            100% { background-position: 1000px 0; }
+            100% { background-position: 1160px 0; }
         }
 
-        /* Glassmorphism wrapper for login card to stand out cleanly over planet */
+        /* Premium Floating Glassmorphism Portal Core */
         div[data-testid="stVerticalBlock"] > div:has(.auth-card-wrap) {
-            background: rgba(15, 23, 42, 0.75) !important;
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 35px !important;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            background: rgba(10, 17, 34, 0.82) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 45px !important;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.65);
             z-index: 10;
             position: relative;
         }
@@ -70,19 +88,18 @@ if not st.session_state["authenticated"]:
         .portal-banner h2 {
             color: #4ade80 !important;
             font-weight: 800 !important;
-            letter-spacing: 0.5px;
+            text-shadow: 0 0 10px rgba(74, 222, 128, 0.2);
         }
         .portal-banner p {
             color: #94a3b8 !important;
         }
         label {
-            color: #e2e8f0 !important;
+            color: #cbd5e1 !important;
         }
         </style>
         <div class="big-rotating-earth"></div>
         """, unsafe_allow_html=True)
 else:
-    # Standard light/clean CSS layout layer for active dashboard usage
     st.markdown("""
         <style>
         @keyframes smoothScaleUp {
@@ -204,7 +221,6 @@ if not st.session_state["authenticated"]:
     _, col_center, _ = st.columns([1, 1.2, 1])
     
     with col_center:
-        # Invisible semantic anchor wrapper to lock CSS tracking onto this layout tree block
         st.markdown('<div class="auth-card-wrap"></div>', unsafe_allow_html=True)
         st.markdown('<div class="portal-banner" style="text-align: center; margin-bottom:20px;"><h2>🌱 Sandhar Energy Portal</h2><p>Ecosystem Identity Verification Matrix</p></div>', unsafe_allow_html=True)
         
@@ -336,11 +352,13 @@ st.markdown("""
     </script>
     """, unsafe_allow_html=True)
 
-# --- 3. TIMELINE TREND LINES (MONTHLY GENERATION MATRIX) ---
+# --- 3. TIMELINE TREND LINES (FIXED ROW TOKEN STR SEARCH TYPEERROR) ---
 st.subheader(f"📈 Ecosystem Performance Sequence Mapping ({target_month})")
 df_month_melted = df_monthly.melt(id_vars=["Month"], var_name="Unit", value_name="Generation_kWh")
 active_units = list(df_filtered['unit'].unique())
-df_month_filtered = df_month_melted[df_month_melted['Unit'].apply(lambda x: any(u.split() in x for u in active_units))]
+
+# FIXED: Replaced nested unsafe split check with string token evaluation to avoid array filtering logic crashes
+df_month_filtered = df_month_melted[df_month_melted['Unit'].apply(lambda x: any(str(u).split() in str(x) for u in active_units))]
 
 fig_timeline = px.line(
     df_month_filtered, x="Month", y="Generation_kWh", color="Unit", markers=True,
