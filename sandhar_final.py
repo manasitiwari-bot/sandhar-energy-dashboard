@@ -24,13 +24,13 @@ if not st.session_state["authenticated"]:
         <style>
         /* Immersive Space Dark Canvas Background */
         .stApp {
-            background: #02040a !important;
+            background: #040814 !important;
             overflow: hidden;
         }
         
         /* Premium Floating Glassmorphism Portal Core */
         div[data-testid="stVerticalBlock"] > div:has(.auth-card-wrap) {
-            background: rgba(8, 14, 28, 0.88) !important;
+            background: rgba(10, 18, 36, 0.85) !important;
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -39,7 +39,7 @@ if not st.session_state["authenticated"]:
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
             z-index: 10;
             position: relative;
-            margin-top: -120px;
+            margin-top: -80px;
         }
         
         .portal-banner h2 {
@@ -117,7 +117,7 @@ else:
             margin: 25px 0;
         }
 
-        /* 💧 CSS DROPLET SHAPE BUTTON */
+        /* 💧 DROPLET BTN DESIGN */
         .droplet-node {
             width: 110px;
             height: 110px;
@@ -144,7 +144,7 @@ else:
             text-align: center;
         }
 
-        /* 🌱 CSS LEAF SHAPE BUTTON */
+        /* 🌱 LEAF BTN DESIGN */
         .leaf-node {
             width: 110px;
             height: 110px;
@@ -174,42 +174,61 @@ else:
 
 # 2. Portal Security Wall
 if not st.session_state["authenticated"]:
-    # 🌍 High-Fidelity 3D Planet Engine (Procedural Landmass and Curved Atmosphere Overlay)
+    # 🌌 HTML5 Canvas Dynamic Procedural Planet Component (Guaranteed smooth, realistic glow)
     components.html("""
-        <div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#02040a; overflow:hidden; z-index:-1; display:flex; justify-content:center; align-items:center;">
-            <div style="position:absolute; width:100%; height:100%; background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px); background-size: 400px 400px; opacity:0.25;"></div>
-            
-            <div class="true-3d-earth"></div>
+        <div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#030712; overflow:hidden; z-index:-1; display:flex; justify-content:center; align-items:center;">
+            <canvas id="spaceCanvas" style="position:absolute; top:0; left:0; width:100%; height:100%;"></canvas>
+            <div class="planet-glow" style="position:relative; width:440px; height:440px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #1e4ed8 0%, #0f172a 80%); box-shadow: inset 30px 0 100px rgba(0,0,0,0.9), inset -20px 0 60px rgba(56,189,248,0.4), 0 0 60px rgba(34,197,94,0.3); overflow:hidden;">
+                <div id="landmass" style="position:absolute; width:200%; height:100%; background: transparent; opacity:0.65;"></div>
+            </div>
         </div>
-        <style>
-        .true-3d-earth {
-            position: relative;
-            width: 460px;
-            height: 460px;
-            border-radius: 50%;
-            
-            /* High-Fidelity procedural surface map mixing clear green landmass vectors across deep oceans */
-            background: 
-                repeating-linear-gradient(90deg, rgba(34, 197, 94, 0.65) 0px, rgba(34, 197, 94, 0.65) 40px, transparent 40px, transparent 120px),
-                repeating-linear-gradient(0deg, rgba(22, 163, 74, 0.5) 0px, rgba(22, 163, 74, 0.5) 30px, transparent 30px, transparent 90px),
-                radial-gradient(circle at 40% 40%, #1d4ed8 0%, #1e3a8a 70%, #0f172a 100%);
-            background-size: 300% 300%;
-            
-            /* Powerful Atmosphere and Sphere Shading Masks */
-            box-shadow: 
-                inset 50px 0 120px rgba(0, 0, 0, 0.98),
-                inset -30px 0 80px rgba(56, 189, 248, 0.4),
-                0 0 50px rgba(34, 197, 94, 0.25);
-                
-            animation: moveGlobe 20s linear infinite;
+        <script>
+        const canvas = document.getElementById('spaceCanvas');
+        const ctx = canvas.getContext('2d');
+        let w = canvas.width = window.innerWidth;
+        let h = canvas.height = window.innerHeight;
+        
+        // Populate Background Deep Space Stars
+        let stars = [];
+        for(let i=0; i<120; i++) {
+            stars.push({x: Math.random()*w, y: Math.random()*h, r: Math.random()*1.5, o: Math.random()});
         }
-        @keyframes moveGlobe {
-            0% { background-position: 0% 50%; transform: rotate(-5deg); }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 200% 50%; transform: rotate(-5deg); }
+        function drawStars() {
+            ctx.clearRect(0,0,w,h);
+            ctx.fillStyle = '#030712';
+            ctx.fillRect(0,0,w,h);
+            for(let s of stars) {
+                ctx.fillStyle = `rgba(255, 255, 255, ${s.o})`;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+                ctx.fill();
+            }
         }
-        </style>
-    """, height=500)
+        setInterval(drawStars, 100);
+
+        // Generate Procedural Realistic Continents inside the globe container
+        const land = document.getElementById('landmass');
+        let canvasLand = document.createElement('canvas');
+        canvasLand.width = 880; canvasLand.height = 440;
+        let lctx = canvasLand.getContext('2d');
+        lctx.fillStyle = 'rgba(34, 197, 94, 0.7)';
+        for(let i=0; i<45; i++) {
+            lctx.beginPath();
+            lctx.arc(Math.random()*880, Math.random()*440, Math.random()*60+20, 0, Math.PI*2);
+            lctx.fill();
+        }
+        land.style.backgroundImage = `url(${canvasLand.toDataURL()})`;
+        
+        let pos = 0;
+        function animateGlobe() {
+            pos -= 0.8;
+            if(pos <= -440) pos = 0;
+            land.style.transform = `translateX(${pos}px)`;
+            requestAnimationFrame(animateGlobe);
+        }
+        animateGlobe();
+        </script>
+    """, height=480)
 
     _, col_center, _ = st.columns([1, 1.2, 1])
     with col_center:
@@ -232,21 +251,22 @@ if not st.session_state["authenticated"]:
 # 3. Load Datasets
 @st.cache_data
 def load_energy_data_matrices():
+    # Master matrix entries synced perfectly with spreadsheet identifiers
     master_csv = """vertical,unit,location,grid_mvah,capex_capacity,opex_capacity,replacement_pct,dg,mitigation,emission,capex_gen,opex_gen,lat,lon,unit_lost_inefficiency,generation_per_kwp
 Automotive Business,SAG,Gurugram,2074.867,33,0,34,17386,515,1508,33.878,0.0,28.4595,77.0266,4933,2.81
 Plastic Business,SCD,Gurugram,2538.911,110,132,42,52045,772,1846,0.0,237.971,28.4595,77.0266,54539,1.93
-Sheet Metal & Allied Business,SEB & SAESPL,Gurugram,2955.38,50,300,12,0,265,2149,364.741,0.0,28.4595,77.0266,0,3.28
-Automotive Business,SAD & SPB,Gurugram,4614.016,138,218,34,43194,1139,3354,36.582,106.451,28.4595,77.0266,54909,2.86
-Casting Machining & Tooling Business,ACR,Gurugram,12081.709,50,0,30,5730,2653,8783,0.0,8.865,28.4595,77.0266,24938,2.79
-Casting Machining & Tooling Business,ATPL,Gurugram,394.008,36,0,8,55432,24,286,0.0,33.266,28.4595,77.0266,0,2.20
+Sheet Metal & Allied Business,SEB,Gurugram,2955.38,50,300,12,0,265,2149,364.741,0.0,28.4595,77.0266,0,3.28
+Automotive Business,SAD,Gurugram,4614.016,138,218,34,43194,1139,3354,36.582,106.451,28.4595,77.0266,54909,2.86
+Casting Machining & Tooling Business,SCR,Gurugram,12081.709,50,0,30,5730,2653,8783,0.0,8.865,28.4595,77.0266,24938,2.79
+Casting Machining & Tooling Business,STPL,Gurugram,394.008,36,0,8,55432,24,286,0.0,33.266,28.4595,77.0266,0,2.20
 Casting Machining & Tooling Business,ACM,Gurugram,3249.812,127,0,22,2200,525,2363,0.0,122.96,28.4595,77.0266,51085,0.49
 Corp. Office,CORP,Gurugram,232.695,25,0,14,0,24,169,0.0,33.483,28.4595,77.0266,9898,2.53
 Corp. Office,SASPL,Tamil Nadu,159.629,0,0,41,0,48,116,0.0,66.246,11.1271,78.6569,29313,2.65
 Automotive Business,SHP,Rajasthan,881.47,400,262,60,13021,381,641,346.631,1779.14,27.0238,74.2179,113748,3.67
-Automotive Business,SAH,Uttarakhand,5657.6,251,129,5,66015,197,4113,104.663,166.675,30.0668,79.0193,177105,1.21
-Casting Machining & Tooling Business,ACH,Tamil Nadu,18864.562,0,0,53,0,7304,13715,3979.8,0.0,11.1271,78.6569,0,2.14
+Automotive Business,SAH,Uttarakhand,5657.6,251,129,5,66015,197,4113,104.663,166.675,30.0668,79.0193,167105,1.21
+Casting Machining & Tooling Business,SCH,Tamil Nadu,18864.562,0,0,53,0,7304,13715,3979.8,0.0,11.1271,78.6569,0,2.14
 Automotive Business,SIO,Tamil Nadu,1271.13,125,0,9,15220,81,924,110.985,0.0,11.1271,78.6569,0,2.70
-Casting Machining & Tooling Business,ACA,Karnataka,4232.325,115,0,59,1111,1825,3077,0.0,88.659,15.3173,75.7139,45077,2.79
+Casting Machining & Tooling Business,SCA,Karnataka,4232.325,115,0,59,1111,1825,3077,0.0,88.659,15.3173,75.7139,45077,2.79
 Automotive Business,SAB,Karnataka,1779.327,0,340,93,10120,1204,1294,442.802,0.0,15.3173,75.7139,0,2.31
 Sheet Metal & Allied Business,SCY,Karnataka,2695.544,0,634,33,0,642,1960,883.541,0.0,15.3173,75.7139,0,3.05
 Cabin & Fabrication Division,SIP,Pune,377.270,717,0,236,3490,648,274,891.451,0.0,18.5204,73.8567,13106,2.77
@@ -344,11 +364,9 @@ st.markdown("""
     </script>
     """, unsafe_allow_html=True)
 
-# --- 3. TIMELINE TREND LINES (STABLE ISIN MAP) ---
+# --- 3. TIMELINE TREND LINES ---
 st.subheader(f"📈 Ecosystem Performance Sequence Mapping ({target_month})")
 df_month_melted = df_monthly.melt(id_vars=["Month"], var_name="Unit", value_name="Generation_kWh")
-
-# Bulletproof slice execution via column mappings
 df_month_filtered = df_month_melted[df_month_melted['Unit'].isin(df_monthly.columns[1:])]
 
 fig_timeline = px.line(
@@ -380,25 +398,21 @@ st.plotly_chart(fig_global_map, use_container_width=True)
 
 st.markdown("---")
 
-# --- 6. PLANT DETAILS LEDGER ---
+# --- 6. PLANT DETAILS LEDGER (FIXED FOR REDACTED RED BLANK ENTRIES) ---
 st.subheader("📋 Infrastructure Node Register Ledger Details")
-
-name_map = {
-    "SAG": "SAG", "SCD": "SCD", "SEB & SAESPL": "SEB", "SAD & SPB": "SAD",
-    "ACR": "SCR", "ATPL": "STPL", "ACM": "ACM", "CORP": "CORP", "SASPL": "SASPL",
-    "SHP": "SHP", "SAH": "SAH", "ACH": "SCH", "SIO": "SIO", "ACA": "SCA",
-    "SAB": "SAB", "SCY": "SCY", "SIP": "SIP", "SIA": "SIA", "SKC": "SKC", "SHN": "SHN"
-}
 
 for idx, row in df_filtered.iterrows():
     unit_string = str(row['unit']).strip()
-    monthly_col_name = name_map.get(unit_string, None)
     
+    # Secure validation against empty generation metrics to handle redacted spreadsheet rows safely
     current_mon_val = 0
-    if monthly_col_name and monthly_col_name in df_monthly.columns:
-        matching_rows = df_monthly.loc[df_monthly['Month'] == target_month, monthly_col_name].values
+    if unit_string in df_monthly.columns:
+        matching_rows = df_monthly.loc[df_monthly['Month'] == target_month, unit_string].values
         if len(matching_rows) > 0:
-            current_mon_val = matching_rows
+            try:
+                current_mon_val = float(matching_rows) if pd.notna(matching_rows) else 0
+            except ValueError:
+                current_mon_val = 0
             
     card_title = f"📦 [{row['unit']}] Location: {row['location']} — Selected Month ({target_month}): {int(current_mon_val):,} Generation Units"
     
@@ -446,8 +460,7 @@ if prompt_str := st.chat_input("Ask about monthly outputs, inefficient loads, or
     else:
         located = False
         for idx, r in df_master.iterrows():
-            # FIXED: Explicit cast to string before parsing clean text loops to guarantee match execution
-            short_code = str(r['unit']).split().lower()
+            short_code = str(r['unit']).strip().lower()
             if short_code in clean_prompt:
                 ai_response = f"🔍 **Ecosystem Record [{r['unit']}]:** Grid: {r['grid_mvah']} MVAh | Efficiency: {r['generation_per_kwp']} Gen/KWP | Inefficiency Loss: {r['unit_lost_inefficiency']:,} Units."
                 located = True
