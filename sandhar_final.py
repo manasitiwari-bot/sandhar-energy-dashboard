@@ -13,7 +13,6 @@ st.set_page_config(
 # 🎨 HIGH-PERFORMANCE CUSTOM LAYER (Bubbles, Shapes & Themes)
 st.markdown("""
     <style>
-    /* Global Fade-In Entry Animation */
     @keyframes smoothScaleUp {
         from { opacity: 0; transform: translateY(15px); }
         to { opacity: 1; transform: translateY(0); }
@@ -66,7 +65,6 @@ st.markdown("""
         line-height: 1.2;
     }
 
-    /* Container Alignment for Visual Buttons */
     .shape-row {
         display: flex;
         justify-content: center;
@@ -126,7 +124,6 @@ st.markdown("""
         text-align: center;
     }
     
-    /* Login Portal Banner Styling */
     .portal-banner {
         text-align: center;
         border-bottom: 3px solid #16a34a;
@@ -157,78 +154,78 @@ if not st.session_state["authenticated"]:
                 st.error("System access codes rejected.")
     st.stop()
 
-# 3. Load Dataset Matrix
+# 3. Load Datasets (Master Records + New Month-wise Matrix Data)
 @st.cache_data
-def load_verified_spreadsheet_matrix():
-    csv_data = """vertical,unit,location,grid_mvah,capex_capacity,opex_capacity,replacement_pct,dg,mitigation,emission,capex_gen,opex_gen,lat,lon
-Automotive Business,SAD & SPB,Gurugram,4614.016,138,218,34,43194,1139,3354,36.582,106.451,28.4595,77.0266
-Automotive Business,SAG,Gurugram,2074.867,33,0,34,17386,515,1508,33.878,0.0,28.4595,77.0266
-Automotive Business,SAH,Uttarakhand,5657.6,251,129,5,66015,197,4113,104.663,166.675,30.0668,79.0193
-Automotive Business,SAB,Karnataka,1779.327,0,340,93,10120,1204,1294,442.802,0.0,15.3173,75.7139
-Automotive Business,SAESPL,Gurugram,0.0,0,0,0,0,0,0.0,0.0,28.4595,77.0266
-Automotive Business,SAP,Pune,89.862,0,0,0,2147,0,65,0.0,0.0,18.5204,73.8567
-Automotive Business,SHP,Rajasthan,881.47,400,262,60,13021,381,641,346.631,1779.14,27.0238,74.2179
-Automotive Business,SAT,Tamil Nadu,511.762,0,0,0,5730,0,372,0.0,0.0,11.1271,78.6569
-Sheet Metal & Allied Business,SEB & SAESPL,Gurugram,2955.38,50,300,12,0,265,2149,364.741,0.0,28.4595,77.0266
-Sheet Metal & Allied Business,SCK,Karnataka,3207.975,0,0,57,0,1331,2332,0.0,0.0,15.3173,75.7139
-Sheet Metal & Allied Business,SCY,Karnataka,2695.544,0,634,33,0,642,1960,883.541,0.0,15.3173,75.7139
-Sheet Metal & Allied Business,SEK,Karnataka,5334.468,0,0,68,0,2651,3878,0.0,0.0,15.3173,75.7139
-Sheet Metal & Allied Business,SED,Karnataka,324.721,0,0,0,0,0,236,0.0,0.0,15.3173,75.7139
-Sheet Metal & Allied Business,SEH,Gujarat,939.684,0,0,0,66051,0,683,0.0,0.0,22.2587,71.1924
-Sheet Metal & Allied Business,SMN,Himachal Pradesh,126.704,0,0,0,2149,0,92,0.0,0.0,31.1048,77.1734
-Sheet Metal & Allied Business,SEC,Tamil Nadu,227.741,0,0,10,35217,17,166,23.029,0.0,11.1271,78.6569
-Sheet Metal & Allied Business,SHN,Tamil Nadu,2079.137,0,624,19,15522,290,1512,398.942,0.0,11.1271,78.6569
-Casting Machining & Tooling Business,ACM,Gurugram,3249.812,127,0,22,2200,525,2363,0.0,122.96,28.4595,77.0266
-Casting Machining & Tooling Business,ACR,Gurugram,12081.709,50,0,30,5730,2653,8783,0.0,8.865,28.4595,77.0266
-Casting Machining & Tooling Business,ATPL,Gurugram,394.008,36,0,8,55432,24,286,0.0,33.266,28.4595,77.0266
-Casting Machining & Tooling Business,SMK,Karnataka,3891.277,0,0,62,5432,1761,2829,0.0,0.0,15.3173,75.7139
-Casting Machining & Tooling Business,ACA,Karnataka,4232.325,115,0,59,1111,1825,3077,0.0,88.659,15.3173,75.7139
-Casting Machining & Tooling Business,SKC,Pune,1653.615,0,604,23,11891,277,1202,381.131,381.131,18.5204,73.8567
-Casting Machining & Tooling Business,SMT,Tamil Nadu,4993.382,0,0,53,0,1922,3630,0.0,0.0,11.1271,78.6569
-Casting Machining & Tooling Business,ADH,Tamil Nadu,13568.541,0,336,52,68271,5176,9864,1434.144,0.0,11.1271,78.6569
-Casting Machining & Tooling Business,SAL,Tamil Nadu,309.528,0,0,41,2378,926,225,0.0,0.0,11.1271,78.6569
-Casting Machining & Tooling Business,ACH,Tamil Nadu,18864.562,0,0,53,0,7304,13715,3979.8,0.0,11.1271,78.6569
-Cabin & Fabrication Division,SIA,Karnataka,1506.093,115,0,2,6470,22,1095,0.0,29.61,15.3173,75.7139
-Cabin & Fabrication Division,SID,Pune,1659.539,0,0,0,33080,0,1206,0.0,0.0,18.5204,73.8567
-Cabin & Fabrication Division,SIP,Pune,377.270,717,0,236,3490,648,274,891.451,0.0,18.5204,73.8567
-Cabin & Fabrication Division,SIJ,Rajasthan,3272.25,0,0,0,14359,0,2379,0.0,0.0,27.0238,74.2179
-Cabin & Fabrication Division,SIO,Tamil Nadu,1271.13,125,0,9,15220,81,924,110.985,0.0,11.1271,78.6569
-Corp. Office,CORP,Gurugram,232.695,25,0,14,0,24,169,0.0,33.483,28.4595,77.0266
-Corp. Office,SASPL,Tamil Nadu,159.629,0,0,41,0,48,116,0.0,66.246,11.1271,78.6569
-Joint Venture Business,JSW,Gurugram,89.911,0,0,0,0,0,65,0.0,0.0,28.4595,77.0266
-Joint Venture Business,SHT,Gurugram,555.811,0,0,0,0,0,404,0.0,0.0,28.4595,77.0266
-Joint Venture Business,SHA,Karnataka,75.43,0,0,0,0,0,55,0.0,0.0,15.3173,75.7139
-Joint Venture Business,JWS,Karnataka,90.846,0,0,0,0,0,66,0.0,0.0,15.3173,75.7139
-Joint Venture Business,SAM,Gurugram,502.745,0,0,0,0,0,365,0.0,0.0,28.4595,77.0266
-Joint Venture Business,SHC,Tamil Nadu,795.269,0,0,0,0,0,578,0.0,0.0,11.1271,78.6569
-Plastic Business,SCD,Gurugram,2538.911,110,132,42,52045,772,1846,0.0,237.971,28.4595,77.0266"""
+def load_energy_data_matrices():
+    # Primary Plant Master Records Table
+    master_csv = """vertical,unit,location,grid_mvah,capex_capacity,opex_capacity,replacement_pct,dg,mitigation,emission,capex_gen,opex_gen,lat,lon,unit_lost_inefficiency,generation_per_kwp
+Automotive Business,SAG,Gurugram,2074.867,33,0,34,17386,515,1508,33.878,0.0,28.4595,77.0266,4933,2.81
+Plastic Business,SCD,Gurugram,2538.911,110,132,42,52045,772,1846,0.0,237.971,28.4595,77.0266,54539,1.93
+Sheet Metal & Allied Business,SEB & SAESPL,Gurugram,2955.38,50,300,12,0,265,2149,364.741,0.0,28.4595,77.0266,0,3.28
+Automotive Business,SAD & SPB,Gurugram,4614.016,138,218,34,43194,1139,3354,36.582,106.451,28.4595,77.0266,54909,2.86
+Casting Machining & Tooling Business,ACR,Gurugram,12081.709,50,0,30,5730,2653,8783,0.0,8.865,28.4595,77.0266,24938,2.79
+Casting Machining & Tooling Business,ATPL,Gurugram,394.008,36,0,8,55432,24,286,0.0,33.266,28.4595,77.0266,0,2.20
+Casting Machining & Tooling Business,ACM,Gurugram,3249.812,127,0,22,2200,525,2363,0.0,122.96,28.4595,77.0266,51085,0.49
+Corp. Office,CORP,Gurugram,232.695,25,0,14,0,24,169,0.0,33.483,28.4595,77.0266,9898,2.53
+Corp. Office,SASPL,Tamil Nadu,159.629,0,0,41,0,48,116,0.0,66.246,11.1271,78.6569,29313,2.65
+Automotive Business,SHP,Rajasthan,881.47,400,262,60,13021,381,641,346.631,1779.14,27.0238,74.2179,113748,3.67
+Automotive Business,SAH,Uttarakhand,5657.6,251,129,5,66015,197,4113,104.663,166.675,30.0668,79.0193,167105,1.21
+Casting Machining & Tooling Business,ACH,Tamil Nadu,18864.562,0,0,53,0,7304,13715,3979.8,0.0,11.1271,78.6569,0,2.14
+Automotive Business,SIO,Tamil Nadu,1271.13,125,0,9,15220,81,924,110.985,0.0,11.1271,78.6569,0,2.70
+Casting Machining & Tooling Business,ACA,Karnataka,4232.325,115,0,59,1111,1825,3077,0.0,88.659,15.3173,75.7139,45077,2.79
+Automotive Business,SAB,Karnataka,1779.327,0,340,93,10120,1204,1294,442.802,0.0,15.3173,75.7139,0,2.31
+Sheet Metal & Allied Business,SCY,Karnataka,2695.544,0,634,33,0,642,1960,883.541,0.0,15.3173,75.7139,0,3.05
+Cabin & Fabrication Division,SIP,Pune,377.270,717,0,236,3490,648,274,891.451,0.0,18.5204,73.8567,13106,2.77
+Cabin & Fabrication Division,SIA,Karnataka,1506.093,115,0,2,6470,22,1095,0.0,29.61,15.3173,75.7139,39572,2.11
+Casting Machining & Tooling Business,SKC,Pune,1653.615,0,604,23,11891,277,1202,381.131,381.131,18.5204,73.8567,0,3.55
+Sheet Metal & Allied Business,SHN,Tamil Nadu,2079.137,0,624,19,15522,290,1512,398.942,0.0,11.1271,78.6569,0,3.66"""
     
-    df = pd.read_csv(io.StringIO(csv_data.strip()))
-    df['total_energy_footprint'] = df['grid_mvah'] + (df['dg'] / 1000.0) + df['capex_gen'] + df['opex_gen']
-    return df
+    # Month-Wise Structured Transformation Matrix (Extracted from Image)
+    monthly_csv = """Month,SAG,SCD,SEB,SAD,SCR,STPL,ACM,CORP,SASPL,SHP,SAH,SCH,SIO,SCA,SAB,SCY,SIP,SIA,SKC,SHN
+April'25,3485,10249,17726,40557,15257,0,1264,3601,15245,3706,9800,31944,0,20850,0,39342,10218,12227,42814,86464
+May'25,3687,9419,17707,36932,14781,0,1190,2933,12851,3638,8940,32448,0,19683,0,37537,11909,11436,40013,82349
+June'25,3391,8710,15864,31688,13223,0,1018,3049,11281,2992,8220,28288,0,16839,0,35972,13190,10015,35427,61745
+July'25,2869,5484,14493,30147,12845,0,460,2646,8561,2909,4560,28240,25768,14725,0,32358,12390,8971,30837,62178
+Aug'25,2752,6140,13680,26324,11196,0,393,2053,6889,2635,4440,26032,29749,15949,0,31728,12157,7923,31711,65369
+September'25,2891,6060,13844,36867,14327,15410,611,2466,9763,3142,7860,29400,14113,24714,0,33104,11837,8969,33565,63908
+October'25,2250,7097,9495,26940,11282,14092,797,2779,10306,2723,7950,32049,16986,29842,11447,32291,9577,7854,35547,72851
+November'25,2340,5260,8922,19260,8443,13167,761,2297,10119,2048,5220,26651,14814,28687,12762,25974,8800,5768,30739,52266
+December'25,2280,2275,9758,23075,7946,9703,339,2202,7651,1998,5076,19608,13483,20253,9214,27711,8983,5155,35319,57275
+January'26,2412,2669,9791,26570,8569,8815,160,2349,6286,1998,4036,12138,17977,21261,9772,22537,7800,3233,36920,75108
+February'26,2541,5870,12243,28750,8867,12288,527,2961,10810,2577,0,22518,26434,26236,12536,25500,8688,3274,40764,78627
+March'26,2980,8118,14945,37631,13787,21774,1345,3750,13198,3110,0,24377,31963,15633,16825,30604,10728,3834,46710,89358"""
 
-df_master = load_verified_spreadsheet_matrix()
+    df_m = pd.read_csv(io.StringIO(master_csv.strip()))
+    df_t = pd.read_csv(io.StringIO(monthly_csv.strip()))
+    
+    df_m['total_energy_footprint'] = df_m['grid_mvah'] + (df_m['dg'] / 1000.0) + df_m['capex_gen'] + df_m['opex_gen']
+    return df_m, df_t
 
-# --- INITIAL COGNITIVE STATE ---
+df_master, df_monthly = load_energy_data_matrices()
+
+# --- INITIAL STATE MANAGEMENT ---
 if "matrix_chart_target" not in st.session_state:
     st.session_state["matrix_chart_target"] = "emission"
 
-# --- SIDEBAR INTERFACE ---
-st.sidebar.markdown("🔒 **Secure Session Active**")
-if st.sidebar.button("Log Out"):
+# --- SIDEBAR CONTROLS ---
+st.sidebar.markdown("🔒 **Telemetry Link Stable**")
+if st.sidebar.button("Log Out Context"):
     st.session_state["authenticated"] = False
     st.rerun()
 
-st.sidebar.header("🕹️ Workspace Segment Toggles")
-selected_vertical = st.sidebar.selectbox("Business Verticals", ["All Segments"] + list(df_master['vertical'].unique()))
+st.sidebar.header("🕹️ Selection Filters")
+selected_vertical = st.sidebar.selectbox("Business Segment", ["All Segments"] + list(df_master['vertical'].unique()))
 df_filtered = df_master.copy() if selected_vertical == "All Segments" else df_master[df_master['vertical'] == selected_vertical].copy()
 
-# --- MAIN ENERGY TERMINAL FRAME ---
+# New Monthly Selector
+target_month = st.sidebar.select_slider("Select Target Tracking Month (FY25-26)", options=list(df_monthly['Month']))
+
+# --- HEADER FRAME ---
 st.title("🌱 Sandhar Energy Ecosystem Dashboard")
-st.caption("Central command node monitoring real-time solar offset generations, utility distributions, and production carbon analytics.")
+st.caption("Central intelligence array mapped with high-fidelity asset nodes, monthly timeline metrics, and conversational automation layers.")
 st.markdown("---")
 
-# 🟢 1. BUBBLE-SHAPED SUMMARY METRIC MATRIX
+# 🟢 1. BUBBLE KPI CARDS
 total_grid = df_filtered['grid_mvah'].sum()
 total_mit = df_filtered['mitigation'].sum()
 total_emi = df_filtered['emission'].sum()
@@ -244,158 +241,143 @@ st.markdown(f"""
             <div class="bubble-value">{int(total_mit):,}<br><span style="font-size:11px; font-weight:normal; color:#475569;">MT CO₂</span></div>
         </div>
         <div class="kpi-circle-card">
-            <div class="bubble-title">🏭 Total Footprint</div>
+            <div class="bubble-title">🏭 Gross Footprint</div>
             <div class="bubble-value">{int(total_emi):,}<br><span style="font-size:11px; font-weight:normal; color:#475569;">MT CO₂</span></div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# 💧 & 🌱 2. NODE GRAPH SELECTION RIGS
-st.subheader("🎨 Ecosystem Visualization Layer Selection")
+# 💧 & 🌱 2. VISUAL LAYERING SELECTION TRIGGERS
+st.subheader("🎨 Toggle Layer Perspectives")
 col_d, col_l = st.columns(2)
-
 with col_d:
     st.markdown('<div class="shape-row">', unsafe_allow_html=True)
     if st.button("Carbon Mode Trigger", key="d_click"):
         st.session_state["matrix_chart_target"] = "emission"
     st.markdown('</div>', unsafe_allow_html=True)
-
 with col_l:
     st.markdown('<div class="shape-row">', unsafe_allow_html=True)
     if st.button("Green Mode Trigger", key="l_click"):
         st.session_state["matrix_chart_target"] = "mitigation"
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Inject Node Mutation Logic
 st.markdown("""
     <script>
     var elements = window.parent.document.getElementsByTagName('button');
     for (var i = 0; i < elements.length; i++) {
         if (elements[i].innerText.includes('Carbon Mode')) {
             elements[i].className = 'droplet-node';
-            elements[i].innerHTML = '<div class="droplet-inner-text">💧<br>Carbon & Grid Log</div>';
+            elements[i].innerHTML = '<div class="droplet-inner-text">💧<br>Carbon View</div>';
         }
         if (elements[i].innerText.includes('Green Mode')) {
             elements[i].className = 'leaf-node';
-            elements[i].innerHTML = '<div class="leaf-inner-text">🌱<br>Green & Solar Log</div>';
+            elements[i].innerHTML = '<div class="leaf-inner-text">🌱<br>Green View</div>';
         }
     }
     </script>
     """, unsafe_allow_html=True)
 
-# --- 3. THE UNIFIED DATA MATRIX GRAPH ---
-if st.session_state["matrix_chart_target"] == "emission":
-    df_melted = df_filtered.melt(
-        id_vars=["unit"], 
-        value_vars=["emission", "grid_mvah", "capex_gen", "opex_gen"],
-        var_name="Telemetry Metric", value_name="Scale Value"
-    )
-    df_melted["Telemetry Metric"] = df_melted["Telemetry Metric"].replace({
-        "emission": "🏭 Gross Carbon Footprint (MT CO₂)",
-        "grid_mvah": "⚡ Annual Grid Drawdown (MVAh)",
-        "capex_gen": "☀️ CAPEX Solar Generation (MWh)",
-        "opex_gen": "⚙️ OPEX Solar Generation (MWh)"
-    })
-    fig_primary = px.bar(
-        df_melted, x="unit", y="Scale Value", color="Telemetry Metric", barmode="group",
-        title="📊 Carbon Stack Assessment vs System Infrastructure Energy Logs",
-        color_discrete_sequence=["#ef4444", "#0ea5e9", "#f59e0b", "#10b981"]
-    )
-else:
-    df_melted = df_filtered.melt(
-        id_vars=["unit"], 
-        value_vars=["mitigation", "grid_mvah", "capex_gen", "opex_gen"],
-        var_name="Telemetry Metric", value_name="Scale Value"
-    )
-    df_melted["Telemetry Metric"] = df_melted["Telemetry Metric"].replace({
-        "mitigation": "🍏 Clean Mitigation Volume (MT CO₂)",
-        "grid_mvah": "⚡ Annual Grid Drawdown (MVAh)",
-        "capex_gen": "☀️ CAPEX Solar Generation (MWh)",
-        "opex_gen": "⚙️ OPEX Solar Generation (MWh)"
-    })
-    fig_primary = px.bar(
-        df_melted, x="unit", y="Scale Value", color="Telemetry Metric", barmode="group",
-        title="📊 Renewable Mitigation Impact vs System Infrastructure Energy Logs",
-        color_discrete_sequence=["#22c55e", "#0ea5e9", "#f59e0b", "#10b981"]
-    )
+# --- 3. NEW FEATURE: TIMELINE TREND LINES (MONTHLY GENERATION MATRIX) ---
+st.subheader(f"📈 Ecosystem Performance Sequence Mapping ({target_month})")
 
-fig_primary.update_layout(height=420, margin=dict(t=40, b=15, l=10, r=10), hovermode="x unified")
+# Melt monthly dataset to make it easily reviewable by Plotly
+df_month_melted = df_monthly.melt(id_vars=["Month"], var_name="Unit", value_name="Generation_kWh")
+
+# Filter trends based on active sidebar vertical filters
+active_units = list(df_filtered['unit'].unique())
+# Match names that could be grouped together like SEB & SAESPL or SAD & SPB
+df_month_filtered = df_month_melted[df_month_melted['Unit'].apply(lambda x: any(u in x for u in active_units))]
+
+fig_timeline = px.line(
+    df_month_filtered, x="Month", y="Generation_kWh", color="Unit", markers=True,
+    title="📅 Year-Round Active Generation Yield Timeline (kWh)",
+    color_discrete_sequence=px.colors.qualitative.Bold
+)
+fig_timeline.update_layout(height=350, hovermode="x unified")
+st.plotly_chart(fig_timeline, use_container_width=True)
+
+# --- 4. THE UNIFIED DATA MATRIX GRAPH ---
+if st.session_state["matrix_chart_target"] == "emission":
+    df_melted = df_filtered.melt(id_vars=["unit"], value_vars=["emission", "grid_mvah", "capex_gen", "opex_gen"], var_name="Metric", value_name="Value")
+    fig_primary = px.bar(df_melted, x="unit", y="Value", color="Metric", barmode="group", title="📊 Carbon Stack Assessment vs System Infrastructure Energy Logs", color_discrete_sequence=["#ef4444", "#0ea5e9", "#f59e0b", "#10b981"])
+else:
+    df_melted = df_filtered.melt(id_vars=["unit"], value_vars=["mitigation", "grid_mvah", "capex_gen", "opex_gen"], var_name="Metric", value_name="Value")
+    fig_primary = px.bar(df_melted, x="unit", y="Value", color="Metric", barmode="group", title="📊 Renewable Mitigation Impact vs System Infrastructure Energy Logs", color_discrete_sequence=["#22c55e", "#0ea5e9", "#f59e0b", "#10b981"])
+
+fig_primary.update_layout(height=380, hovermode="x unified")
 st.plotly_chart(fig_primary, use_container_width=True)
 
 st.markdown("---")
 
-# --- 4. GEOSPATIAL MAP SEGMENT ---
+# --- 5. GEOSPATIAL MAP SEGMENT ---
 st.subheader("🗺️ Telepatial Asset Distribution Node Map")
-fig_global_map = px.scatter_mapbox(
-    df_filtered, lat="lat", lon="lon",
-    size="total_energy_footprint", color="vertical",
-    hover_name="unit", hover_data=["location", "grid_mvah", "emission"],
-    zoom=4.0, height=450, color_discrete_sequence=px.colors.qualitative.Safe
-)
+fig_global_map = px.scatter_mapbox(df_filtered, lat="lat", lon="lon", size="total_energy_footprint", color="vertical", hover_name="unit", hover_data=["location", "grid_mvah", "emission"], zoom=4.0, height=400, color_discrete_sequence=px.colors.qualitative.Safe)
 fig_global_map.update_layout(mapbox_style="carto-positron", margin=dict(l=0, r=0, t=0, b=0))
 st.plotly_chart(fig_global_map, use_container_width=True)
 
 st.markdown("---")
 
-# --- 5. PLANT EXPANDER DETAILS ---
+# --- 6. PLANT DETAILS LEDGER (WITH NEW INEFFICIENCY LOGS) ---
 st.subheader("📋 Infrastructure Node Register Ledger Details")
 for idx, row in df_filtered.iterrows():
-    card_title = f"📦 [{row['unit']}] Location: {row['location']} — Sourced Grid: {row['grid_mvah']:,.2f} MVAh"
+    # Find active monthly production from matrix for card title context
+    matching_col = [c for c in df_monthly.columns if row['unit'].split() in c]
+    current_mon_val = df_monthly.loc[df_monthly['Month'] == target_month, matching_col].values if matching_col else 0
+    
+    card_title = f"📦 [{row['unit']}] Location: {row['location']} — Selected Month ({target_month}): {current_mon_val:,} Generation Units"
     
     with st.expander(card_title):
         col_f1, col_f2, col_f3, col_f4 = st.columns(4)
         col_f1.metric("Yearly Grid Sourcing", f"{row['grid_mvah']:,.2f} MVAh")
         col_f2.metric("Green Shift Percentage", f"{row['replacement_pct']}%")
         col_f3.metric("Diesel (DG) Sideload", f"{int(row['dg']):,} Liters")
-        col_f4.metric("CAPEX Array Capacity", f"{int(row['capex_capacity']):,} kWp")
+        col_f4.metric("Generation per KWP Ratio", f"{row['generation_per_kwp']} Yield")
         
         st.markdown("<div style='margin-top: 12px;'></div>", unsafe_allow_html=True)
         
         col_s1, col_s2, col_s3, col_s4 = st.columns(4)
-        col_s1.metric("OPEX Array Capacity", f"{int(row['opex_capacity']):,} kWp")
+        col_s1.metric("CAPEX / OPEX Capacities", f"{int(row['capex_capacity'])} / {int(row['opex_capacity'])} kWp")
         col_s2.metric("CAPEX Solar Generation", f"{row['capex_gen']:,.2f} MWh")
         col_s3.metric("OPEX Solar Generation", f"{row['opex_gen']:,.2f} MWh")
-        col_s4.metric("Mitigation/Emission Ratio", f"{int(row['mitigation'])} / {int(row['emission'])} MT")
+        col_s4.metric("Lost Due to Inefficiency", f"{int(row['unit_lost_inefficiency']):,} Units", delta=f"-{int(row['unit_lost_inefficiency'])} Units", delta_color="inverse")
 
 st.markdown("---")
 
-# --- 6. 🤖 INTELLIGENT UPGRADED CONVERSATIONAL CHATBOT LOOP ---
+# --- 7. 🤖 CONVERSATIONAL INTELLIGENCE CHATBOT LOOP ---
 st.subheader("🤖 Sandhar Energy Intelligence Agent")
 if "chat_history" not in st.session_state:
-    st.session_state["chat_history"] = [{"role": "assistant", "content": "Hello! I am your Sandhar Energy Assistant. What would you like to know about our metrics today?"}]
+    st.session_state["chat_history"] = [{"role": "assistant", "content": "Hello! I am your Sandhar Energy Assistant. I have indexed our monthly matrix profiles. What would you like to know about our metrics today?"}]
 
 chat_box = st.container(height=260)
 for message in st.session_state["chat_history"]:
     chat_box.chat_message(message["role"]).write(message["content"])
 
-if prompt_str := st.chat_input("Ask about Sandhar's power metrics or say hi..."):
+if prompt_str := st.chat_input("Ask about monthly outputs, inefficient loads, or say hi..."):
     st.session_state["chat_history"].append({"role": "user", "content": prompt_str})
     chat_box.chat_message("user").write(prompt_str)
     
     clean_prompt = prompt_str.lower().strip()
     ai_response = ""
     
-    # Check for friendly greeting
-    if clean_prompt in ["hi", "hii", "hello", "hey", "yo"]:
+    if clean_prompt in ["hi", "hii", "hello", "hey"]:
         ai_response = "Hello! 👋 Great to have you here. What would you like to know about Sandhar's energy tracking metrics?"
-    # Check for grid analytics
-    elif "grid" in clean_prompt or "drawdown" in clean_prompt:
+    elif "inefficiency" in clean_prompt or "lost" in clean_prompt:
+        ai_response = f"⚠️ **Inefficiency Alert Audit:** Across our entire operational architecture, our plants registered a combined system optimization loss totaling **{df_master['unit_lost_inefficiency'].sum():,} units** due to configuration drops."
+    elif "grid" in clean_prompt:
         ai_response = f"⚡ **Sandhar Energy Audit:** Combined grid utility usage amounts to **{df_master['grid_mvah'].sum():,.2f} MVAh** across all active manufacturing installations."
-    # Check for financial setup profiles
     elif "capex" in clean_prompt or "opex" in clean_prompt:
-        ai_response = f"💰 **Solar Infrastructure Metrics:** Collective CAPEX solar arrays generate **{df_master['capex_gen'].sum():,.2f} MWh**, while active OPEX layout models yield **{df_master['opex_gen'].sum():,.2f} MWh**."
-    # Check for a specific localized plant identifier
+        ai_response = f"💰 **Solar Infrastructure Metrics:** Collective CAPEX solar arrays generate **{df_master['capex_gen'].sum():,.2f} MWh**, while active OPEX layouts yield **{df_master['opex_gen'].sum():,.2f} MWh**."
     else:
         located = False
         for _, r in df_master.iterrows():
-            if r['unit'].lower() in clean_prompt:
-                ai_response = f"🔍 **Ecosystem Record Matrix [{r['unit']}]:** Grid Sourced: {r['grid_mvah']} MVAh | Solar Gen (CAPEX): {r['capex_gen']} MWh | Solar Gen (OPEX): {r['opex_gen']} MWh."
+            short_code = r['unit'].split()
+            if short_code.lower() in clean_prompt:
+                ai_response = f"🔍 **Ecosystem Record [{r['unit']}]:** Grid: {r['grid_mvah']} MVAh | Efficiency: {r['generation_per_kwp']} Gen/KWP | Inefficiency Loss: {r['unit_lost_inefficiency']:,} Units."
                 located = True
                 break
         if not located:
-            ai_response = "I couldn't quite map that. You can ask me about terms like 'yearly grid drawdowns', 'total capex fields', or inspect a specific location index like 'SAD'."
+            ai_response = "I couldn't quite parse that filter context. Try asking about 'inefficiency losses', 'yearly grid usage', or drop a direct identifier token like 'SAD'."
 
-    # Appending the dynamic "What else do you want to know?" loop closer
     ai_response += " \n\n*Please let me know what else you want to know!*"
             
     st.session_state["chat_history"].append({"role": "assistant", "content": ai_response})
