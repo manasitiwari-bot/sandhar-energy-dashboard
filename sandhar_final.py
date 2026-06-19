@@ -416,12 +416,15 @@ for idx, row in df_filtered.iterrows():
     if unit_string in df_monthly.columns:
         matching_rows = df_monthly.loc[df_monthly['Month'] == target_month, unit_string].values
         if len(matching_rows) > 0:
-            try:
-                # FIX: Safely parse array items using .item() instead of straight casting the array wrapper
-                val_extract = matching_rows
-                current_mon_val = float(val_extract) if pd.notna(val_extract) else 0
-            except (ValueError, IndexError):
-                current_mon_val = 0
+            val_extract = matching_rows
+            if pd.notna(val_extract):
+                try:
+                    # Clean commas out of raw values before running floats
+                    if isinstance(val_extract, str):
+                        val_extract = val_extract.replace(',', '').strip()
+                    current_mon_val = float(val_extract)
+                except (ValueError, TypeError):
+                    current_mon_val = 0
             
     card_title = f"📦 [{row['unit']}] Location: {row['location']} — Selected Month ({target_month}): {int(current_mon_val):,} Generation Units"
     
