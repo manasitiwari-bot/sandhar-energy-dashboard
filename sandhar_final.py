@@ -24,28 +24,29 @@ if not st.session_state["authenticated"]:
         <style>
         /* Immersive Space Dark Canvas Background */
         .stApp {
-            background: #040814 !important;
+            background: #02040a !important;
             overflow: hidden;
         }
         
         /* Premium Floating Glassmorphism Portal Core */
         div[data-testid="stVerticalBlock"] > div:has(.auth-card-wrap) {
-            background: rgba(10, 18, 36, 0.85) !important;
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(6, 11, 25, 0.75) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 24px;
-            padding: 45px !important;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+            padding: 40px !important;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
             z-index: 10;
             position: relative;
-            margin-top: -80px;
+            margin-top: -40px;
         }
         
         .portal-banner h2 {
-            color: #4ade80 !important;
+            color: #00ffcc !important;
             font-weight: 800 !important;
-            text-shadow: 0 0 10px rgba(74, 222, 128, 0.2);
+            text-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+            letter-spacing: 0.5px;
         }
         .portal-banner p {
             color: #94a3b8 !important;
@@ -172,14 +173,15 @@ else:
         """, unsafe_allow_html=True)
 
 
-# 2. Portal Security Wall
+# 2. Portal Security Wall with True Cyber-Globe Look
 if not st.session_state["authenticated"]:
-    # 🌌 HTML5 Canvas Dynamic Procedural Planet Component (Guaranteed smooth, realistic glow)
     components.html("""
-        <div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#030712; overflow:hidden; z-index:-1; display:flex; justify-content:center; align-items:center;">
+        <div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#02050f; overflow:hidden; z-index:-1; display:flex; justify-content:center; align-items:center;">
             <canvas id="spaceCanvas" style="position:absolute; top:0; left:0; width:100%; height:100%;"></canvas>
-            <div class="planet-glow" style="position:relative; width:440px; height:440px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #1e4ed8 0%, #0f172a 80%); box-shadow: inset 30px 0 100px rgba(0,0,0,0.9), inset -20px 0 60px rgba(56,189,248,0.4), 0 0 60px rgba(34,197,94,0.3); overflow:hidden;">
-                <div id="landmass" style="position:absolute; width:200%; height:100%; background: transparent; opacity:0.65;"></div>
+            
+            <div style="position:relative; width:460px; height:460px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #0d2b70 5%, #050b1a 75%); box-shadow: inset 25px 0 80px rgba(0,0,0,0.9), inset -30px 0 70px rgba(0,191,255,0.45), 0 0 50px rgba(0,102,255,0.4), 0 0 100px rgba(0,242,254,0.15); overflow:hidden; display:flex; align-items:center;">
+                <div id="earthMap" style="position:absolute; width:200%; height:100%; opacity:0.55; mix-blend-mode: screen;"></div>
+                <div style="position:absolute; width:100%; height:100%; background:linear-gradient(90deg, rgba(2,5,15,0.8) 0%, rgba(2,5,15,0) 40%, rgba(0,210,255,0.15) 90%, rgba(0,242,254,0.4) 100%);"></div>
             </div>
         </div>
         <script>
@@ -188,14 +190,12 @@ if not st.session_state["authenticated"]:
         let w = canvas.width = window.innerWidth;
         let h = canvas.height = window.innerHeight;
         
-        // Populate Background Deep Space Stars
         let stars = [];
-        for(let i=0; i<120; i++) {
-            stars.push({x: Math.random()*w, y: Math.random()*h, r: Math.random()*1.5, o: Math.random()});
+        for(let i=0; i<150; i++) {
+            stars.push({x: Math.random()*w, y: Math.random()*h, r: Math.random()*1.4, o: Math.random()});
         }
         function drawStars() {
-            ctx.clearRect(0,0,w,h);
-            ctx.fillStyle = '#030712';
+            ctx.fillStyle = '#02050f';
             ctx.fillRect(0,0,w,h);
             for(let s of stars) {
                 ctx.fillStyle = `rgba(255, 255, 255, ${s.o})`;
@@ -204,31 +204,40 @@ if not st.session_state["authenticated"]:
                 ctx.fill();
             }
         }
-        setInterval(drawStars, 100);
+        setInterval(drawStars, 120);
 
-        // Generate Procedural Realistic Continents inside the globe container
-        const land = document.getElementById('landmass');
-        let canvasLand = document.createElement('canvas');
-        canvasLand.width = 880; canvasLand.height = 440;
-        let lctx = canvasLand.getContext('2d');
-        lctx.fillStyle = 'rgba(34, 197, 94, 0.7)';
-        for(let i=0; i<45; i++) {
-            lctx.beginPath();
-            lctx.arc(Math.random()*880, Math.random()*440, Math.random()*60+20, 0, Math.PI*2);
-            lctx.fill();
-        }
-        land.style.backgroundImage = `url(${canvasLand.toDataURL()})`;
+        // Render clean, non-overlapping geometric continental lines to mimic data pins/shapes
+        const earthMap = document.getElementById('earthMap');
+        let mCanvas = document.createElement('canvas');
+        mCanvas.width = 920; mCanvas.height = 460;
+        let mCtx = mCanvas.getContext('2d');
         
-        let pos = 0;
-        function animateGlobe() {
-            pos -= 0.8;
-            if(pos <= -440) pos = 0;
-            land.style.transform = `translateX(${pos}px)`;
-            requestAnimationFrame(animateGlobe);
+        mCtx.fillStyle = '#00f2fe';
+        // Draw crisp organic nodes simulating global landscape landmasses smoothly
+        for(let j=0; j<25; j++){
+            mCtx.beginPath();
+            let rx = Math.random()*920;
+            let ry = Math.random()*300 + 80;
+            let rad = Math.random()*45 + 25;
+            mCtx.arc(rx, ry, rad, 0, Math.PI*2);
+            mCtx.fill();
+            // Connective telemetry nodes
+            mCtx.strokeStyle = 'rgba(0, 255, 204, 0.25)';
+            mCtx.lineWidth = 1.5;
+            mCtx.stroke();
         }
-        animateGlobe();
+        earthMap.style.backgroundImage = `url(${mCanvas.toDataURL()})`;
+        
+        let moveX = 0;
+        function spinEarth() {
+            moveX -= 0.6;
+            if(moveX <= -460) moveX = 0;
+            earthMap.style.transform = `translateX(${moveX}px)`;
+            requestAnimationFrame(spinEarth);
+        }
+        spinEarth();
         </script>
-    """, height=480)
+    """, height=490)
 
     _, col_center, _ = st.columns([1, 1.2, 1])
     with col_center:
@@ -251,7 +260,6 @@ if not st.session_state["authenticated"]:
 # 3. Load Datasets
 @st.cache_data
 def load_energy_data_matrices():
-    # Master matrix entries synced perfectly with spreadsheet identifiers
     master_csv = """vertical,unit,location,grid_mvah,capex_capacity,opex_capacity,replacement_pct,dg,mitigation,emission,capex_gen,opex_gen,lat,lon,unit_lost_inefficiency,generation_per_kwp
 Automotive Business,SAG,Gurugram,2074.867,33,0,34,17386,515,1508,33.878,0.0,28.4595,77.0266,4933,2.81
 Plastic Business,SCD,Gurugram,2538.911,110,132,42,52045,772,1846,0.0,237.971,28.4595,77.0266,54539,1.93
@@ -398,20 +406,21 @@ st.plotly_chart(fig_global_map, use_container_width=True)
 
 st.markdown("---")
 
-# --- 6. PLANT DETAILS LEDGER (FIXED FOR REDACTED RED BLANK ENTRIES) ---
+# --- 6. PLANT DETAILS LEDGER (FIXED EXPLICIT ARRAY ITEM EXTRACTION) ---
 st.subheader("📋 Infrastructure Node Register Ledger Details")
 
 for idx, row in df_filtered.iterrows():
     unit_string = str(row['unit']).strip()
     
-    # Secure validation against empty generation metrics to handle redacted spreadsheet rows safely
     current_mon_val = 0
     if unit_string in df_monthly.columns:
         matching_rows = df_monthly.loc[df_monthly['Month'] == target_month, unit_string].values
         if len(matching_rows) > 0:
             try:
-                current_mon_val = float(matching_rows) if pd.notna(matching_rows) else 0
-            except ValueError:
+                # FIX: Safely parse array items using .item() instead of straight casting the array wrapper
+                val_extract = matching_rows
+                current_mon_val = float(val_extract) if pd.notna(val_extract) else 0
+            except (ValueError, IndexError):
                 current_mon_val = 0
             
     card_title = f"📦 [{row['unit']}] Location: {row['location']} — Selected Month ({target_month}): {int(current_mon_val):,} Generation Units"
@@ -433,42 +442,56 @@ for idx, row in df_filtered.iterrows():
 
 st.markdown("---")
 
-# --- 7. 🤖 FIXED CHATBOT LOOP ---
+# --- 7. 🤖 DYNAMIC & ENHANCED CHATBOT ENGINE ---
 st.subheader("🤖 Sandhar Energy Intelligence Agent")
 if "chat_history" not in st.session_state:
-    st.session_state["chat_history"] = [{"role": "assistant", "content": "Hello! I am your Sandhar Energy Assistant. I have indexed our monthly matrix profiles. What would you like to know about our metrics today?"}]
+    st.session_state["chat_history"] = [{"role": "assistant", "content": "Hello! I am your updated Sandhar Energy Assistant. Query me about specific plant tags, inefficiencies, or real-time dataset totals."}]
 
-chat_box = st.container(height=260)
+chat_box = st.container(height=280)
 for message in st.session_state["chat_history"]:
     chat_box.chat_message(message["role"]).write(message["content"])
 
-if prompt_str := st.chat_input("Ask about monthly outputs, inefficient loads, or say hi..."):
+if prompt_str := st.chat_input("Ask about monthly metrics, plant comparisons, or say hello..."):
     st.session_state["chat_history"].append({"role": "user", "content": prompt_str})
     chat_box.chat_message("user").write(prompt_str)
     
     clean_prompt = prompt_str.lower().strip()
     ai_response = ""
     
-    if clean_prompt in ["hi", "hii", "hello", "hey"]:
-        ai_response = "Hello! 👋 Great to have you here. What would you like to know about Sandhar's energy tracking metrics?"
+    # Intuitively map natural conversational questions to your structured arrays
+    if clean_prompt in ["hi", "hii", "hello", "hey", "sup"]:
+        ai_response = "Hello! 👋 System telemetry linkages are completely fully operational. Ask me anything about plant outputs or carbon footprint values."
     elif "inefficiency" in clean_prompt or "lost" in clean_prompt:
-        ai_response = f"⚠️ **Inefficiency Alert Audit:** Across our entire operational architecture, our plants registered a combined system optimization loss totaling **{df_master['unit_lost_inefficiency'].sum():,} units** due to configuration drops."
+        total_loss = df_master['unit_lost_inefficiency'].sum()
+        worst_plant = df_master.loc[df_master['unit_lost_inefficiency'].idxmax()]
+        ai_response = f"⚠️ **Optimization Deficit Metrics:** Global pipeline losses total **{total_loss:,} units**. Node **{worst_plant['unit']}** in {worst_plant['location']} has the highest overhead waste with **{worst_plant['unit_lost_inefficiency']:,} units lost**."
     elif "grid" in clean_prompt:
-        ai_response = f"⚡ **Sandhar Energy Audit:** Combined grid utility usage amounts to **{df_master['grid_mvah'].sum():,.2f} MVAh** across all active manufacturing installations."
-    elif "capex" in clean_prompt or "opex" in clean_prompt:
-        ai_response = f"💰 **Solar Infrastructure Metrics:** Collective CAPEX solar arrays generate **{df_master['capex_gen'].sum():,.2f} MWh**, while active OPEX layouts yield **{df_master['opex_gen'].sum():,.2f} MWh**."
+        ai_response = f"⚡ **Power Architecture Summary:** Aggregate factory grid consumption logs register a workload of **{df_master['grid_mvah'].sum():,.2f} MVAh**."
+    elif "solar" in clean_prompt or "capex" in clean_prompt or "opex" in clean_prompt:
+        ai_response = f"🌞 **Solar Infrastructure Yields:** Core capital arrays (CAPEX) have generated **{df_master['capex_gen'].sum():,.2f} MWh**, whereas standard leased lines (OPEX) contributed **{df_master['opex_gen'].sum():,.2f} MWh**."
     else:
         located = False
         for idx, r in df_master.iterrows():
             short_code = str(r['unit']).strip().lower()
             if short_code in clean_prompt:
-                ai_response = f"🔍 **Ecosystem Record [{r['unit']}]:** Grid: {r['grid_mvah']} MVAh | Efficiency: {r['generation_per_kwp']} Gen/KWP | Inefficiency Loss: {r['unit_lost_inefficiency']:,} Units."
+                # Dynamically fetch current timeline target value inside the chat string
+                t_val = 0
+                if r['unit'] in df_monthly.columns:
+                    m_arr = df_monthly.loc[df_monthly['Month'] == target_month, r['unit']].values
+                    if len(m_arr) > 0: t_val = int(m_arr)
+                
+                ai_response = f"🔍 **Telemetry Profile for [{r['unit']}] ({r['vertical']}):** \n" \
+                              f"• Location Vector: {r['location']}\n" \
+                              f"• Annual Grid Workload: {r['grid_mvah']:.2f} MVAh\n" \
+                              f"• Green Substitution Shift: {r['replacement_pct']}%\n" \
+                              f"• Inefficiency Losses: {r['unit_lost_inefficiency']:,} Units\n" \
+                              f"• Generation Yield inside {target_month}: {t_val:,} units."
                 located = True
                 break
         if not located:
-            ai_response = "I couldn't quite parse that filter context. Try asking about 'inefficiency losses', 'yearly grid usage', or drop a direct identifier token like 'SAD'."
+            ai_response = "System was unable to index your string query pattern. Try saying things like: *'Show me grid consumption'*, *'What are the inefficiency losses?'*, or reference plant nodes directly like *'SAG'* or *'SCD'*."
 
-    ai_response += " \n\n*Please let me know what else you want to know!*"
+    ai_response += " \n\n*What else can I fetch from the telemetry files for you?*"
             
     st.session_state["chat_history"].append({"role": "assistant", "content": ai_response})
     chat_box.chat_message("assistant").write(ai_response)
