@@ -18,28 +18,28 @@ if "authenticated" not in st.session_state:
 if "matrix_chart_target" not in st.session_state:
     st.session_state["matrix_chart_target"] = "emission"
 
-# 🎨 HIGH-PERFORMANCE OPERATIONAL OVERLAYS
+# 🎨 PREMIUM CSS OVERLAYS
 if not st.session_state["authenticated"]:
     st.markdown("""
         <style>
         /* Immersive Space Dark Canvas Background */
         .stApp {
-            background: #02040a !important;
+            background: #030712 !important;
             overflow: hidden;
         }
         
         /* Premium Floating Glassmorphism Portal Core */
         div[data-testid="stVerticalBlock"] > div:has(.auth-card-wrap) {
-            background: rgba(6, 11, 25, 0.75) !important;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(8, 14, 32, 0.65) !important;
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 24px;
             padding: 40px !important;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7), inset 0 1px 2px rgba(255,255,255,0.1);
             z-index: 10;
             position: relative;
-            margin-top: -40px;
+            margin-top: 10px;
         }
         
         .portal-banner h2 {
@@ -173,73 +173,104 @@ else:
         """, unsafe_allow_html=True)
 
 
-# 2. Portal Security Wall with True Cyber-Globe Look
+# 2. Portal Security Wall with actual Interactive 3D Telemetry Globe
 if not st.session_state["authenticated"]:
     components.html("""
-        <div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#02050f; overflow:hidden; z-index:-1; display:flex; justify-content:center; align-items:center;">
-            <canvas id="spaceCanvas" style="position:absolute; top:0; left:0; width:100%; height:100%;"></canvas>
-            
-            <div style="position:relative; width:460px; height:460px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #0d2b70 5%, #050b1a 75%); box-shadow: inset 25px 0 80px rgba(0,0,0,0.9), inset -30px 0 70px rgba(0,191,255,0.45), 0 0 50px rgba(0,102,255,0.4), 0 0 100px rgba(0,242,254,0.15); overflow:hidden; display:flex; align-items:center;">
-                <div id="earthMap" style="position:absolute; width:200%; height:100%; opacity:0.55; mix-blend-mode: screen;"></div>
-                <div style="position:absolute; width:100%; height:100%; background:linear-gradient(90deg, rgba(2,5,15,0.8) 0%, rgba(2,5,15,0) 40%, rgba(0,210,255,0.15) 90%, rgba(0,242,254,0.4) 100%);"></div>
-            </div>
+        <div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#030712; overflow:hidden; z-index:-1; display:flex; justify-content:center; align-items:center;">
+            <div id="globeContainer" style="width:500px; height:500px;"></div>
         </div>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
         <script>
-        const canvas = document.getElementById('spaceCanvas');
-        const ctx = canvas.getContext('2d');
-        let w = canvas.width = window.innerWidth;
-        let h = canvas.height = window.innerHeight;
-        
-        let stars = [];
-        for(let i=0; i<150; i++) {
-            stars.push({x: Math.random()*w, y: Math.random()*h, r: Math.random()*1.4, o: Math.random()});
-        }
-        function drawStars() {
-            ctx.fillStyle = '#02050f';
-            ctx.fillRect(0,0,w,h);
-            for(let s of stars) {
-                ctx.fillStyle = `rgba(255, 255, 255, ${s.o})`;
-                ctx.beginPath();
-                ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-                ctx.fill();
-            }
-        }
-        setInterval(drawStars, 120);
+        const container = document.getElementById('globeContainer');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
+        camera.position.z = 160;
 
-        // Render clean, non-overlapping geometric continental lines to mimic data pins/shapes
-        const earthMap = document.getElementById('earthMap');
-        let mCanvas = document.createElement('canvas');
-        mCanvas.width = 920; mCanvas.height = 460;
-        let mCtx = mCanvas.getContext('2d');
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(500, 500);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        // Group to hold our telemetry elements
+        const globeGroup = new THREE.Group();
+        scene.add(globeGroup);
+
+        // Create a tech-looking particle wireframe globe
+        const sphereGeo = new THREE.SphereGeometry(65, 30, 30);
+        const wireframeMat = new THREE.MeshBasicMaterial({
+            color: 0x0ea5e9,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.15
+        });
+        const baseGlobe = new THREE.Mesh(sphereGeo, wireframeMat);
+        globeGroup.add(baseGlobe);
+
+        // Add digital node points mapping the surface
+        const pointsCount = 400;
+        const positions = new Float32Array(pointsCount * 3);
+        const radius = 65.5;
         
-        mCtx.fillStyle = '#00f2fe';
-        // Draw crisp organic nodes simulating global landscape landmasses smoothly
-        for(let j=0; j<25; j++){
-            mCtx.beginPath();
-            let rx = Math.random()*920;
-            let ry = Math.random()*300 + 80;
-            let rad = Math.random()*45 + 25;
-            mCtx.arc(rx, ry, rad, 0, Math.PI*2);
-            mCtx.fill();
-            // Connective telemetry nodes
-            mCtx.strokeStyle = 'rgba(0, 255, 204, 0.25)';
-            mCtx.lineWidth = 1.5;
-            mCtx.stroke();
+        for(let i=0; i<pointsCount; i++) {
+            const phi = Math.acos(Math.random() * 2 - 1);
+            const theta = Math.random() * Math.PI * 2;
+            
+            positions[i*3] = radius * Math.sin(phi) * Math.cos(theta);
+            positions[i*3+1] = radius * Math.sin(phi) * Math.sin(theta);
+            positions[i*3+2] = radius * Math.cos(phi);
         }
-        earthMap.style.backgroundImage = `url(${mCanvas.toDataURL()})`;
         
-        let moveX = 0;
-        function spinEarth() {
-            moveX -= 0.6;
-            if(moveX <= -460) moveX = 0;
-            earthMap.style.transform = `translateX(${moveX}px)`;
-            requestAnimationFrame(spinEarth);
+        const pointsGeo = new THREE.BufferGeometry();
+        pointsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const pointsMat = new THREE.PointsMaterial({
+            color: 0x00ffcc,
+            size: 1.5,
+            transparent: true,
+            opacity: 0.8
+        });
+        const globePoints = new THREE.Points(pointsGeo, pointsMat);
+        globeGroup.add(globePoints);
+
+        // Add 4 glowing Telemetry Target Pins (like the mock targets)
+        const colors = [0xef4444, 0x22c55e, 0x38bdf8, 0xa855f7];
+        for(let i=0; i<4; i++) {
+            const pinGeo = new THREE.SphereGeometry(2.5, 16, 16);
+            const pinMat = new THREE.MeshBasicMaterial({ color: colors[i] });
+            const pin = new THREE.Mesh(pinGeo, pinMat);
+            
+            const p = Math.random() * Math.PI;
+            const t = Math.random() * Math.PI * 2;
+            pin.position.x = radius * Math.sin(p) * Math.cos(t);
+            pin.position.y = radius * Math.sin(p) * Math.sin(t);
+            pin.position.z = radius * Math.cos(p);
+            globeGroup.add(pin);
         }
-        spinEarth();
+
+        // Space Background Starfield
+        const starGeo = new THREE.BufferGeometry();
+        const starCount = 300;
+        const starPos = new Float32Array(starCount * 3);
+        for(let i=0; i<starCount*3; i++) {
+            starPos[i] = (Math.random() - 0.5) * 500;
+        }
+        starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+        const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.8, transparent: true, opacity: 0.4 });
+        const starField = new THREE.Points(starGeo, starMat);
+        scene.add(starField);
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            globeGroup.rotation.y += 0.004;
+            globeGroup.rotation.x += 0.001;
+            renderer.render(scene, camera);
+        }
+        animate();
         </script>
-    """, height=490)
+    """, height=510)
 
-    _, col_center, _ = st.columns([1, 1.2, 1])
+    _, col_center, _ = st.columns([1, 1.3, 1])
     with col_center:
         st.markdown('<div class="auth-card-wrap"></div>', unsafe_allow_html=True)
         st.markdown('<div class="portal-banner" style="text-align: center; margin-bottom:20px;"><h2>🌱 Sandhar Energy Portal</h2><p>Ecosystem Identity Verification Matrix</p></div>', unsafe_allow_html=True)
@@ -406,7 +437,7 @@ st.plotly_chart(fig_global_map, use_container_width=True)
 
 st.markdown("---")
 
-# --- 6. PLANT DETAILS LEDGER (FIXED EXPLICIT ARRAY ITEM EXTRACTION) ---
+# --- 6. PLANT DETAILS LEDGER ---
 st.subheader("📋 Infrastructure Node Register Ledger Details")
 
 for idx, row in df_filtered.iterrows():
@@ -419,7 +450,6 @@ for idx, row in df_filtered.iterrows():
             val_extract = matching_rows
             if pd.notna(val_extract):
                 try:
-                    # Clean commas out of raw values before running floats
                     if isinstance(val_extract, str):
                         val_extract = val_extract.replace(',', '').strip()
                     current_mon_val = float(val_extract)
@@ -445,7 +475,7 @@ for idx, row in df_filtered.iterrows():
 
 st.markdown("---")
 
-# --- 7. 🤖 DYNAMIC & ENHANCED CHATBOT ENGINE ---
+# --- 7. 🤖 CHATBOT ENGINE ---
 st.subheader("🤖 Sandhar Energy Intelligence Agent")
 if "chat_history" not in st.session_state:
     st.session_state["chat_history"] = [{"role": "assistant", "content": "Hello! I am your updated Sandhar Energy Assistant. Query me about specific plant tags, inefficiencies, or real-time dataset totals."}]
@@ -461,7 +491,6 @@ if prompt_str := st.chat_input("Ask about monthly metrics, plant comparisons, or
     clean_prompt = prompt_str.lower().strip()
     ai_response = ""
     
-    # Intuitively map natural conversational questions to your structured arrays
     if clean_prompt in ["hi", "hii", "hello", "hey", "sup"]:
         ai_response = "Hello! 👋 System telemetry linkages are completely fully operational. Ask me anything about plant outputs or carbon footprint values."
     elif "inefficiency" in clean_prompt or "lost" in clean_prompt:
@@ -477,7 +506,6 @@ if prompt_str := st.chat_input("Ask about monthly metrics, plant comparisons, or
         for idx, r in df_master.iterrows():
             short_code = str(r['unit']).strip().lower()
             if short_code in clean_prompt:
-                # Dynamically fetch current timeline target value inside the chat string
                 t_val = 0
                 if r['unit'] in df_monthly.columns:
                     m_arr = df_monthly.loc[df_monthly['Month'] == target_month, r['unit']].values
