@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# 🎨 HIGH-PERFORMANCE CUSTOM LAYER (Bubbles, Shapes & Themes)
+# 🎨 HIGH-PERFORMANCE CUSTOM LAYER (Global Themes, Bubbles, & Rotating Earth Portal Background)
 st.markdown("""
     <style>
     @keyframes smoothScaleUp {
@@ -124,16 +124,32 @@ st.markdown("""
         text-align: center;
     }
     
+    /* 🌍 PORTAL THEME BACKGROUND ANIMATIONS */
     .portal-banner {
         text-align: center;
         border-bottom: 3px solid #16a34a;
         padding-bottom: 15px;
         margin-bottom: 25px;
     }
+
+    @keyframes rotateGlobe {
+        0% { background-position: 0 0; }
+        100% { background-position: 400px 0; }
+    }
+    .rotating-earth-node {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 20px auto;
+        border-radius: 50%;
+        background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Earthmap1000x500compac.jpg/640px-Earthmap1000x500compac.jpg');
+        background-size: cover;
+        box-shadow: inset 15px 0 30px rgba(0,0,0,0.7), 0 0 20px rgba(22,163,74,0.4);
+        animation: rotateGlobe 12s linear infinite;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. Portal Security Wall
+# 2. Portal Security Wall with Live Rotating Theme Background
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
@@ -141,7 +157,9 @@ if not st.session_state["authenticated"]:
     _, col_center, _ = st.columns([1, 1.4, 1])
     
     with col_center:
-        st.markdown('<div class="portal-banner"><h2>🌱 Sandhar Energy Portal</h2><p>Telemetry Identity Verification</p></div>', unsafe_allow_html=True)
+        st.markdown('<div style="text-align:center; padding-top: 40px;"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="rotating-earth-node"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="portal-banner"><h2>🌱 Sandhar Energy Portal</h2><p>Ecosystem Identity Verification Matrix</p></div>', unsafe_allow_html=True)
         username = st.text_input("Matrix Operator Key", placeholder="Username ID")
         password = st.text_input("Access Authorization Token", type="password", placeholder="••••••••")
         
@@ -154,10 +172,9 @@ if not st.session_state["authenticated"]:
                 st.error("System access codes rejected.")
     st.stop()
 
-# 3. Load Datasets (Master Records + New Month-wise Matrix Data)
+# 3. Load Datasets
 @st.cache_data
 def load_energy_data_matrices():
-    # Primary Plant Master Records Table
     master_csv = """vertical,unit,location,grid_mvah,capex_capacity,opex_capacity,replacement_pct,dg,mitigation,emission,capex_gen,opex_gen,lat,lon,unit_lost_inefficiency,generation_per_kwp
 Automotive Business,SAG,Gurugram,2074.867,33,0,34,17386,515,1508,33.878,0.0,28.4595,77.0266,4933,2.81
 Plastic Business,SCD,Gurugram,2538.911,110,132,42,52045,772,1846,0.0,237.971,28.4595,77.0266,54539,1.93
@@ -180,7 +197,6 @@ Cabin & Fabrication Division,SIA,Karnataka,1506.093,115,0,2,6470,22,1095,0.0,29.
 Casting Machining & Tooling Business,SKC,Pune,1653.615,0,604,23,11891,277,1202,381.131,381.131,18.5204,73.8567,0,3.55
 Sheet Metal & Allied Business,SHN,Tamil Nadu,2079.137,0,624,19,15522,290,1512,398.942,0.0,11.1271,78.6569,0,3.66"""
     
-    # Month-Wise Structured Transformation Matrix (Extracted from Image)
     monthly_csv = """Month,SAG,SCD,SEB,SAD,SCR,STPL,ACM,CORP,SASPL,SHP,SAH,SCH,SIO,SCA,SAB,SCY,SIP,SIA,SKC,SHN
 April'25,3485,10249,17726,40557,15257,0,1264,3601,15245,3706,9800,31944,0,20850,0,39342,10218,12227,42814,86464
 May'25,3687,9419,17707,36932,14781,0,1190,2933,12851,3638,8940,32448,0,19683,0,37537,11909,11436,40013,82349
@@ -197,7 +213,6 @@ March'26,2980,8118,14945,37631,13787,21774,1345,3750,13198,3110,0,24377,31963,15
 
     df_m = pd.read_csv(io.StringIO(master_csv.strip()))
     df_t = pd.read_csv(io.StringIO(monthly_csv.strip()))
-    
     df_m['total_energy_footprint'] = df_m['grid_mvah'] + (df_m['dg'] / 1000.0) + df_m['capex_gen'] + df_m['opex_gen']
     return df_m, df_t
 
@@ -217,7 +232,6 @@ st.sidebar.header("🕹️ Selection Filters")
 selected_vertical = st.sidebar.selectbox("Business Segment", ["All Segments"] + list(df_master['vertical'].unique()))
 df_filtered = df_master.copy() if selected_vertical == "All Segments" else df_master[df_master['vertical'] == selected_vertical].copy()
 
-# New Monthly Selector
 target_month = st.sidebar.select_slider("Select Target Tracking Month (FY25-26)", options=list(df_monthly['Month']))
 
 # --- HEADER FRAME ---
@@ -277,15 +291,10 @@ st.markdown("""
     </script>
     """, unsafe_allow_html=True)
 
-# --- 3. NEW FEATURE: TIMELINE TREND LINES (MONTHLY GENERATION MATRIX) ---
+# --- 3. TIMELINE TREND LINES (MONTHLY GENERATION MATRIX) ---
 st.subheader(f"📈 Ecosystem Performance Sequence Mapping ({target_month})")
-
-# Melt monthly dataset to make it easily reviewable by Plotly
-df_month_melted = df_monthly.melt(id_vars=["Month"], var_name="Unit", value_name="Generation_kWh")
-
-# Filter trends based on active sidebar vertical filters
+df_month_melted = df_month_melted = df_monthly.melt(id_vars=["Month"], var_name="Unit", value_name="Generation_kWh")
 active_units = list(df_filtered['unit'].unique())
-# Match names that could be grouped together like SEB & SAESPL or SAD & SPB
 df_month_filtered = df_month_melted[df_month_melted['Unit'].apply(lambda x: any(u in x for u in active_units))]
 
 fig_timeline = px.line(
@@ -317,11 +326,12 @@ st.plotly_chart(fig_global_map, use_container_width=True)
 
 st.markdown("---")
 
-# --- 6. PLANT DETAILS LEDGER (WITH NEW INEFFICIENCY LOGS) ---
+# --- 6. PLANT DETAILS LEDGER (FIXED TYPEERROR ITERATION DETECTOR) ---
 st.subheader("📋 Infrastructure Node Register Ledger Details")
 for idx, row in df_filtered.iterrows():
-    # Find active monthly production from matrix for card title context
-    matching_col = [c for c in df_monthly.columns if row['unit'].split() in c]
+    # FIXED: Extracting via string token splitting to prevent list indexing faults
+    unit_token = row['unit'].split()
+    matching_col = [c for c in df_monthly.columns if unit_token in c]
     current_mon_val = df_monthly.loc[df_monthly['Month'] == target_month, matching_col].values if matching_col else 0
     
     card_title = f"📦 [{row['unit']}] Location: {row['location']} — Selected Month ({target_month}): {current_mon_val:,} Generation Units"
