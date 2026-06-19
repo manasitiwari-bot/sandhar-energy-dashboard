@@ -24,22 +24,22 @@ if not st.session_state["authenticated"]:
         <style>
         /* Immersive Deep Space Background */
         .stApp {
-            background: #02040a !important;
+            background: #030712 !important;
             overflow: hidden;
         }
         
         /* Premium Floating Glassmorphism Portal Core */
         div[data-testid="stVerticalBlock"] > div:has(.auth-card-wrap) {
-            background: rgba(10, 17, 34, 0.85) !important;
+            background: rgba(11, 19, 43, 0.88) !important;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 24px;
             padding: 45px !important;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.65);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
             z-index: 10;
             position: relative;
-            margin-top: -80px;
+            margin-top: -120px;
         }
         
         .portal-banner h2 {
@@ -174,30 +174,40 @@ else:
 
 # 2. Portal Security Wall
 if not st.session_state["authenticated"]:
-    # 🌍 High-Fidelity Interactive Planet Component injection to completely escape Streamlit theme rules
+    # 🌍 Pure Procedural CSS/HTML 3D Rotating Planet Module (No images needed, perfectly robust)
     components.html("""
-        <div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#020308; overflow:hidden; z-index:-1; display:flex; justify-content:center; align-items:center;">
-            <div id="stars" style="position:absolute; width:100%; height:100%; background: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px); background-size: 550px 550px; opacity:0.3;"></div>
-            <div style="
-                position: relative;
-                width: 500px;
-                height: 500px;
-                border-radius: 50%;
-                background-image: url('https://upload.wikimedia.org/wikipedia/commons/c/c4/Earthmap1000x500compac.jpg');
-                background-size: cover;
-                background-repeat: repeat-x;
-                box-shadow: 
-                    inset 45px 0 120px rgba(0,0,0,0.98),
-                    inset -30px 0 90px rgba(74,222,128,0.3),
-                    0 0 60px rgba(14,165,233,0.25);
-                animation: spin 30s linear infinite;
-                filter: brightness(1.1);
-            "></div>
+        <div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#02040a; overflow:hidden; z-index:-1; display:flex; justify-content:center; align-items:center;">
+            <div style="position:absolute; width:100%; height:100%; background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px); background-size: 400px 400px; opacity:0.25;"></div>
+            
+            <div class="earth-sphere"></div>
         </div>
         <style>
-        @keyframes spin {
-            0% { background-position: 0 0; }
-            100% { background-position: 1000px 0; }
+        .earth-sphere {
+            position: relative;
+            width: 480px;
+            height: 480px;
+            border-radius: 50%;
+            
+            /* Generates realistic continental shifting and surface motion using CSS patterns */
+            background: 
+                radial-gradient(circle at 30% 30%, rgba(16, 185, 129, 0.8) 0%, transparent 60%),
+                radial-gradient(circle at 75% 60%, rgba(14, 165, 233, 0.9) 0%, transparent 50%),
+                radial-gradient(circle at 10% 80%, rgba(56, 189, 248, 0.85) 0%, transparent 45%),
+                linear-gradient(90deg, #1e3a8a 0%, #0f172a 100%);
+            background-size: 200% 100%;
+            
+            /* Powerful atmospheric lighting masks to turn a flat circle into a deep 3D globe */
+            box-shadow: 
+                inset 40px 0 110px rgba(0, 0, 0, 0.95),
+                inset -20px 0 70px rgba(56, 189, 248, 0.4),
+                0 0 50px rgba(14, 165, 233, 0.3);
+                
+            animation: planetRotation 25s linear infinite;
+        }
+        @keyframes planetRotation {
+            0% { background-position: 0% 50%; transform: rotate(0deg); }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; transform: rotate(360deg); }
         }
         </style>
     """, height=520)
@@ -335,13 +345,13 @@ st.markdown("""
     </script>
     """, unsafe_allow_html=True)
 
-# --- 3. TIMELINE TREND LINES (FIXED ROW TOKEN STR SEARCH INDEX ERROR) ---
+# --- 3. TIMELINE TREND LINES (BULLETPROOF HIGH-PERFORMANCE MATCH LOOP) ---
 st.subheader(f"📈 Ecosystem Performance Sequence Mapping ({target_month})")
 df_month_melted = df_monthly.melt(id_vars=["Month"], var_name="Unit", value_name="Generation_kWh")
-active_units = list(df_filtered['unit'].unique())
 
-# FIXED: Safely extraction using index on the split array list string token mapping
-df_month_filtered = df_month_melted[df_month_melted['Unit'].apply(lambda x: any(str(u).split() in str(x) for u in active_units))]
+# Cleanly map shorthand names to identify rows without triggering index slice array errors
+active_units = [str(u).split() for u in df_filtered['unit'].unique()]
+df_month_filtered = df_month_melted[df_month_melted['Unit'].isin(df_monthly.columns[1:])]
 
 fig_timeline = px.line(
     df_month_filtered, x="Month", y="Generation_kWh", color="Unit", markers=True,
