@@ -12,28 +12,47 @@ st.set_page_config(
 # --- LIVE HARDCODED DATASET (From uploaded images) ---
 @st.cache_data
 def load_comprehensive_plant_matrices():
-    # Exactly matching column values from image_49839e.png and image_8ac049.png
-    data = {
-        "Unit Name": ["SAG", "SCD", "SEB", "SAD", "SCR", "STPL", "ACM", "CORP", "SASPL", "SHP", "SAH", "SCH", "SIO", "SCA", "SAB", "SCY", "SIP", "SIA", "SKC", "SHN"],
-        "Vertical": [
-            "Automotive Business", "Plastic Business", "Sheet Metal & Allied Business", "Automotive Business",
-            "Casting Machining & Tooling Business", "Casting Machining & Tooling Business", "Casting Machining & Tooling Business",
-            "Corp. Office", "Corp. Office", "Automotive Business", "Automotive Business", "Casting Machining & Tooling Business",
-            "Automotive Business", "Casting Machining & Tooling Business", "Automotive Business", "Sheet Metal & Allied Business",
-            "Cabin & Fabrication Division", "Cabin & Fabrication Division", "Casting Machining & Tooling Business", "Sheet Metal & Allied Business"
-        ],
-        "Location": ["Gurugram", "Gurugram", "Gurugram", "Gurugram", "Gurugram", "Gurugram", "Gurugram", "Gurugram", "Tamil Nadu", "Rajasthan", "Uttarakhand", "Tamil Nadu", "Tamil Nadu", "Karnataka", "Karnataka", "Karnataka", "Pune", "Karnataka", "Pune", "Tamil Nadu"],
-        "lat": [28.4595, 28.4595, 28.4595, 28.4595, 28.4595, 28.4595, 28.4595, 28.4595, 11.1271, 27.0238, 30.0668, 11.1271, 11.1271, 15.3173, 15.3173, 15.3173, 18.5204, 15.3173, 18.5204, 11.1271],
-        "lon": [77.0266, 77.0266, 77.0266, 77.0266, 77.0266, 77.0266, 77.0266, 77.0266, 78.6569, 74.2179, 79.0193, 78.6569, 78.6569, 75.7139, 75.7139, 75.7139, 73.8567, 75.7139, 73.8567, 78.6569],
-        "CAPEX capacity":,
-        "OPEX capacity":,
-        "April Gen":,
-        "May Gen":,
-        "April Gen/KWP": [3.3, 2.8, 4.3, 3.9, 3.9, 4.5, 1.2, 3.4, 3.7, 4.9, 0.0, 2.6, 4.9, 2.3, 4.8, 3.5, 2.8, 1.6, 4.4, 4.5],
-        "May Gen/KWP": [3.0, 3.1, 4.7, 3.9, 4.1, 4.6, 1.3, 3.5, 3.7, 5.1, 0.0, 2.8, 5.5, 2.4, 4.9, 3.4, 2.5, 1.8, 4.3, 4.2],
-        "Unit Loss Inefficiency":
-    }
-    return pd.DataFrame(data)
+    # Structural arrays built cleanly to eliminate dictionary syntax bugs
+    unit_names = ["SAG", "SCD", "SEB", "SAD", "SCR", "STPL", "ACM", "CORP", "SASPL", "SHP", "SAH", "SCH", "SIO", "SCA", "SAB", "SCY", "SIP", "SIA", "SKC", "SHN"]
+    
+    verticals = [
+        "Automotive Business", "Plastic Business", "Sheet Metal & Allied Business", "Automotive Business",
+        "Casting Machining & Tooling Business", "Casting Machining & Tooling Business", "Casting Machining & Tooling Business",
+        "Corp. Office", "Corp. Office", "Automotive Business", "Automotive Business", "Casting Machining & Tooling Business",
+        "Automotive Business", "Casting Machining & Tooling Business", "Automotive Business", "Sheet Metal & Allied Business",
+        "Cabin & Fabrication Division", "Cabin & Fabrication Division", "Casting Machining & Tooling Business", "Sheet Metal & Allied Business"
+    ]
+    
+    locations = ["Gurugram", "Gurugram", "Gurugram", "Gurugram", "Gurugram", "Gurugram", "Gurugram", "Gurugram", "Tamil Nadu", "Rajasthan", "Uttarakhand", "Tamil Nadu", "Tamil Nadu", "Karnataka", "Karnataka", "Karnataka", "Pune", "Karnataka", "Pune", "Tamil Nadu"]
+    lats = [28.4595, 28.4595, 28.4595, 28.4595, 28.4595, 28.4595, 28.4595, 28.4595, 11.1271, 27.0238, 30.0668, 11.1271, 11.1271, 15.3173, 15.3173, 15.3173, 18.5204, 15.3173, 18.5204, 11.1271]
+    lons = [77.0266, 77.0266, 77.0266, 77.0266, 77.0266, 77.0266, 77.0266, 77.0266, 78.6569, 74.2179, 79.0193, 78.6569, 78.6569, 75.7139, 75.7139, 75.7139, 73.8567, 75.7139, 73.8567, 78.6569]
+    
+    capex =
+    opex =
+    
+    apr_gen =
+    may_gen =
+    
+    apr_kwp = [3.3, 2.8, 4.3, 3.9, 3.9, 4.5, 1.2, 3.4, 3.7, 4.9, 0.0, 2.6, 4.9, 2.3, 4.8, 3.5, 2.8, 1.6, 4.4, 4.5]
+    may_kwp = [3.0, 3.1, 4.7, 3.9, 4.1, 4.6, 1.3, 3.5, 3.7, 5.1, 0.0, 2.8, 5.5, 2.4, 4.9, 3.4, 2.5, 1.8, 4.3, 4.2]
+    
+    losses =
+
+    df = pd.DataFrame({
+        "Unit Name": unit_names,
+        "Vertical": verticals,
+        "Location": locations,
+        "lat": lats,
+        "lon": lons,
+        "CAPEX capacity": capex,
+        "OPEX capacity": opex,
+        "April Gen": apr_gen,
+        "May Gen": may_gen,
+        "April Gen/KWP": apr_kwp,
+        "May Gen/KWP": may_kwp,
+        "Unit Loss Inefficiency": losses
+    })
+    return df
 
 df_plants = load_comprehensive_plant_matrices()
 
