@@ -9,10 +9,10 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- LIVE HARDCODED DATASET (From image_896b65.png & image_8ac049.png) ---
+# --- LIVE HARDCODED DATASET (From uploaded images) ---
 @st.cache_data
 def load_comprehensive_plant_matrices():
-    # Extracted data including business verticals, map coordinates, capacities, and generation metrics
+    # Exactly matching column values from image_49839e.png and image_8ac049.png
     data = {
         "Unit Name": ["SAG", "SCD", "SEB", "SAD", "SCR", "STPL", "ACM", "CORP", "SASPL", "SHP", "SAH", "SCH", "SIO", "SCA", "SAB", "SCY", "SIP", "SIA", "SKC", "SHN"],
         "Vertical": [
