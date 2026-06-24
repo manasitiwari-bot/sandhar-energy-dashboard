@@ -22,13 +22,10 @@ if "matrix_chart_target" not in st.session_state:
 if not st.session_state["authenticated"]:
     st.markdown("""
         <style>
-        /* Immersive Space Dark Canvas Background */
         .stApp {
             background: #030712 !important;
             overflow: hidden;
         }
-        
-        /* Premium Floating Glassmorphism Portal Core */
         div[data-testid="stVerticalBlock"] > div:has(.auth-card-wrap) {
             background: rgba(8, 14, 32, 0.65) !important;
             backdrop-filter: blur(25px);
@@ -41,7 +38,6 @@ if not st.session_state["authenticated"]:
             position: relative;
             margin-top: 10px;
         }
-        
         .portal-banner h2 {
             color: #00ffcc !important;
             font-weight: 800 !important;
@@ -67,7 +63,7 @@ else:
             animation: smoothScaleUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
-        /* 🟢 BUBBLE KPI CARD DESIGN */
+        /* BUBBLE KPI CARD DESIGN */
         .bubble-wrapper {
             display: flex;
             justify-content: space-around;
@@ -118,7 +114,7 @@ else:
             margin: 25px 0;
         }
 
-        /* 💧 DROPLET BTN DESIGN */
+        /* DROPLET BTN DESIGN */
         .droplet-node {
             width: 110px;
             height: 110px;
@@ -145,7 +141,7 @@ else:
             text-align: center;
         }
 
-        /* 🌱 LEAF BTN DESIGN */
+        /* LEAF BTN DESIGN */
         .leaf-node {
             width: 110px;
             height: 110px;
@@ -173,99 +169,27 @@ else:
         """, unsafe_allow_html=True)
 
 
-# 2. Portal Security Wall with actual Interactive 3D Telemetry Globe
+# 2. Portal Security Wall
 if not st.session_state["authenticated"]:
     components.html("""
         <div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#030712; overflow:hidden; z-index:-1; display:flex; justify-content:center; align-items:center;">
             <div id="globeContainer" style="width:500px; height:500px;"></div>
         </div>
-        
         <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
         <script>
         const container = document.getElementById('globeContainer');
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
         camera.position.z = 160;
-
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(500, 500);
-        renderer.setPixelRatio(window.devicePixelRatio);
         container.appendChild(renderer.domElement);
-
-        // Group to hold our telemetry elements
         const globeGroup = new THREE.Group();
         scene.add(globeGroup);
-
-        // Create a tech-looking particle wireframe globe
         const sphereGeo = new THREE.SphereGeometry(65, 30, 30);
-        const wireframeMat = new THREE.MeshBasicMaterial({
-            color: 0x0ea5e9,
-            wireframe: true,
-            transparent: true,
-            opacity: 0.15
-        });
-        const baseGlobe = new THREE.Mesh(sphereGeo, wireframeMat);
-        globeGroup.add(baseGlobe);
-
-        // Add digital node points mapping the surface
-        const pointsCount = 400;
-        const positions = new Float32Array(pointsCount * 3);
-        const radius = 65.5;
-        
-        for(let i=0; i<pointsCount; i++) {
-            const phi = Math.acos(Math.random() * 2 - 1);
-            const theta = Math.random() * Math.PI * 2;
-            
-            positions[i*3] = radius * Math.sin(phi) * Math.cos(theta);
-            positions[i*3+1] = radius * Math.sin(phi) * Math.sin(theta);
-            positions[i*3+2] = radius * Math.cos(phi);
-        }
-        
-        const pointsGeo = new THREE.BufferGeometry();
-        pointsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        const pointsMat = new THREE.PointsMaterial({
-            color: 0x00ffcc,
-            size: 1.5,
-            transparent: true,
-            opacity: 0.8
-        });
-        const globePoints = new THREE.Points(pointsGeo, pointsMat);
-        globeGroup.add(globePoints);
-
-        // Add 4 glowing Telemetry Target Pins (like the mock targets)
-        const colors = [0xef4444, 0x22c55e, 0x38bdf8, 0xa855f7];
-        for(let i=0; i<4; i++) {
-            const pinGeo = new THREE.SphereGeometry(2.5, 16, 16);
-            const pinMat = new THREE.MeshBasicMaterial({ color: colors[i] });
-            const pin = new THREE.Mesh(pinGeo, pinMat);
-            
-            const p = Math.random() * Math.PI;
-            const t = Math.random() * Math.PI * 2;
-            pin.position.x = radius * Math.sin(p) * Math.cos(t);
-            pin.position.y = radius * Math.sin(p) * Math.sin(t);
-            pin.position.z = radius * Math.cos(p);
-            globeGroup.add(pin);
-        }
-
-        // Space Background Starfield
-        const starGeo = new THREE.BufferGeometry();
-        const starCount = 300;
-        const starPos = new Float32Array(starCount * 3);
-        for(let i=0; i<starCount*3; i++) {
-            starPos[i] = (Math.random() - 0.5) * 500;
-        }
-        starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-        const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.8, transparent: true, opacity: 0.4 });
-        const starField = new THREE.Points(starGeo, starMat);
-        scene.add(starField);
-
-        // Animation loop
-        function animate() {
-            requestAnimationFrame(animate);
-            globeGroup.rotation.y += 0.004;
-            globeGroup.rotation.x += 0.001;
-            renderer.render(scene, camera);
-        }
+        const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x0ea5e9, wireframe: true, transparent: true, opacity: 0.15 });
+        globeGroup.add(new THREE.Mesh(sphereGeo, wireframeMat));
+        function animate() { requestAnimationFrame(animate); globeGroup.rotation.y += 0.004; renderer.render(scene, camera); }
         animate();
         </script>
     """, height=510)
@@ -274,11 +198,8 @@ if not st.session_state["authenticated"]:
     with col_center:
         st.markdown('<div class="auth-card-wrap"></div>', unsafe_allow_html=True)
         st.markdown('<div class="portal-banner" style="text-align: center; margin-bottom:20px;"><h2>🌱 Sandhar Energy Portal</h2><p>Ecosystem Identity Verification Matrix</p></div>', unsafe_allow_html=True)
-        
         username = st.text_input("Matrix Operator Key", placeholder="Username ID")
         password = st.text_input("Access Authorization Token", type="password", placeholder="••••••••")
-        
-        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Initialize Energy Workspace", type="primary", use_container_width=True):
             if username == "sandhar" and password == "telemetry2026":
                 st.session_state["authenticated"] = True
@@ -291,27 +212,27 @@ if not st.session_state["authenticated"]:
 # 3. Load Datasets
 @st.cache_data
 def load_energy_data_matrices():
-    master_csv = """vertical,unit,location,grid_mvah,capex_capacity,opex_capacity,replacement_pct,dg,mitigation,emission,capex_gen,opex_gen,lat,lon,unit_lost_inefficiency,generation_per_kwp
-Automotive Business,SAG,Gurugram,2074.867,33,0,34,17386,515,1508,33.878,0.0,28.4595,77.0266,4933,2.81
-Plastic Business,SCD,Gurugram,2538.911,110,132,42,52045,772,1846,0.0,237.971,28.4595,77.0266,54539,1.93
-Sheet Metal & Allied Business,SEB,Gurugram,2955.38,50,300,12,0,265,2149,364.741,0.0,28.4595,77.0266,0,3.28
-Automotive Business,SAD,Gurugram,4614.016,138,218,34,43194,1139,3354,36.582,106.451,28.4595,77.0266,54909,2.86
-Casting Machining & Tooling Business,SCR,Gurugram,12081.709,50,0,30,5730,2653,8783,0.0,8.865,28.4595,77.0266,24938,2.79
-Casting Machining & Tooling Business,STPL,Gurugram,394.008,36,0,8,55432,24,286,0.0,33.266,28.4595,77.0266,0,2.20
-Casting Machining & Tooling Business,ACM,Gurugram,3249.812,127,0,22,2200,525,2363,0.0,122.96,28.4595,77.0266,51085,0.49
-Corp. Office,CORP,Gurugram,232.695,25,0,14,0,24,169,0.0,33.483,28.4595,77.0266,9898,2.53
-Corp. Office,SASPL,Tamil Nadu,159.629,0,0,41,0,48,116,0.0,66.246,11.1271,78.6569,29313,2.65
-Automotive Business,SHP,Rajasthan,881.47,400,262,60,13021,381,641,346.631,1779.14,27.0238,74.2179,113748,3.67
-Automotive Business,SAH,Uttarakhand,5657.6,251,129,5,66015,197,4113,104.663,166.675,30.0668,79.0193,167105,1.21
-Casting Machining & Tooling Business,SCH,Tamil Nadu,18864.562,0,0,53,0,7304,13715,3979.8,0.0,11.1271,78.6569,0,2.14
-Automotive Business,SIO,Tamil Nadu,1271.13,125,0,9,15220,81,924,110.985,0.0,11.1271,78.6569,0,2.70
-Casting Machining & Tooling Business,SCA,Karnataka,4232.325,115,0,59,1111,1825,3077,0.0,88.659,15.3173,75.7139,45077,2.79
-Automotive Business,SAB,Karnataka,1779.327,0,340,93,10120,1204,1294,442.802,0.0,15.3173,75.7139,0,2.31
-Sheet Metal & Allied Business,SCY,Karnataka,2695.544,0,634,33,0,642,1960,883.541,0.0,15.3173,75.7139,0,3.05
-Cabin & Fabrication Division,SIP,Pune,377.270,717,0,236,3490,648,274,891.451,0.0,18.5204,73.8567,13106,2.77
-Cabin & Fabrication Division,SIA,Karnataka,1506.093,115,0,2,6470,22,1095,0.0,29.61,15.3173,75.7139,39572,2.11
-Casting Machining & Tooling Business,SKC,Pune,1653.615,0,604,23,11891,277,1202,381.131,381.131,18.5204,73.8567,0,3.55
-Sheet Metal & Allied Business,SHN,Tamil Nadu,2079.137,0,624,19,15522,290,1512,398.942,0.0,11.1271,78.6569,0,3.66"""
+    master_csv = """vertical,unit,location,grid_mvah,capex_capacity,opex_capacity,replacement_pct,dg,mitigation,emission,capex_gen,opex_gen,lat,lon,unit_lost_inefficiency,generation_per_kwp,gen_kwp_27
+Automotive Business,SAG,Gurugram,2074.867,33,0,34,17386,515,1508,33.878,0.0,28.4595,77.0266,4933,2.81,3.16
+Plastic Business,SCD,Gurugram,2538.911,110,132,42,52045,772,1846,0.0,237.971,28.4595,77.0266,54539,1.93,2.92
+Sheet Metal & Allied Business,SEB,Gurugram,2955.38,50,300,12,0,265,2149,364.741,0.0,28.4595,77.0266,0,3.28,4.50
+Automotive Business,SAD,Gurugram,4614.016,138,218,34,43194,1139,3354,36.582,106.451,28.4595,77.0266,54909,2.86,3.88
+Casting Machining & Tooling Business,SCR,Gurugram,12081.709,50,0,30,5730,2653,8783,0.0,8.865,28.4595,77.0266,24938,2.79,4.02
+Casting Machining & Tooling Business,STPL,Gurugram,394.008,36,0,8,55432,24,286,0.0,33.266,28.4595,77.0266,0,2.20,4.56
+Casting Machining & Tooling Business,ACM,Gurugram,3249.812,127,0,22,2200,525,2363,0.0,122.96,28.4595,77.0266,51085,0.49,1.26
+Corp. Office,CORP,Gurugram,232.695,25,0,14,0,24,169,0.0,33.483,28.4595,77.0266,9898,2.53,3.46
+Corp. Office,SASPL,Tamil Nadu,159.629,0,0,41,0,48,116,0.0,66.246,11.1271,78.6569,29313,2.65,3.71
+Automotive Business,SHP,Rajasthan,881.47,400,262,60,13021,381,641,346.631,1779.14,27.0238,74.2179,113748,3.67,5.02
+Automotive Business,SAH,Uttarakhand,5657.6,251,129,5,66015,197,4113,104.663,166.675,30.0668,79.0193,167105,1.21,0.00
+Casting Machining & Tooling Business,SCH,Tamil Nadu,18864.562,0,0,53,0,7304,13715,3979.8,0.0,11.1271,78.6569,0,2.14,2.71
+Automotive Business,SIO,Tamil Nadu,1271.13,125,0,9,15220,81,924,110.985,0.0,11.1271,78.6569,0,2.70,5.20
+Casting Machining & Tooling Business,SCA,Karnataka,4232.325,115,0,59,1111,1825,3077,0.0,88.659,15.3173,75.7139,45077,2.79,2.38
+Automotive Business,SAB,Karnataka,1779.327,0,340,93,10120,1204,1294,442.802,0.0,15.3173,75.7139,0,2.31,4.90
+Sheet Metal & Allied Business,SCY,Karnataka,2695.544,0,634,33,0,642,1960,883.541,0.0,15.3173,75.7139,0,3.05,3.46
+Cabin & Fabrication Division,SIP,Pune,377.270,717,0,236,3490,648,274,891.451,0.0,18.5204,73.8567,13106,2.77,2.62
+Cabin & Fabrication Division,SIA,Karnataka,1506.093,115,0,2,6470,22,1095,0.0,29.61,15.3173,75.7139,39572,2.11,1.67
+Casting Machining & Tooling Business,SKC,Pune,1653.615,0,604,23,11891,277,1202,381.131,381.131,18.5204,73.8567,0,3.55,4.34
+Sheet Metal & Allied Business,SHN,Tamil Nadu,2079.137,0,624,19,15522,290,1512,398.942,0.0,11.1271,78.6569,0,3.66,4.34"""
     
     monthly_csv = """Month,SAG,SCD,SEB,SAD,SCR,STPL,ACM,CORP,SASPL,SHP,SAH,SCH,SIO,SCA,SAB,SCY,SIP,SIA,SKC,SHN
 April'25,3485,10249,17726,40557,15257,0,1264,3601,15245,3706,9800,31944,0,20850,0,39342,10218,12227,42814,86464
@@ -334,22 +255,64 @@ March'26,2980,8118,14945,37631,13787,21774,1345,3750,13198,3110,0,24377,31963,15
 
 df_master, df_monthly = load_energy_data_matrices()
 
-# --- SIDEBAR CONTROLS ---
+# --- NEW DATASET (FY26-27 Matrix from Spreadsheet Image 2) ---
+fy27_csv = """Month,SAG,SCD,SEB,SAD,SCR,STPL,ACM,CORP,SASPL,SHP,SAH,SCH,SIO,SCA,SAB,SCY,SIP,SIA,SKC,SHN
+April'26,3245,9079,16958,40627,16232,27557,1742,3696,14271,3704,0,31789,38692,17552,18763,35156,10373,5437,44884,85838
+May'26,3120,10500,19259,42113,17607,29168,2089,3900,14504,3946,0,34594,44353,18785,19767,35751,9605,6270,45175,81833"""
+df_fy27 = pd.read_csv(io.StringIO(fy27_csv.strip()))
+
+# --- NAVIGATION LINK SYNC ---
 st.sidebar.markdown("🔒 **Telemetry Link Stable**")
 if st.sidebar.button("Log Out Context"):
     st.session_state["authenticated"] = False
     st.rerun()
 
+st.sidebar.header("🗺️ Application Pages")
+app_page = st.sidebar.radio("Navigate Workspace", ["Main Tracking Panel", "FY26-27 Analytics & Horizon Panel"])
+
+# ================= PAGE 2: NEW ANALYTICS PANEL =================
+if app_page == "FY26-27 Analytics & Horizon Panel":
+    st.title("🚀 FY26-27 Next Horizon Engine")
+    st.caption("Active forecasting layers and validation horizons parsed from incoming live execution spreadsheets.")
+    st.markdown("---")
+    
+    # Timeline overview for next fiscal year
+    st.subheader("📅 FY26-27 Initial Months Active Performance Log")
+    df_fy27_melted = df_fy27.melt(id_vars=["Month"], var_name="Unit", value_name="Units_kWh")
+    fig_fy27 = px.bar(df_fy27_melted, x="Unit", y="Units_kWh", color="Month", barmode="group",
+                      title="Comparison Loop: April vs May Generation (kWh)",
+                      color_discrete_sequence=["#0ea5e9", "#10b981"])
+    st.plotly_chart(fig_fy27, use_container_width=True)
+    
+    # Conditional Formatting Matrix for Next Year
+    st.subheader("📋 Infrastructure Node Matrix Evaluation Ledger (FY26-27 Data Metrics)")
+    for idx, row in df_master.iterrows():
+        unit_code = str(row['unit']).strip()
+        
+        # Pull April'26 and May'26 records
+        apr_val = df_fy27.loc[df_fy27['Month'] == "April'26", unit_code].values if unit_code in df_fy27.columns else 0
+        may_val = df_fy27.loc[df_fy27['Month'] == "May'26", unit_code].values if unit_code in df_fy27.columns else 0
+        
+        with st.expander(f"🏢 Node Layer [{unit_code}] — Horizon Status Analysis"):
+            col_a, col_b, col_c = st.columns(3)
+            col_a.metric("April'26 Yield Log", f"{int(apr_val):,} kWh")
+            col_b.metric("May'26 Yield Log", f"{int(may_val):,} kWh")
+            
+            # Format conditioning ratio assessment logic for FY27
+            y_ratio27 = float(row['gen_kwp_27'])
+            if y_ratio27 > 3.0:
+                col_c.markdown(f"**Generation per KWP (FY26-27)**<br><span style='color:#10b981; font-size:24px; font-weight:bold;'>🟢 {y_ratio27} Yield</span>", unsafe_allow_html=True)
+            else:
+                col_c.markdown(f"**Generation per KWP (FY26-27)**<br><span style='color:#ef4444; font-size:24px; font-weight:bold;'>🔴 {y_ratio27} Yield</span>", unsafe_allow_html=True)
+    st.stop()
+
+
+# ================= PAGE 1: MAIN TRACKING PANEL =================
 st.sidebar.header("🕹️ Selection Filters")
 selected_vertical = st.sidebar.selectbox("Business Segment", ["All Segments"] + list(df_master['vertical'].unique()))
 df_filtered = df_master.copy() if selected_vertical == "All Segments" else df_master[df_master['vertical'] == selected_vertical].copy()
 
 target_month = st.sidebar.select_slider("Select Target Tracking Month (FY25-26)", options=list(df_monthly['Month']))
-
-# --- HEADER FRAME ---
-st.title("🌱 Sandhar Energy Ecosystem Dashboard")
-st.caption("Central intelligence array mapped with high-fidelity asset nodes, monthly timeline metrics, and conversational automation layers.")
-st.markdown("---")
 
 # 🟢 1. BUBBLE KPI CARDS
 total_grid = df_filtered['grid_mvah'].sum()
@@ -373,7 +336,7 @@ st.markdown(f"""
     </div>
     """, unsafe_allow_html=True)
 
-# 💧 & 🌱 2. VISUAL LAYERING SELECTION TRIGGERS
+# 2. VISUAL LAYERING SELECTION TRIGGERS
 st.subheader("🎨 Toggle Layer Perspectives")
 col_d, col_l = st.columns(2)
 with col_d:
@@ -403,7 +366,7 @@ st.markdown("""
     </script>
     """, unsafe_allow_html=True)
 
-# --- 3. TIMELINE TREND LINES ---
+# 3. TIMELINE TREND LINES
 st.subheader(f"📈 Ecosystem Performance Sequence Mapping ({target_month})")
 df_month_melted = df_monthly.melt(id_vars=["Month"], var_name="Unit", value_name="Generation_kWh")
 df_month_filtered = df_month_melted[df_month_melted['Unit'].isin(df_monthly.columns[1:])]
@@ -416,20 +379,16 @@ fig_timeline = px.line(
 fig_timeline.update_layout(height=350, hovermode="x unified")
 st.plotly_chart(fig_timeline, use_container_width=True)
 
-# --- 4. THE UNIFIED DATA MATRIX GRAPH ---
+# 4. DATA MATRIX GRAPH
 if st.session_state["matrix_chart_target"] == "emission":
     df_melted = df_filtered.melt(id_vars=["unit"], value_vars=["emission", "grid_mvah", "capex_gen", "opex_gen"], var_name="Metric", value_name="Value")
     fig_primary = px.bar(df_melted, x="unit", y="Value", color="Metric", barmode="group", title="📊 Carbon Stack Assessment vs System Infrastructure Energy Logs", color_discrete_sequence=["#ef4444", "#0ea5e9", "#f59e0b", "#10b981"])
 else:
     df_melted = df_filtered.melt(id_vars=["unit"], value_vars=["mitigation", "grid_mvah", "capex_gen", "opex_gen"], var_name="Metric", value_name="Value")
     fig_primary = px.bar(df_melted, x="unit", y="Value", color="Metric", barmode="group", title="📊 Renewable Mitigation Impact vs System Infrastructure Energy Logs", color_discrete_sequence=["#22c55e", "#0ea5e9", "#f59e0b", "#10b981"])
-
-fig_primary.update_layout(height=380, hovermode="x unified")
 st.plotly_chart(fig_primary, use_container_width=True)
 
-st.markdown("---")
-
-# --- 5. GEOSPATIAL MAP SEGMENT ---
+# 5. GEOSPATIAL MAP SEGMENT
 st.subheader("🗺️ Telepatial Asset Distribution Node Map")
 fig_global_map = px.scatter_mapbox(df_filtered, lat="lat", lon="lon", size="total_energy_footprint", color="vertical", hover_name="unit", hover_data=["location", "grid_mvah", "emission"], zoom=4.0, height=400, color_discrete_sequence=px.colors.qualitative.Safe)
 fig_global_map.update_layout(mapbox_style="carto-positron", margin=dict(l=0, r=0, t=0, b=0))
@@ -437,24 +396,18 @@ st.plotly_chart(fig_global_map, use_container_width=True)
 
 st.markdown("---")
 
-# --- 6. PLANT DETAILS LEDGER ---
+# 6. PLANT DETAILS LEDGER WITH FORMAT CONDITIONING
 st.subheader("📋 Infrastructure Node Register Ledger Details")
-
 for idx, row in df_filtered.iterrows():
     unit_string = str(row['unit']).strip()
-    
     current_mon_val = 0
     if unit_string in df_monthly.columns:
         matching_rows = df_monthly.loc[df_monthly['Month'] == target_month, unit_string].values
-        if len(matching_rows) > 0:
-            val_extract = matching_rows
-            if pd.notna(val_extract):
-                try:
-                    if isinstance(val_extract, str):
-                        val_extract = val_extract.replace(',', '').strip()
-                    current_mon_val = float(val_extract)
-                except (ValueError, TypeError):
-                    current_mon_val = 0
+        if len(matching_rows) > 0 and pd.notna(matching_rows):
+            try:
+                current_mon_val = float(str(matching_rows).replace(',', ''))
+            except:
+                current_mon_val = 0
             
     card_title = f"📦 [{row['unit']}] Location: {row['location']} — Selected Month ({target_month}): {int(current_mon_val):,} Generation Units"
     
@@ -463,66 +416,17 @@ for idx, row in df_filtered.iterrows():
         col_f1.metric("Yearly Grid Sourcing", f"{row['grid_mvah']:,.2f} MVAh")
         col_f2.metric("Green Shift Percentage", f"{row['replacement_pct']}%")
         col_f3.metric("Diesel (DG) Sideload", f"{int(row['dg']):,} Liters")
-        col_f4.metric("Generation per KWP Ratio", f"{row['generation_per_kwp']} Yield")
+        
+        # 🟢 / 🔴 Conditional Formatting Rule Implementation
+        yield_ratio = float(row['generation_per_kwp'])
+        if yield_ratio > 3.0:
+            col_f4.markdown(f"**Generation per KWP Ratio**<br><span style='color:#10b981; font-size:24px; font-weight:bold;'>🟢 {yield_ratio} Yield</span>", unsafe_allow_html=True)
+        else:
+            col_f4.markdown(f"**Generation per KWP Ratio**<br><span style='color:#ef4444; font-size:24px; font-weight:bold;'>🔴 {yield_ratio} Yield</span>", unsafe_allow_html=True)
         
         st.markdown("<div style='margin-top: 12px;'></div>", unsafe_allow_html=True)
-        
         col_s1, col_s2, col_s3, col_s4 = st.columns(4)
         col_s1.metric("CAPEX / OPEX Capacities", f"{int(row['capex_capacity'])} / {int(row['opex_capacity'])} kWp")
         col_s2.metric("CAPEX Solar Generation", f"{row['capex_gen']:,.2f} MWh")
         col_s3.metric("OPEX Solar Generation", f"{row['opex_gen']:,.2f} MWh")
         col_s4.metric("Lost Due to Inefficiency", f"{int(row['unit_lost_inefficiency']):,} Units", delta=f"-{int(row['unit_lost_inefficiency'])} Units", delta_color="inverse")
-
-st.markdown("---")
-
-# --- 7. 🤖 CHATBOT ENGINE ---
-st.subheader("🤖 Sandhar Energy Intelligence Agent")
-if "chat_history" not in st.session_state:
-    st.session_state["chat_history"] = [{"role": "assistant", "content": "Hello! I am your updated Sandhar Energy Assistant. Query me about specific plant tags, inefficiencies, or real-time dataset totals."}]
-
-chat_box = st.container(height=280)
-for message in st.session_state["chat_history"]:
-    chat_box.chat_message(message["role"]).write(message["content"])
-
-if prompt_str := st.chat_input("Ask about monthly metrics, plant comparisons, or say hello..."):
-    st.session_state["chat_history"].append({"role": "user", "content": prompt_str})
-    chat_box.chat_message("user").write(prompt_str)
-    
-    clean_prompt = prompt_str.lower().strip()
-    ai_response = ""
-    
-    if clean_prompt in ["hi", "hii", "hello", "hey", "sup"]:
-        ai_response = "Hello! 👋 System telemetry linkages are completely fully operational. Ask me anything about plant outputs or carbon footprint values."
-    elif "inefficiency" in clean_prompt or "lost" in clean_prompt:
-        total_loss = df_master['unit_lost_inefficiency'].sum()
-        worst_plant = df_master.loc[df_master['unit_lost_inefficiency'].idxmax()]
-        ai_response = f"⚠️ **Optimization Deficit Metrics:** Global pipeline losses total **{total_loss:,} units**. Node **{worst_plant['unit']}** in {worst_plant['location']} has the highest overhead waste with **{worst_plant['unit_lost_inefficiency']:,} units lost**."
-    elif "grid" in clean_prompt:
-        ai_response = f"⚡ **Power Architecture Summary:** Aggregate factory grid consumption logs register a workload of **{df_master['grid_mvah'].sum():,.2f} MVAh**."
-    elif "solar" in clean_prompt or "capex" in clean_prompt or "opex" in clean_prompt:
-        ai_response = f"🌞 **Solar Infrastructure Yields:** Core capital arrays (CAPEX) have generated **{df_master['capex_gen'].sum():,.2f} MWh**, whereas standard leased lines (OPEX) contributed **{df_master['opex_gen'].sum():,.2f} MWh**."
-    else:
-        located = False
-        for idx, r in df_master.iterrows():
-            short_code = str(r['unit']).strip().lower()
-            if short_code in clean_prompt:
-                t_val = 0
-                if r['unit'] in df_monthly.columns:
-                    m_arr = df_monthly.loc[df_monthly['Month'] == target_month, r['unit']].values
-                    if len(m_arr) > 0: t_val = int(m_arr)
-                
-                ai_response = f"🔍 **Telemetry Profile for [{r['unit']}] ({r['vertical']}):** \n" \
-                              f"• Location Vector: {r['location']}\n" \
-                              f"• Annual Grid Workload: {r['grid_mvah']:.2f} MVAh\n" \
-                              f"• Green Substitution Shift: {r['replacement_pct']}%\n" \
-                              f"• Inefficiency Losses: {r['unit_lost_inefficiency']:,} Units\n" \
-                              f"• Generation Yield inside {target_month}: {t_val:,} units."
-                located = True
-                break
-        if not located:
-            ai_response = "System was unable to index your string query pattern. Try saying things like: *'Show me grid consumption'*, *'What are the inefficiency losses?'*, or reference plant nodes directly like *'SAG'* or *'SCD'*."
-
-    ai_response += " \n\n*What else can I fetch from the telemetry files for you?*"
-            
-    st.session_state["chat_history"].append({"role": "assistant", "content": ai_response})
-    chat_box.chat_message("assistant").write(ai_response)
