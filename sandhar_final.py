@@ -18,6 +18,11 @@ if "authenticated" not in st.session_state:
 if "matrix_chart_target" not in st.session_state:
     st.session_state["matrix_chart_target"] = "emission"
 
+if "chat_history" not in st.session_state:
+    st.session_state["chat_history"] = [
+        {"role": "assistant", "content": "Telemetry interface online. Ask me anything about your asset nodes, generation margins, or efficiency drop logs."}
+    ]
+
 # 🎨 PREMIUM CSS OVERLAYS
 if not st.session_state["authenticated"]:
     st.markdown("""
@@ -255,13 +260,13 @@ March'26,2980,8118,14945,37631,13787,21774,1345,3750,13198,3110,0,24377,31963,15
 
 df_master, df_monthly = load_energy_data_matrices()
 
-# --- NEW DATASET (FY26-27 Matrix from Spreadsheet Image 2) ---
 fy27_csv = """Month,SAG,SCD,SEB,SAD,SCR,STPL,ACM,CORP,SASPL,SHP,SAH,SCH,SIO,SCA,SAB,SCY,SIP,SIA,SKC,SHN
 April'26,3245,9079,16958,40627,16232,27557,1742,3696,14271,3704,0,31789,38692,17552,18763,35156,10373,5437,44884,85838
 May'26,3120,10500,19259,42113,17607,29168,2089,3900,14504,3946,0,34594,44353,18785,19767,35751,9605,6270,45175,81833"""
 df_fy27 = pd.read_csv(io.StringIO(fy27_csv.strip()))
 
-# --- NAVIGATION LINK SYNC ---
+
+# --- SIDEBAR & CHATBOT ECOSYSTEM ---
 st.sidebar.markdown("🔒 **Telemetry Link Stable**")
 if st.sidebar.button("Log Out Context"):
     st.session_state["authenticated"] = False
@@ -270,13 +275,45 @@ if st.sidebar.button("Log Out Context"):
 st.sidebar.header("🗺️ Application Pages")
 app_page = st.sidebar.radio("Navigate Workspace", ["Main Tracking Panel", "FY26-27 Analytics & Horizon Panel"])
 
+st.sidebar.markdown("---")
+st.sidebar.subheader("🤖 Intelligence Query Core")
+
+# Live Rule-Engine Context Helper for Chatbot Simulation
+def simulate_matrix_response(query):
+    query_clean = query.upper()
+    if "BEST" in query_clean or "HIGHEST" in query_clean:
+        top_node = df_master.loc[df_master['generation_per_kwp'].idxmax()]
+        return f"💡 Operational Telemetry shows plant unit **{top_node['unit']}** has the highest efficiency ratio with a value of **{top_node['generation_per_kwp']}**."
+    elif "WORST" in query_clean or "LOWEST" in query_clean:
+        low_node = df_master.loc[df_master['generation_per_kwp'].idxmin()]
+        return f"⚠️ Warning: Node **{low_node['unit']}** is reporting the lowest ratio value (**{low_node['generation_per_kwp']}**). It has dropped **{int(low_node['unit_lost_inefficiency']):,}** units due to internal line ineffectiveness."
+    elif "LOSS" in query_clean or "INEFFICIENCY" in query_clean:
+        total_lost = df_master['unit_lost_inefficiency'].sum()
+        return f"📉 Cumulative systemic load leakage equals **{int(total_lost):,} units** lost to plant inefficiencies across all tracked regions."
+    else:
+        return "🤖 Telemetry Context parsed. You can query me for 'highest generation ratio', 'worst performing unit', or 'efficiency loss patterns'."
+
+# Chatbot UI Render inside the Sidebar
+for msg in st.session_state["chat_history"]:
+    with st.sidebar.chat_message(msg["role"]):
+        st.write(msg["content"])
+
+if prompt_input := st.sidebar.chat_input("Query dashboard matrices..."):
+    st.session_state["chat_history"].append({"role": "user", "content": prompt_input})
+    with st.sidebar.chat_message("user"):
+        st.write(prompt_input)
+        
+    ai_reply = simulate_matrix_response(prompt_input)
+    st.session_state["chat_history"].append({"role": "assistant", "content": ai_reply})
+    st.rerun()
+
+
 # ================= PAGE 2: NEW ANALYTICS PANEL =================
 if app_page == "FY26-27 Analytics & Horizon Panel":
     st.title("🚀 FY26-27 Next Horizon Engine")
     st.caption("Active forecasting layers and validation horizons parsed from incoming live execution spreadsheets.")
     st.markdown("---")
     
-    # Timeline overview for next fiscal year
     st.subheader("📅 FY26-27 Initial Months Active Performance Log")
     df_fy27_melted = df_fy27.melt(id_vars=["Month"], var_name="Unit", value_name="Units_kWh")
     fig_fy27 = px.bar(df_fy27_melted, x="Unit", y="Units_kWh", color="Month", barmode="group",
@@ -284,12 +321,9 @@ if app_page == "FY26-27 Analytics & Horizon Panel":
                       color_discrete_sequence=["#0ea5e9", "#10b981"])
     st.plotly_chart(fig_fy27, use_container_width=True)
     
-    # Conditional Formatting Matrix for Next Year
     st.subheader("📋 Infrastructure Node Matrix Evaluation Ledger (FY26-27 Data Metrics)")
     for idx, row in df_master.iterrows():
         unit_code = str(row['unit']).strip()
-        
-        # Pull April'26 and May'26 records
         apr_val = df_fy27.loc[df_fy27['Month'] == "April'26", unit_code].values if unit_code in df_fy27.columns else 0
         may_val = df_fy27.loc[df_fy27['Month'] == "May'26", unit_code].values if unit_code in df_fy27.columns else 0
         
@@ -298,7 +332,6 @@ if app_page == "FY26-27 Analytics & Horizon Panel":
             col_a.metric("April'26 Yield Log", f"{int(apr_val):,} kWh")
             col_b.metric("May'26 Yield Log", f"{int(may_val):,} kWh")
             
-            # Format conditioning ratio assessment logic for FY27
             y_ratio27 = float(row['gen_kwp_27'])
             if y_ratio27 > 3.0:
                 col_c.markdown(f"**Generation per KWP (FY26-27)**<br><span style='color:#10b981; font-size:24px; font-weight:bold;'>🟢 {y_ratio27} Yield</span>", unsafe_allow_html=True)
@@ -309,7 +342,7 @@ if app_page == "FY26-27 Analytics & Horizon Panel":
 
 # ================= PAGE 1: MAIN TRACKING PANEL =================
 st.sidebar.header("🕹️ Selection Filters")
-selected_vertical = st.sidebar.selectbox("Business Segment", ["All Segments"] + list(df_master['vertical'].unique()))
+selected_vertical = st.sidebar.selectbox("Business Segment", ["All Segments"] + list(df_master['vertical'].unique()), key="main_vert")
 df_filtered = df_master.copy() if selected_vertical == "All Segments" else df_master[df_master['vertical'] == selected_vertical].copy()
 
 target_month = st.sidebar.select_slider("Select Target Tracking Month (FY25-26)", options=list(df_monthly['Month']))
