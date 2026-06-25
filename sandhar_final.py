@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import io
+import plotly.express as px
+import plotly.graph_objects as go
 import streamlit.components.v1 as components
 
 # 1. Page Configuration
@@ -299,6 +301,39 @@ st.markdown(f"""
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+st.markdown("---")
+
+# 🟢 RESTORED VISUALIZATION BLOCK FOR PAGE 1
+st.subheader("📊 Dynamic Environmental Performance & Fleet Generation Metrics")
+col_g1, col_g2 = st.columns(2)
+
+with col_g1:
+    fig_bar = px.bar(
+        df_filtered, 
+        x='unit', 
+        y=['mitigation', 'emission'],
+        barmode='group',
+        title="Carbon Offset (Mitigation) vs Gross Footprint by Operational Node",
+        labels={'value': 'Metric Tons (CO₂)', 'unit': 'Plant Node Code'},
+        color_discrete_sequence=['#10b981', '#ef4444']
+    )
+    fig_bar.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', legend_title_text='Metrics')
+    st.plotly_chart(fig_bar, use_container_width=True)
+
+with col_g2:
+    fig_scatter = px.scatter(
+        df_filtered,
+        x='grid_mvah',
+        y='generation_per_kwp',
+        size='unit_lost_inefficiency',
+        color='vertical',
+        hover_name='unit',
+        title='Generation Ratio vs Grid Sourcing (Bubble size = Inefficiency Losses)',
+        labels={'grid_mvah': 'Grid Sourced (MVAh)', 'generation_per_kwp': 'Gen/KWP Ratio'}
+    )
+    fig_scatter.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
+    st.plotly_chart(fig_scatter, use_container_width=True)
 
 st.markdown("---")
 
