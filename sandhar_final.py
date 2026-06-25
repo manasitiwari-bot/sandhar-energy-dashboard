@@ -254,6 +254,7 @@ if app_page == "FY26-27 Analytics & Horizon Panel":
     for idx, row in df_master.iterrows():
         unit_code = str(row['unit']).strip()
         
+        # Safe structural type parsing to clean the original conversion error
         apr_series = df_fy27.loc[df_fy27['Month'] == "April'26", unit_code].values
         may_series = df_fy27.loc[df_fy27['Month'] == "May'26", unit_code].values
         
@@ -304,7 +305,7 @@ st.markdown(f"""
 
 st.markdown("---")
 
-# 🟢 RESTORED VISUALIZATION BLOCK FOR PAGE 1
+# 📊 2. DYNAMIC VISUALIZATION GRAPH BLOCK (RE-IMPLEMENTED SAFE & STABLE)
 st.subheader("📊 Dynamic Environmental Performance & Fleet Generation Metrics")
 col_g1, col_g2 = st.columns(2)
 
@@ -337,7 +338,7 @@ with col_g2:
 
 st.markdown("---")
 
-# 2. PLANT DETAILS LEDGER WITH FORMAT CONDITIONING
+# 🏢 3. PLANT DETAILS LEDGER WITH FORMAT CONDITIONING
 st.subheader("📋 Infrastructure Node Register Ledger Details")
 for idx, row in df_filtered.iterrows():
     unit_string = str(row['unit']).strip()
