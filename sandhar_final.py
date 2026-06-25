@@ -1,164 +1,465 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import io
+import streamlit.components.v1 as components
 
 # 1. Page Configuration
 st.set_page_config(
-    page_title="Sandhar Energy Dashboard",
+    page_title="Sandhar Energy Ecosystem Dashboard",
     page_icon="🌱",
     layout="wide"
 )
 
-# --- DIRECT INDUSTRIAL RAW DATA INJECTION ---
-raw_plant_records = [
-    {"Unit Name": "SAG", "Vertical": "Automotive Business", "Location": "Gurugram", "lat": 28.4595, "lon": 77.0266, "April Gen": 3245, "May Gen": 3120, "April Gen/KWP": 3.3, "May Gen/KWP": 3.0, "Unit Loss Inefficiency": 2689},
-    {"Unit Name": "SCD", "Vertical": "Plastic Business", "Location": "Gurugram", "lat": 28.4595, "lon": 77.0266, "April Gen": 9079, "May Gen": 10500, "April Gen/KWP": 2.8, "May Gen/KWP": 3.1, "Unit Loss Inefficiency": 10602},
-    {"Unit Name": "SEB", "Vertical": "Sheet Metal & Allied Business", "Location": "Gurugram", "lat": 28.4595, "lon": 77.0266, "April Gen": 16958, "May Gen": 19259, "April Gen/KWP": 4.3, "May Gen/KWP": 4.7, "Unit Loss Inefficiency": 0},
-    {"Unit Name": "SAD", "Vertical": "Automotive Business", "Location": "Gurugram", "lat": 28.4595, "lon": 77.0266, "April Gen": 40627, "May Gen": 42113, "April Gen/KWP": 3.9, "May Gen/KWP": 3.9, "Unit Loss Inefficiency": 13290},
-    {"Unit Name": "SCR", "Vertical": "Casting Machining & Tooling Business", "Location": "Gurugram", "lat": 28.4595, "lon": 77.0266, "April Gen": 16232, "May Gen": 17607, "April Gen/KWP": 3.9, "May Gen/KWP": 4.1, "Unit Loss Inefficiency": 4024},
-    {"Unit Name": "STPL", "Vertical": "Casting Machining & Tooling Business", "Location": "Gurugram", "lat": 28.4595, "lon": 77.0266, "April Gen": 27557, "May Gen": 29168, "April Gen/KWP": 4.5, "May Gen/KWP": 4.6, "Unit Loss Inefficiency": 0},
-    {"Unit Name": "ACM", "Vertical": "Casting Machining & Tooling Business", "Location": "Gurugram", "lat": 28.4595, "lon": 77.0266, "April Gen": 1742, "May Gen": 2089, "April Gen/KWP": 1.2, "May Gen/KWP": 1.3, "Unit Loss Inefficiency": 9888},
-    {"Unit Name": "CORP", "Vertical": "Corp. Office", "Location": "Gurugram", "lat": 28.4595, "lon": 77.0266, "April Gen": 3696, "May Gen": 3900, "April Gen/KWP": 3.4, "May Gen/KWP": 3.5, "Unit Loss Inefficiency": 2281},
-    {"Unit Name": "SASPL", "Vertical": "Corp. Office", "Location": "Tamil Nadu", "lat": 11.1271, "lon": 78.6569, "April Gen": 14271, "May Gen": 14504, "April Gen/KWP": 3.7, "May Gen/KWP": 3.7, "Unit Loss Inefficiency": 6070},
-    {"Unit Name": "SHP", "Vertical": "Automotive Business", "Location": "Rajasthan", "lat": 27.0238, "lon": 74.2179, "April Gen": 3704, "May Gen": 3946, "April Gen/KWP": 4.9, "May Gen/KWP": 5.1, "Unit Loss Inefficiency": 0},
-    {"Unit Name": "SAH", "Vertical": "Automotive Business", "Location": "Uttarakhand", "lat": 30.0668, "lon": 79.0193, "April Gen": 0, "May Gen": 0, "April Gen/KWP": 0.0, "May Gen/KWP": 0.0, "Unit Loss Inefficiency": 41156},
-    {"Unit Name": "SCH", "Vertical": "Casting Machining & Tooling Business", "Location": "Tamil Nadu", "lat": 11.1271, "lon": 78.6569, "April Gen": 31789, "May Gen": 34594, "April Gen/KWP": 2.6, "May Gen/KWP": 2.8, "Unit Loss Inefficiency": 43640},
-    {"Unit Name": "SIO", "Vertical": "Automotive Business", "Location": "Tamil Nadu", "lat": 11.1271, "lon": 78.6569, "April Gen": 38692, "May Gen": 44353, "April Gen/KWP": 4.9, "May Gen/KWP": 5.5, "Unit Loss Inefficiency": 0},
-    {"Unit Name": "SCA", "Vertical": "Casting Machining & Tooling Business", "Location": "Karnataka", "lat": 15.3173, "lon": 75.7139, "April Gen": 17552, "May Gen": 18785, "April Gen/KWP": 2.3, "May Gen/KWP": 2.4, "Unit Loss Inefficiency": 32256},
-    {"Unit Name": "SAB", "Vertical": "Automotive Business", "Location": "Karnataka", "lat": 15.3173, "lon": 75.7139, "April Gen": 18763, "May Gen": 19767, "April Gen/KWP": 4.8, "May Gen/KWP": 4.9, "Unit Loss Inefficiency": 0},
-    {"Unit Name": "SCY", "Vertical": "Sheet Metal & Allied Business", "Location": "Karnataka", "lat": 15.3173, "lon": 75.7139, "April Gen": 35156, "May Gen": 35751, "April Gen/KWP": 3.5, "May Gen/KWP": 3.4, "Unit Loss Inefficiency": 0},
-    {"Unit Name": "SIP", "Vertical": "Cabin & Fabrication Division", "Location": "Pune", "lat": 18.5204, "lon": 73.8567, "April Gen": 10373, "May Gen": 9605, "April Gen/KWP": 2.8, "May Gen/KWP": 2.5, "Unit Loss Inefficiency": 6401},
-    {"Unit Name": "SIA", "Vertical": "Cabin & Fabrication Division", "Location": "Karnataka", "lat": 15.3173, "lon": 75.7139, "April Gen": 5437, "May Gen": 6270, "April Gen/KWP": 1.6, "May Gen/KWP": 1.8, "Unit Loss Inefficiency": 12562},
-    {"Unit Name": "SKC", "Vertical": "Casting Machining & Tooling Business", "Location": "Pune", "lat": 18.5204, "lon": 73.8567, "April Gen": 44884, "May Gen": 45175, "April Gen/KWP": 4.4, "May Gen/KWP": 4.3, "Unit Loss Inefficiency": 0},
-    {"Unit Name": "SHN", "Vertical": "Sheet Metal & Allied Business", "Location": "Tamil Nadu", "lat": 11.1271, "lon": 78.6569, "April Gen": 85838, "May Gen": 81833, "April Gen/KWP": 4.5, "May Gen/KWP": 4.2, "Unit Loss Inefficiency": 0}
-]
+# --- INITIAL STATE MANAGEMENT ---
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
 
-df_plants = pd.DataFrame(raw_plant_records)
+if "matrix_chart_target" not in st.session_state:
+    st.session_state["matrix_chart_target"] = "emission"
 
-# --- INITIAL SYSTEM STATES ---
 if "chat_history" not in st.session_state:
     st.session_state["chat_history"] = [
-        {"role": "assistant", "content": "Telemetry engine initialized. Search across business verticals or query plant metrics."}
+        {"role": "assistant", "content": "Telemetry interface online. Ask me anything about your asset nodes, generation margins, or efficiency drop logs."}
     ]
 
-# --- SIDEBAR INTERFACE CONTROL PANEL ---
-st.sidebar.title("🌱 Sandhar Control Panel")
-month_select = st.sidebar.radio("Select Target Month Context", ["April", "May"])
-
-st.sidebar.markdown("---")
-st.sidebar.subheader("🕹️ Segment Controls")
-verticals_list = ["All Verticals"] + list(df_plants["Vertical"].unique())
-selected_vertical = st.sidebar.selectbox("Business Segment Filter", verticals_list)
-
-if selected_vertical == "All Verticals":
-    df_filtered = df_plants.copy()
+# 🎨 PREMIUM CSS OVERLAYS
+if not st.session_state["authenticated"]:
+    st.markdown("""
+        <style>
+        .stApp {
+            background: #030712 !important;
+            overflow: hidden;
+        }
+        div[data-testid="stVerticalBlock"] > div:has(.auth-card-wrap) {
+            background: rgba(8, 14, 32, 0.65) !important;
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 40px !important;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7), inset 0 1px 2px rgba(255,255,255,0.1);
+            z-index: 10;
+            position: relative;
+            margin-top: 10px;
+        }
+        .portal-banner h2 {
+            color: #00ffcc !important;
+            font-weight: 800 !important;
+            text-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+            letter-spacing: 0.5px;
+        }
+        .portal-banner p {
+            color: #94a3b8 !important;
+        }
+        label {
+            color: #cbd5e1 !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
 else:
-    df_filtered = df_plants[df_plants["Vertical"] == selected_vertical].copy()
+    st.markdown("""
+        <style>
+        @keyframes smoothScaleUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .bubble-wrapper, .shape-row, .stPlotlyChart, .stExpander {
+            animation: smoothScaleUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
 
-# Chatbot Core
+        /* BUBBLE KPI CARD DESIGN */
+        .bubble-wrapper {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .kpi-circle-card {
+            width: 195px;
+            height: 195px;
+            background: radial-gradient(circle at 30% 30%, #ffffff, #f8fafc);
+            border: 2px solid #e2e8f0;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s, border-color 0.4s;
+            text-align: center;
+            padding: 15px;
+        }
+        .kpi-circle-card:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 20px 35px rgba(16, 185, 129, 0.18);
+            border-color: #10b981;
+        }
+        .bubble-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #64748b;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .bubble-value {
+            font-size: 17px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+
+        .shape-row {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin: 25px 0;
+        }
+
+        /* DROPLET BTN DESIGN */
+        .droplet-node {
+            width: 110px;
+            height: 110px;
+            background: linear-gradient(135deg, #38bdf8, #0284c7);
+            border-radius: 0% 100% 100% 100%;
+            transform: rotate(45deg);
+            box-shadow: 0 8px 22px rgba(2, 132, 199, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+        .droplet-node:hover {
+            transform: rotate(45deg) scale(1.08);
+            box-shadow: 0 12px 26px rgba(2, 132, 199, 0.45);
+        }
+        .droplet-inner-text {
+            transform: rotate(-45deg);
+            color: white;
+            font-weight: bold;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        /* LEAF BTN DESIGN */
+        .leaf-node {
+            width: 110px;
+            height: 110px;
+            background: linear-gradient(135deg, #4ade80, #16a34a);
+            border-radius: 100% 0% 100% 0%;
+            box-shadow: 0 8px 22px rgba(22, 163, 74, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+        .leaf-node:hover {
+            transform: scale(1.08) rotate(5deg);
+            box-shadow: 0 12px 26px rgba(22, 163, 74, 0.45);
+        }
+        .leaf-inner-text {
+            color: white;
+            font-weight: bold;
+            font-size: 11px;
+            text-align: center;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+
+# 2. Portal Security Wall
+if not st.session_state["authenticated"]:
+    components.html("""
+        <div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#030712; overflow:hidden; z-index:-1; display:flex; justify-content:center; align-items:center;">
+            <div id="globeContainer" style="width:500px; height:500px;"></div>
+        </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+        <script>
+        const container = document.getElementById('globeContainer');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
+        camera.position.z = 160;
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(500, 500);
+        container.appendChild(renderer.domElement);
+        const globeGroup = new THREE.Group();
+        scene.add(globeGroup);
+        const sphereGeo = new THREE.SphereGeometry(65, 30, 30);
+        const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x0ea5e9, wireframe: true, transparent: true, opacity: 0.15 });
+        globeGroup.add(new THREE.Mesh(sphereGeo, wireframeMat));
+        function animate() { requestAnimationFrame(animate); globeGroup.rotation.y += 0.004; renderer.render(scene, camera); }
+        animate();
+        </script>
+    """, height=510)
+
+    _, col_center, _ = st.columns([1, 1.3, 1])
+    with col_center:
+        st.markdown('<div class="auth-card-wrap"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="portal-banner" style="text-align: center; margin-bottom:20px;"><h2>🌱 Sandhar Energy Portal</h2><p>Ecosystem Identity Verification Matrix</p></div>', unsafe_allow_html=True)
+        username = st.text_input("Matrix Operator Key", placeholder="Username ID")
+        password = st.text_input("Access Authorization Token", type="password", placeholder="••••••••")
+        if st.button("Initialize Energy Workspace", type="primary", use_container_width=True):
+            if username == "sandhar" and password == "telemetry2026":
+                st.session_state["authenticated"] = True
+                st.rerun()
+            else:
+                st.error("System access codes rejected.")
+    st.stop()
+
+
+# 3. Load Datasets
+@st.cache_data
+def load_energy_data_matrices():
+    master_csv = """vertical,unit,location,grid_mvah,capex_capacity,opex_capacity,replacement_pct,dg,mitigation,emission,capex_gen,opex_gen,lat,lon,unit_lost_inefficiency,generation_per_kwp,gen_kwp_27
+Automotive Business,SAG,Gurugram,2074.867,33,0,34,17386,515,1508,33.878,0.0,28.4595,77.0266,4933,2.81,3.16
+Plastic Business,SCD,Gurugram,2538.911,110,132,42,52045,772,1846,0.0,237.971,28.4595,77.0266,54539,1.93,2.92
+Sheet Metal & Allied Business,SEB,Gurugram,2955.38,50,300,12,0,265,2149,364.741,0.0,28.4595,77.0266,0,3.28,4.50
+Automotive Business,SAD,Gurugram,4614.016,138,218,34,43194,1139,3354,36.582,106.451,28.4595,77.0266,54909,2.86,3.88
+Casting Machining & Tooling Business,SCR,Gurugram,12081.709,50,0,30,5730,2653,8783,0.0,8.865,28.4595,77.0266,24938,2.79,4.02
+Casting Machining & Tooling Business,STPL,Gurugram,394.008,36,0,8,55432,24,286,0.0,33.266,28.4595,77.0266,0,2.20,4.56
+Casting Machining & Tooling Business,ACM,Gurugram,3249.812,127,0,22,2200,525,2363,0.0,122.96,28.4595,77.0266,51085,0.49,1.26
+Corp. Office,CORP,Gurugram,232.695,25,0,14,0,24,169,0.0,33.483,28.4595,77.0266,9898,2.53,3.46
+Corp. Office,SASPL,Tamil Nadu,159.629,0,0,41,0,48,116,0.0,66.246,11.1271,78.6569,29313,2.65,3.71
+Automotive Business,SHP,Rajasthan,881.47,400,262,60,13021,381,641,346.631,1779.14,27.0238,74.2179,113748,3.67,5.02
+Automotive Business,SAH,Uttarakhand,5657.6,251,129,5,66015,197,4113,104.663,166.675,30.0668,79.0193,167105,1.21,0.00
+Casting Machining & Tooling Business,SCH,Tamil Nadu,18864.562,0,0,53,0,7304,13715,3979.8,0.0,11.1271,78.6569,0,2.14,2.71
+Automotive Business,SIO,Tamil Nadu,1271.13,125,0,9,15220,81,924,110.985,0.0,11.1271,78.6569,0,2.70,5.20
+Casting Machining & Tooling Business,SCA,Karnataka,4232.325,115,0,59,1111,1825,3077,0.0,88.659,15.3173,75.7139,45077,2.79,2.38
+Automotive Business,SAB,Karnataka,1779.327,0,340,93,10120,1204,1294,442.802,0.0,15.3173,75.7139,0,2.31,4.90
+Sheet Metal & Allied Business,SCY,Karnataka,2695.544,0,634,33,0,642,1960,883.541,0.0,15.3173,75.7139,0,3.05,3.46
+Cabin & Fabrication Division,SIP,Pune,377.270,717,0,236,3490,648,274,891.451,0.0,18.5204,73.8567,13106,2.77,2.62
+Cabin & Fabrication Division,SIA,Karnataka,1506.093,115,0,2,6470,22,1095,0.0,29.61,15.3173,75.7139,39572,2.11,1.67
+Casting Machining & Tooling Business,SKC,Pune,1653.615,0,604,23,11891,277,1202,381.131,381.131,18.5204,73.8567,0,3.55,4.34
+Sheet Metal & Allied Business,SHN,Tamil Nadu,2079.137,0,624,19,15522,290,1512,398.942,0.0,11.1271,78.6569,0,3.66,4.34"""
+    
+    monthly_csv = """Month,SAG,SCD,SEB,SAD,SCR,STPL,ACM,CORP,SASPL,SHP,SAH,SCH,SIO,SCA,SAB,SCY,SIP,SIA,SKC,SHN
+April'25,3485,10249,17726,40557,15257,0,1264,3601,15245,3706,9800,31944,0,20850,0,39342,10218,12227,42814,86464
+May'25,3687,9419,17707,36932,14781,0,1190,2933,12851,3638,8940,32448,0,19683,0,37537,11909,11436,40013,82349
+June'25,3391,8710,15864,31688,13223,0,1018,3049,11281,2992,8220,28288,0,16839,0,35972,13190,10015,35427,61745
+July'25,2869,5484,14493,30147,12845,0,460,2646,8561,2909,4560,28240,25768,14725,0,32358,12390,8971,30837,62178
+Aug'25,2752,6140,13680,26324,11196,0,393,2053,6889,2635,4440,26032,29749,15949,0,31728,12157,7923,31711,65369
+September'25,2891,6060,13844,36867,14327,15410,611,2466,9763,3142,7860,29400,14113,24714,0,33104,11837,8969,33565,63908
+October'25,2250,7097,9495,26940,11282,14092,797,2779,10306,2723,7950,32049,16986,29842,11447,32291,9577,7854,35547,72851
+November'25,2340,5260,8922,19260,8443,13167,761,2297,10119,2048,5220,26651,14814,28687,12762,25974,8800,5768,30739,52266
+December'25,2280,2275,9758,23075,7946,9703,339,2202,7651,1998,5076,19608,13483,20253,9214,27711,8983,5155,35319,57275
+January'26,2412,2669,9791,26570,8569,8815,160,2349,6286,1998,4036,12138,17977,21261,9772,22537,7800,3233,36920,75108
+February'26,2412,5870,12243,28750,8867,12288,527,2961,10810,2577,0,22518,26434,26236,12536,25500,8688,3274,40764,78627
+March'26,2980,8118,14945,37631,13787,21774,1345,3750,13198,3110,0,24377,31963,15633,16825,30604,10728,3834,46710,89358"""
+
+    df_m = pd.read_csv(io.StringIO(master_csv.strip()))
+    df_t = pd.read_csv(io.StringIO(monthly_csv.strip()))
+    df_m['total_energy_footprint'] = df_m['grid_mvah'] + (df_m['dg'] / 1000.0) + df_m['capex_gen'] + df_m['opex_gen']
+    return df_m, df_t
+
+df_master, df_monthly = load_energy_data_matrices()
+
+fy27_csv = """Month,SAG,SCD,SEB,SAD,SCR,STPL,ACM,CORP,SASPL,SHP,SAH,SCH,SIO,SCA,SAB,SCY,SIP,SIA,SKC,SHN
+April'26,3245,9079,16958,40627,16232,27557,1742,3696,14271,3704,0,31789,38692,17552,18763,35156,10373,5437,44884,85838
+May'26,3120,10500,19259,42113,17607,29168,2089,3900,14504,3946,0,34594,44353,18785,19767,35751,9605,6270,45175,81833"""
+df_fy27 = pd.read_csv(io.StringIO(fy27_csv.strip()))
+
+
+# --- SIDEBAR & CHATBOT ECOSYSTEM ---
+st.sidebar.markdown("🔒 **Telemetry Link Stable**")
+if st.sidebar.button("Log Out Context"):
+    st.session_state["authenticated"] = False
+    st.rerun()
+
+st.sidebar.header("🗺️ Application Pages")
+app_page = st.sidebar.radio("Navigate Workspace", ["Main Tracking Panel", "FY26-27 Analytics & Horizon Panel"])
+
 st.sidebar.markdown("---")
-st.sidebar.subheader("🤖 Dashboard Core Intelligence")
+st.sidebar.subheader("🤖 Intelligence Query Core")
 
-def process_chat_query(user_query):
-    q = user_query.upper()
-    if "BEST" in q or "HIGHEST" in q:
-        col = f"{month_select} Gen/KWP"
-        best_row = df_filtered.loc[df_filtered[col].idxmax()]
-        return f"🏆 Node **{best_row['Unit Name']}** achieved the highest Generation/KWP ratio of **{best_row[col]}** for {month_select}."
-    elif "WORST" in q or "LOWEST" in q:
-        col = f"{month_select} Gen/KWP"
-        active_plants = df_filtered[df_filtered[col] > 0]
-        if active_plants.empty: return "No active generation detected."
-        worst_row = active_plants.loc[active_plants[col].idxmin()]
-        return f"⚠️ Optimization Alert: Node **{worst_row['Unit Name']}** logged the lowest active performance ratio of **{worst_row[col]}**."
-    elif "LOSS" in q or "LEAKAGE" in q:
-        total_loss = df_filtered["Unit Loss Inefficiency"].sum()
-        return f"📉 Selection analysis shows a total of **{int(total_loss):,} units** logged under line inefficiency logs."
+# Live Rule-Engine Context Helper for Chatbot Simulation
+def simulate_matrix_response(query):
+    query_clean = query.upper()
+    if "BEST" in query_clean or "HIGHEST" in query_clean:
+        top_node = df_master.loc[df_master['generation_per_kwp'].idxmax()]
+        return f"💡 Operational Telemetry shows plant unit **{top_node['unit']}** has the highest efficiency ratio with a value of **{top_node['generation_per_kwp']}**."
+    elif "WORST" in query_clean or "LOWEST" in query_clean:
+        low_node = df_master.loc[df_master['generation_per_kwp'].idxmin()]
+        return f"⚠️ Warning: Node **{low_node['unit']}** is reporting the lowest ratio value (**{low_node['generation_per_kwp']}**). It has dropped **{int(low_node['unit_lost_inefficiency']):,}** units due to internal line ineffectiveness."
+    elif "LOSS" in query_clean or "INEFFICIENCY" in query_clean:
+        total_lost = df_master['unit_lost_inefficiency'].sum()
+        return f"📉 Cumulative systemic load leakage equals **{int(total_lost):,} units** lost to plant inefficiencies across all tracked regions."
     else:
-        return "🤖 Context ready. Ask me about 'best performing plant' or 'operational line losses'."
+        return "🤖 Telemetry Context parsed. You can query me for 'highest generation ratio', 'worst performing unit', or 'efficiency loss patterns'."
 
+# Chatbot UI Render inside the Sidebar
 for msg in st.session_state["chat_history"]:
     with st.sidebar.chat_message(msg["role"]):
         st.write(msg["content"])
 
-if prompt := st.sidebar.chat_input("Query active workspace view..."):
-    st.session_state["chat_history"].append({"role": "user", "content": prompt})
+if prompt_input := st.sidebar.chat_input("Query dashboard matrices..."):
+    st.session_state["chat_history"].append({"role": "user", "content": prompt_input})
     with st.sidebar.chat_message("user"):
-        st.write(prompt)
-    response = process_chat_query(prompt)
-    st.session_state["chat_history"].append({"role": "assistant", "content": response})
+        st.write(prompt_input)
+        
+    ai_reply = simulate_matrix_response(prompt_input)
+    st.session_state["chat_history"].append({"role": "assistant", "content": ai_reply})
     st.rerun()
 
-# ================= MAIN DASHBOARD INTERFACE =================
-st.title("📊 Sandhar Plant Energy Ecosystem Tracker")
-st.caption(f"Visualizing telemetry logs for **{selected_vertical}** during **{month_select}**.")
-st.markdown("---")
 
-if not df_filtered.empty:
-    total_month_gen = df_filtered[f"{month_select} Gen"].sum()
-    total_lost_units = df_filtered["Unit Loss Inefficiency"].sum()
-    avg_kwp_ratio = df_filtered[f"{month_select} Gen/KWP"].mean()
+# ================= PAGE 2: NEW ANALYTICS PANEL =================
+if app_page == "FY26-27 Analytics & Horizon Panel":
+    st.title("🚀 FY26-27 Next Horizon Engine")
+    st.caption("Active forecasting layers and validation horizons parsed from incoming live execution spreadsheets.")
+    st.markdown("---")
+    
+    st.subheader("📅 FY26-27 Initial Months Active Performance Log")
+    df_fy27_melted = df_fy27.melt(id_vars=["Month"], var_name="Unit", value_name="Units_kWh")
+    fig_fy27 = px.bar(df_fy27_melted, x="Unit", y="Units_kWh", color="Month", barmode="group",
+                      title="Comparison Loop: April vs May Generation (kWh)",
+                      color_discrete_sequence=["#0ea5e9", "#10b981"])
+    st.plotly_chart(fig_fy27, use_container_width=True)
+    
+    st.subheader("📋 Infrastructure Node Matrix Evaluation Ledger (FY26-27 Data Metrics)")
+    for idx, row in df_master.iterrows():
+        unit_code = str(row['unit']).strip()
+        apr_val = df_fy27.loc[df_fy27['Month'] == "April'26", unit_code].values if unit_code in df_fy27.columns else 0
+        may_val = df_fy27.loc[df_fy27['Month'] == "May'26", unit_code].values if unit_code in df_fy27.columns else 0
+        
+        with st.expander(f"🏢 Node Layer [{unit_code}] — Horizon Status Analysis"):
+            col_a, col_b, col_c = st.columns(3)
+            col_a.metric("April'26 Yield Log", f"{int(apr_val):,} kWh")
+            col_b.metric("May'26 Yield Log", f"{int(may_val):,} kWh")
+            
+            y_ratio27 = float(row['gen_kwp_27'])
+            if y_ratio27 > 3.0:
+                col_c.markdown(f"**Generation per KWP (FY26-27)**<br><span style='color:#10b981; font-size:24px; font-weight:bold;'>🟢 {y_ratio27} Yield</span>", unsafe_allow_html=True)
+            else:
+                col_c.markdown(f"**Generation per KWP (FY26-27)**<br><span style='color:#ef4444; font-size:24px; font-weight:bold;'>🔴 {y_ratio27} Yield</span>", unsafe_allow_html=True)
+    st.stop()
+
+
+# ================= PAGE 1: MAIN TRACKING PANEL =================
+st.sidebar.header("🕹️ Selection Filters")
+selected_vertical = st.sidebar.selectbox("Business Segment", ["All Segments"] + list(df_master['vertical'].unique()), key="main_vert")
+df_filtered = df_master.copy() if selected_vertical == "All Segments" else df_master[df_master['vertical'] == selected_vertical].copy()
+
+target_month = st.sidebar.select_slider("Select Target Tracking Month (FY25-26)", options=list(df_monthly['Month']))
+
+# 🟢 1. BUBBLE KPI CARDS
+total_grid = df_filtered['grid_mvah'].sum()
+total_mit = df_filtered['mitigation'].sum()
+total_emi = df_filtered['emission'].sum()
+
+st.markdown(f"""
+    <div class="bubble-wrapper">
+        <div class="kpi-circle-card">
+            <div class="bubble-title">⚡ Total Grid Sourced</div>
+            <div class="bubble-value">{total_grid:,.1f}<br><span style="font-size:11px; font-weight:normal; color:#475569;">MVAh</span></div>
+        </div>
+        <div class="kpi-circle-card">
+            <div class="bubble-title">🌱 Carbon Offset</div>
+            <div class="bubble-value">{int(total_mit):,}<br><span style="font-size:11px; font-weight:normal; color:#475569;">MT CO₂</span></div>
+        </div>
+        <div class="kpi-circle-card">
+            <div class="bubble-title">🏭 Gross Footprint</div>
+            <div class="bubble-value">{int(total_emi):,}<br><span style="font-size:11px; font-weight:normal; color:#475569;">MT CO₂</span></div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# 2. VISUAL LAYERING SELECTION TRIGGERS
+st.subheader("🎨 Toggle Layer Perspectives")
+col_d, col_l = st.columns(2)
+with col_d:
+    st.markdown('<div class="shape-row">', unsafe_allow_html=True)
+    if st.button("Carbon Mode Trigger", key="d_click"):
+        st.session_state["matrix_chart_target"] = "emission"
+    st.markdown('</div>', unsafe_allow_html=True)
+with col_l:
+    st.markdown('<div class="shape-row">', unsafe_allow_html=True)
+    if st.button("Green Mode Trigger", key="l_click"):
+        st.session_state["matrix_chart_target"] = "mitigation"
+    st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown("""
+    <script>
+    var elements = window.parent.document.getElementsByTagName('button');
+    for (var i = 0; i < elements.length; i++) {
+        if (elements[i].innerText.includes('Carbon Mode')) {
+            elements[i].className = 'droplet-node';
+            elements[i].innerHTML = '<div class="droplet-inner-text">💧<br>Carbon View</div>';
+        }
+        if (elements[i].innerText.includes('Green Mode')) {
+            elements[i].className = 'leaf-node';
+            elements[i].innerHTML = '<div class="leaf-inner-text">🌱<br>Green View</div>';
+        }
+    }
+    </script>
+    """, unsafe_allow_html=True)
+
+# 3. TIMELINE TREND LINES
+st.subheader(f"📈 Ecosystem Performance Sequence Mapping ({target_month})")
+df_month_melted = df_monthly.melt(id_vars=["Month"], var_name="Unit", value_name="Generation_kWh")
+df_month_filtered = df_month_melted[df_month_melted['Unit'].isin(df_monthly.columns[1:])]
+
+fig_timeline = px.line(
+    df_month_filtered, x="Month", y="Generation_kWh", color="Unit", markers=True,
+    title="📅 Year-Round Active Generation Yield Timeline (kWh)",
+    color_discrete_sequence=px.colors.qualitative.Bold
+)
+fig_timeline.update_layout(height=350, hovermode="x unified")
+st.plotly_chart(fig_timeline, use_container_width=True)
+
+# 4. DATA MATRIX GRAPH
+if st.session_state["matrix_chart_target"] == "emission":
+    df_melted = df_filtered.melt(id_vars=["unit"], value_vars=["emission", "grid_mvah", "capex_gen", "opex_gen"], var_name="Metric", value_name="Value")
+    fig_primary = px.bar(df_melted, x="unit", y="Value", color="Metric", barmode="group", title="📊 Carbon Stack Assessment vs System Infrastructure Energy Logs", color_discrete_sequence=["#ef4444", "#0ea5e9", "#f59e0b", "#10b981"])
 else:
-    total_month_gen, total_lost_units, avg_kwp_ratio = 0, 0, 0
+    df_melted = df_filtered.melt(id_vars=["unit"], value_vars=["mitigation", "grid_mvah", "capex_gen", "opex_gen"], var_name="Metric", value_name="Value")
+    fig_primary = px.bar(df_melted, x="unit", y="Value", color="Metric", barmode="group", title="📊 Renewable Mitigation Impact vs System Infrastructure Energy Logs", color_discrete_sequence=["#22c55e", "#0ea5e9", "#f59e0b", "#10b981"])
+st.plotly_chart(fig_primary, use_container_width=True)
 
-col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
-col_kpi1.metric(f"Total Production ({month_select})", f"{int(total_month_gen):,} kWh")
-col_kpi2.metric("Systemic Inefficiency Loss", f"{int(total_lost_units):,} Units", delta="Leakage Log", delta_color="inverse")
-col_kpi3.metric(f"Average Gen / KWP ({month_select})", f"{avg_kwp_ratio:.2f}")
-
-st.markdown("---")
-
-if not df_filtered.empty:
-    st.subheader(f"📈 Comparative Power Yield Grid — {month_select}")
-    fig_gen = px.bar(
-        df_filtered, x="Unit Name", y=f"{month_select} Gen",
-        color="Vertical", title="Total Generated Units per Selected Node Cluster (kWh)",
-        color_discrete_sequence=px.colors.qualitative.Safe, text_auto=True
-    )
-    fig_gen.update_layout(height=400)
-    st.plotly_chart(fig_gen, use_container_width=True)
-
-    st.subheader("🗺️ Asset Distribution Node Map")
-    df_filtered["Map_Marker_Size"] = df_filtered[f"{month_select} Gen"] + 1000 
-    fig_global_map = px.scatter_mapbox(
-        df_filtered, lat="lat", lon="lon", size="Map_Marker_Size", color="Vertical",
-        hover_name="Unit Name", hover_data=["Location", f"{month_select} Gen"],
-        zoom=3.5, height=400, color_discrete_sequence=px.colors.qualitative.Safe
-    )
-    fig_global_map.update_layout(mapbox_style="carto-positron", margin=dict(l=0, r=0, t=0, b=0))
-    st.plotly_chart(fig_global_map, use_container_width=True)
+# 5. GEOSPATIAL MAP SEGMENT
+st.subheader("🗺️ Telepatial Asset Distribution Node Map")
+fig_global_map = px.scatter_mapbox(df_filtered, lat="lat", lon="lon", size="total_energy_footprint", color="vertical", hover_name="unit", hover_data=["location", "grid_mvah", "emission"], zoom=4.0, height=400, color_discrete_sequence=px.colors.qualitative.Safe)
+fig_global_map.update_layout(mapbox_style="carto-positron", margin=dict(l=0, r=0, t=0, b=0))
+st.plotly_chart(fig_global_map, use_container_width=True)
 
 st.markdown("---")
-st.subheader("📋 Core Plant Node Metrics Ledger")
-st.markdown("💡 Rules: `Ratio >= 3.0` 🟢 **Optimal** | `Ratio < 3.0` 🔴 **Under Threshold**")
 
-if df_filtered.empty:
-    st.warning("No plant nodes match selection filters.")
-else:
-    for i in range(0, len(df_filtered), 4):
-        cols = st.columns(4)
-        for j in range(4):
-            if i + j < len(df_filtered):
-                row = df_filtered.iloc[i + j]
-                ratio_val = row[f"{month_select} Gen/KWP"]
-                gen_val = row[f"{month_select} Gen"]
-                loss_val = row["Unit Loss Inefficiency"]
-                
-                with cols[j]:
-                    if ratio_val >= 3.0:
-                        border_color = "#10b981"
-                        status_badge = f"<span style='color:{border_color}; font-weight:bold;'>🟢 {ratio_val} (Optimal)</span>"
-                    else:
-                        border_color = "#ef4444"
-                        status_badge = f"<span style='color:{border_color}; font-weight:bold;'>🔴 {ratio_val} (Low)</span>"
-                    
-                    st.markdown(f"""
-                    <div style="border: 2px solid {border_color}; border-radius: 12px; padding: 15px; margin-bottom: 15px; background-color: rgba(255,255,255,0.02);">
-                        <h4 style="margin: 0 0 4px 0; color: #f1f5f9;">🏢 Plant: {row['Unit Name']}</h4>
-                        <p style="margin: 0 0 8px 0; font-size: 11px; color: #64748b; text-transform: uppercase;"><b>{row['Vertical']}</b></p>
-                        <p style="margin: 4px 0; font-size: 13px; color: #94a3b8;"><b>Location:</b> {row['Location']}</p>
-                        <p style="margin: 4px 0; font-size: 13px; color: #94a3b8;"><b>Generation:</b> {int(gen_val):,} kWh</p>
-                        <p style="margin: 4px 0; font-size: 13px; color: #94a3b8;"><b>Loss:</b> {int(loss_val):,} Units</p>
-                        <p style="margin: 8px 0 0 0; font-size: 14px;"><b>KWP Ratio:</b> {status_badge}</p>
-                    </div>
-                    """, unsafe_allow_html=True)
+# 6. PLANT DETAILS LEDGER WITH FORMAT CONDITIONING
+st.subheader("📋 Infrastructure Node Register Ledger Details")
+for idx, row in df_filtered.iterrows():
+    unit_string = str(row['unit']).strip()
+    current_mon_val = 0
+    if unit_string in df_monthly.columns:
+        matching_rows = df_monthly.loc[df_monthly['Month'] == target_month, unit_string].values
+        if len(matching_rows) > 0 and pd.notna(matching_rows):
+            try:
+                current_mon_val = float(str(matching_rows).replace(',', ''))
+            except:
+                current_mon_val = 0
+            
+    card_title = f"📦 [{row['unit']}] Location: {row['location']} — Selected Month ({target_month}): {int(current_mon_val):,} Generation Units"
+    
+    with st.expander(card_title):
+        col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+        col_f1.metric("Yearly Grid Sourcing", f"{row['grid_mvah']:,.2f} MVAh")
+        col_f2.metric("Green Shift Percentage", f"{row['replacement_pct']}%")
+        col_f3.metric("Diesel (DG) Sideload", f"{int(row['dg']):,} Liters")
+        
+        # 🟢 / 🔴 Conditional Formatting Rule Implementation
+        yield_ratio = float(row['generation_per_kwp'])
+        if yield_ratio > 3.0:
+            col_f4.markdown(f"**Generation per KWP Ratio**<br><span style='color:#10b981; font-size:24px; font-weight:bold;'>🟢 {yield_ratio} Yield</span>", unsafe_allow_html=True)
+        else:
+            col_f4.markdown(f"**Generation per KWP Ratio**<br><span style='color:#ef4444; font-size:24px; font-weight:bold;'>🔴 {yield_ratio} Yield</span>", unsafe_allow_html=True)
+        
+        st.markdown("<div style='margin-top: 12px;'></div>", unsafe_allow_html=True)
+        col_s1, col_s2, col_s3, col_s4 = st.columns(4)
+        col_s1.metric("CAPEX / OPEX Capacities", f"{int(row['capex_capacity'])} / {int(row['opex_capacity'])} kWp")
+        col_s2.metric("CAPEX Solar Generation", f"{row['capex_gen']:,.2f} MWh")
+        col_s3.metric("OPEX Solar Generation", f"{row['opex_gen']:,.2f} MWh")
+        col_s4.metric("Lost Due to Inefficiency", f"{int(row['unit_lost_inefficiency']):,} Units", delta=f"-{int(row['unit_lost_inefficiency'])} Units", delta_color="inverse")
