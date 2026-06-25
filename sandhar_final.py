@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 import io
 import streamlit.components.v1 as components
 
@@ -14,9 +13,6 @@ st.set_page_config(
 # --- INITIAL STATE MANAGEMENT ---
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
-
-if "matrix_chart_target" not in st.session_state:
-    st.session_state["matrix_chart_target"] = "emission"
 
 if "chat_history" not in st.session_state:
     st.session_state["chat_history"] = [
@@ -64,7 +60,7 @@ else:
             from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .bubble-wrapper, .shape-row, .stPlotlyChart, .stExpander {
+        .bubble-wrapper, .stExpander {
             animation: smoothScaleUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
@@ -110,65 +106,6 @@ else:
             font-weight: 800;
             color: #0f172a;
             line-height: 1.2;
-        }
-
-        .shape-row {
-            display: flex;
-            justify-content: center;
-            gap: 50px;
-            margin: 25px 0;
-        }
-
-        /* DROPLET BTN DESIGN */
-        .droplet-node {
-            width: 110px;
-            height: 110px;
-            background: linear-gradient(135deg, #38bdf8, #0284c7);
-            border-radius: 0% 100% 100% 100%;
-            transform: rotate(45deg);
-            box-shadow: 0 8px 22px rgba(2, 132, 199, 0.25);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: none;
-        }
-        .droplet-node:hover {
-            transform: rotate(45deg) scale(1.08);
-            box-shadow: 0 12px 26px rgba(2, 132, 199, 0.45);
-        }
-        .droplet-inner-text {
-            transform: rotate(-45deg);
-            color: white;
-            font-weight: bold;
-            font-size: 11px;
-            text-align: center;
-        }
-
-        /* LEAF BTN DESIGN */
-        .leaf-node {
-            width: 110px;
-            height: 110px;
-            background: linear-gradient(135deg, #4ade80, #16a34a);
-            border-radius: 100% 0% 100% 0%;
-            box-shadow: 0 8px 22px rgba(22, 163, 74, 0.25);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: none;
-        }
-        .leaf-node:hover {
-            transform: scale(1.08) rotate(5deg);
-            box-shadow: 0 12px 26px rgba(22, 163, 74, 0.45);
-        }
-        .leaf-inner-text {
-            color: white;
-            font-weight: bold;
-            font-size: 11px;
-            text-align: center;
         }
         </style>
         """, unsafe_allow_html=True)
@@ -255,7 +192,6 @@ March'26,2980,8118,14945,37631,13787,21774,1345,3750,13198,3110,0,24377,31963,15
 
     df_m = pd.read_csv(io.StringIO(master_csv.strip()))
     df_t = pd.read_csv(io.StringIO(monthly_csv.strip()))
-    df_m['total_energy_footprint'] = df_m['grid_mvah'] + (df_m['dg'] / 1000.0) + df_m['capex_gen'] + df_m['opex_gen']
     return df_m, df_t
 
 df_master, df_monthly = load_energy_data_matrices()
@@ -278,7 +214,6 @@ app_page = st.sidebar.radio("Navigate Workspace", ["Main Tracking Panel", "FY26-
 st.sidebar.markdown("---")
 st.sidebar.subheader("🤖 Intelligence Query Core")
 
-# Live Rule-Engine Context Helper for Chatbot Simulation
 def simulate_matrix_response(query):
     query_clean = query.upper()
     if "BEST" in query_clean or "HIGHEST" in query_clean:
@@ -293,7 +228,6 @@ def simulate_matrix_response(query):
     else:
         return "🤖 Telemetry Context parsed. You can query me for 'highest generation ratio', 'worst performing unit', or 'efficiency loss patterns'."
 
-# Chatbot UI Render inside the Sidebar
 for msg in st.session_state["chat_history"]:
     with st.sidebar.chat_message(msg["role"]):
         st.write(msg["content"])
@@ -314,18 +248,15 @@ if app_page == "FY26-27 Analytics & Horizon Panel":
     st.caption("Active forecasting layers and validation horizons parsed from incoming live execution spreadsheets.")
     st.markdown("---")
     
-    st.subheader("📅 FY26-27 Initial Months Active Performance Log")
-    df_fy27_melted = df_fy27.melt(id_vars=["Month"], var_name="Unit", value_name="Units_kWh")
-    fig_fy27 = px.bar(df_fy27_melted, x="Unit", y="Units_kWh", color="Month", barmode="group",
-                      title="Comparison Loop: April vs May Generation (kWh)",
-                      color_discrete_sequence=["#0ea5e9", "#10b981"])
-    st.plotly_chart(fig_fy27, use_container_width=True)
-    
     st.subheader("📋 Infrastructure Node Matrix Evaluation Ledger (FY26-27 Data Metrics)")
     for idx, row in df_master.iterrows():
         unit_code = str(row['unit']).strip()
-        apr_val = df_fy27.loc[df_fy27['Month'] == "April'26", unit_code].values if unit_code in df_fy27.columns else 0
-        may_val = df_fy27.loc[df_fy27['Month'] == "May'26", unit_code].values if unit_code in df_fy27.columns else 0
+        
+        apr_series = df_fy27.loc[df_fy27['Month'] == "April'26", unit_code].values
+        may_series = df_fy27.loc[df_fy27['Month'] == "May'26", unit_code].values
+        
+        apr_val = apr_series if len(apr_series) > 0 else 0
+        may_val = may_series if len(may_series) > 0 else 0
         
         with st.expander(f"🏢 Node Layer [{unit_code}] — Horizon Status Analysis"):
             col_a, col_b, col_c = st.columns(3)
@@ -369,67 +300,9 @@ st.markdown(f"""
     </div>
     """, unsafe_allow_html=True)
 
-# 2. VISUAL LAYERING SELECTION TRIGGERS
-st.subheader("🎨 Toggle Layer Perspectives")
-col_d, col_l = st.columns(2)
-with col_d:
-    st.markdown('<div class="shape-row">', unsafe_allow_html=True)
-    if st.button("Carbon Mode Trigger", key="d_click"):
-        st.session_state["matrix_chart_target"] = "emission"
-    st.markdown('</div>', unsafe_allow_html=True)
-with col_l:
-    st.markdown('<div class="shape-row">', unsafe_allow_html=True)
-    if st.button("Green Mode Trigger", key="l_click"):
-        st.session_state["matrix_chart_target"] = "mitigation"
-    st.markdown('</div>', unsafe_allow_html=True)
-
-st.markdown("""
-    <script>
-    var elements = window.parent.document.getElementsByTagName('button');
-    for (var i = 0; i < elements.length; i++) {
-        if (elements[i].innerText.includes('Carbon Mode')) {
-            elements[i].className = 'droplet-node';
-            elements[i].innerHTML = '<div class="droplet-inner-text">💧<br>Carbon View</div>';
-        }
-        if (elements[i].innerText.includes('Green Mode')) {
-            elements[i].className = 'leaf-node';
-            elements[i].innerHTML = '<div class="leaf-inner-text">🌱<br>Green View</div>';
-        }
-    }
-    </script>
-    """, unsafe_allow_html=True)
-
-# 3. TIMELINE TREND LINES
-st.subheader(f"📈 Ecosystem Performance Sequence Mapping ({target_month})")
-df_month_melted = df_monthly.melt(id_vars=["Month"], var_name="Unit", value_name="Generation_kWh")
-df_month_filtered = df_month_melted[df_month_melted['Unit'].isin(df_monthly.columns[1:])]
-
-fig_timeline = px.line(
-    df_month_filtered, x="Month", y="Generation_kWh", color="Unit", markers=True,
-    title="📅 Year-Round Active Generation Yield Timeline (kWh)",
-    color_discrete_sequence=px.colors.qualitative.Bold
-)
-fig_timeline.update_layout(height=350, hovermode="x unified")
-st.plotly_chart(fig_timeline, use_container_width=True)
-
-# 4. DATA MATRIX GRAPH
-if st.session_state["matrix_chart_target"] == "emission":
-    df_melted = df_filtered.melt(id_vars=["unit"], value_vars=["emission", "grid_mvah", "capex_gen", "opex_gen"], var_name="Metric", value_name="Value")
-    fig_primary = px.bar(df_melted, x="unit", y="Value", color="Metric", barmode="group", title="📊 Carbon Stack Assessment vs System Infrastructure Energy Logs", color_discrete_sequence=["#ef4444", "#0ea5e9", "#f59e0b", "#10b981"])
-else:
-    df_melted = df_filtered.melt(id_vars=["unit"], value_vars=["mitigation", "grid_mvah", "capex_gen", "opex_gen"], var_name="Metric", value_name="Value")
-    fig_primary = px.bar(df_melted, x="unit", y="Value", color="Metric", barmode="group", title="📊 Renewable Mitigation Impact vs System Infrastructure Energy Logs", color_discrete_sequence=["#22c55e", "#0ea5e9", "#f59e0b", "#10b981"])
-st.plotly_chart(fig_primary, use_container_width=True)
-
-# 5. GEOSPATIAL MAP SEGMENT
-st.subheader("🗺️ Telepatial Asset Distribution Node Map")
-fig_global_map = px.scatter_mapbox(df_filtered, lat="lat", lon="lon", size="total_energy_footprint", color="vertical", hover_name="unit", hover_data=["location", "grid_mvah", "emission"], zoom=4.0, height=400, color_discrete_sequence=px.colors.qualitative.Safe)
-fig_global_map.update_layout(mapbox_style="carto-positron", margin=dict(l=0, r=0, t=0, b=0))
-st.plotly_chart(fig_global_map, use_container_width=True)
-
 st.markdown("---")
 
-# 6. PLANT DETAILS LEDGER WITH FORMAT CONDITIONING
+# 2. PLANT DETAILS LEDGER WITH FORMAT CONDITIONING
 st.subheader("📋 Infrastructure Node Register Ledger Details")
 for idx, row in df_filtered.iterrows():
     unit_string = str(row['unit']).strip()
