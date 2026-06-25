@@ -4,6 +4,8 @@ import io
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit.components.v1 as components
+from streamlit_folium import st_folium
+import folium
 
 # 1. Page Configuration
 st.set_page_config(
@@ -254,7 +256,6 @@ if app_page == "FY26-27 Analytics & Horizon Panel":
     for idx, row in df_master.iterrows():
         unit_code = str(row['unit']).strip()
         
-        # Safe structural type parsing to clean the original conversion error
         apr_series = df_fy27.loc[df_fy27['Month'] == "April'26", unit_code].values
         may_series = df_fy27.loc[df_fy27['Month'] == "May'26", unit_code].values
         
@@ -305,7 +306,7 @@ st.markdown(f"""
 
 st.markdown("---")
 
-# 📊 2. DYNAMIC VISUALIZATION GRAPH BLOCK (RE-IMPLEMENTED SAFE & STABLE)
+# 📊 2. DYNAMIC VISUALIZATION GRAPH BLOCK
 st.subheader("📊 Dynamic Environmental Performance & Fleet Generation Metrics")
 col_g1, col_g2 = st.columns(2)
 
@@ -338,7 +339,37 @@ with col_g2:
 
 st.markdown("---")
 
-# 🏢 3. PLANT DETAILS LEDGER WITH FORMAT CONDITIONING
+# 🗺️ 3. RESTORED INFRASTRUCTURE GEOLOCATION MAP OVERLAY
+st.subheader("🗺️ Enterprise Infrastructure Geolocation Node Overlay")
+if not df_filtered.empty:
+    avg_lat = df_filtered['lat'].mean()
+    avg_lon = df_filtered['lon'].mean()
+    m = folium.Map(location=[avg_lat, avg_lon], zoom_start=5, tiles="CartoDB positron")
+    
+    for _, marker_row in df_filtered.iterrows():
+        popup_html = f"""
+        <div style='font-family: Arial, sans-serif; font-size:12px;'>
+            <strong>Node Code:</strong> {marker_row['unit']}<br>
+            <strong>Location:</strong> {marker_row['location']}<br>
+            <strong>Vertical Segment:</strong> {marker_row['vertical']}<br>
+            <strong>Green Shift Ratio:</strong> {marker_row['replacement_pct']}%
+        </div>
+        """
+        icon_color = "green" if float(marker_row['generation_per_kwp']) > 3.0 else "red"
+        folium.Marker(
+            location=[marker_row['lat'], marker_row['lon']],
+            popup=folium.Popup(popup_html, max_width=300),
+            tooltip=f"Node Layer [{marker_row['unit']}]",
+            icon=folium.Icon(color=icon_color, icon="bolt", prefix="fa")
+        ).add_to(m)
+        
+    st_folium(m, width="100%", height=450, returned_objects=[])
+else:
+    st.info("No geospatial node arrays found matching filtered layers.")
+
+st.markdown("---")
+
+# 🏢 4. PLANT DETAILS LEDGER WITH FORMAT CONDITIONING
 st.subheader("📋 Infrastructure Node Register Ledger Details")
 for idx, row in df_filtered.iterrows():
     unit_string = str(row['unit']).strip()
