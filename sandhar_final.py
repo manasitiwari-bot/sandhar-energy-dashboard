@@ -4,6 +4,7 @@ import io
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit.components.v1 as components
+import folium
 
 # 1. Page Configuration
 st.set_page_config(
@@ -307,64 +308,89 @@ with col_g2:
 
 st.markdown("---")
 
-# 🗺️ 3. NATIVE CRASH-PROOF GEOLOCATION MAP OVERLAY
+# 🗺️ 3. HIGH-PERFORMANCE FOLLIUM MAP EMBED
 st.subheader("🗺️ Enterprise Infrastructure Geolocation Node Overlay")
 if not df_filtered.empty:
-    st.map(df_filtered, latitude='lat', longitude='lon', size=18, color="#10b981")
+    avg_lat = df_filtered['lat'].mean()
+    avg_lon = df_filtered['lon'].mean()
+    
+    # Initialize basic map object
+    m = folium.Map(location=[avg_lat, avg_lon], zoom_start=5, tiles="CartoDB positron")
+    
+    for _, marker_row in df_filtered.iterrows():
+        popup_html = f"""
+        <div style='font-family: Arial, sans-serif; font-size:12px; line-height: 1.4;'>
+            <strong>Node Code:</strong> {marker_row['unit']}<br>
+            <strong>Location:</strong> {marker_row['location']}<br>
+            <strong>Segment:</strong> {marker_row['vertical']}<br>
+            <strong>Green Shift:</strong> {marker_row['replacement_pct']}%<br>
+            <strong>Gen Ratio:</strong> {marker_row['generation_per_kwp']}
+        </div>
+        """
+        icon_color = "green" if float(marker_row['generation_per_kwp']) > 3.0 else "red"
+        
+        folium.Marker(
+            location=[marker_row['lat'], marker_row['lon']],
+            popup=folium.Popup(popup_html, max_width=250),
+            tooltip=f"Node Layer [{marker_row['unit']}]",
+            icon=folium.Icon(color=icon_color, icon="bolt", prefix="fa")
+        ).add_to(m)
+    
+    # Generate the map's native HTML string and inject it as an iframe component
+    # This prevents package crashes on Streamlit Cloud completely.
+    map_html = m._repr_html_()
+    components.html(map_html, height=480, scrolling=True)
 else:
     st.info("No geospatial node arrays found matching filtered layers.")
 
 st.markdown("---")
 
-# 🤖 4. LIVE INTERACTIVE INTELLIGENCE CORE (CHATBOT MODULE)
+# 🤖 4. CRASH-PROOF LIVE INTERACTIVE CHAT ASSISTANT
 st.subheader("🤖 Interactive Live Data Chat Assistant")
-st.caption("Ask specific contextual analytics questions about your plants (e.g., 'worst plant', 'total emissions', 'highest efficiency', or 'summary').")
+st.caption("Type questions about your plants (e.g., 'worst plant', 'total emissions', 'highest efficiency', or 'summary') below.")
 
-# Data-Driven Analytics Query Logic
 def evaluate_live_query(user_query, target_data):
     raw = user_query.strip().lower()
-    
     if "worst" in raw or "inefficient" in raw or "lost" in raw:
         worst_row = target_data.loc[target_data['unit_lost_inefficiency'].idxmax()]
-        return f"🚨 **Anomaly Alert:** Node **{worst_row['unit']}** ({worst_row['location']}) is reporting the worst systematic line leakage with **{int(worst_row['unit_lost_inefficiency']):,} units** lost to engineering inefficiencies."
-        
+        return f"🚨 **Anomaly Alert:** Node **{worst_row['unit']}** ({worst_row['location']}) has the highest systematic line leakage with **{int(worst_row['unit_lost_inefficiency']):,} units** lost to engineering inefficiencies."
     elif "highest" in raw or "best" in raw or "efficient" in raw:
         best_row = target_data.loc[target_data['generation_per_kwp'].idxmax()]
         return f"🏆 **Efficiency Peak:** Node **{best_row['unit']}** has secured the highest performance threshold with a Generation/KWP ratio of **{best_row['generation_per_kwp']}**."
-        
     elif "emission" in raw or "carbon" in raw or "footprint" in raw:
         total_co2 = target_data['emission'].sum()
         total_offset = target_data['mitigation'].sum()
-        return f"🍃 **Carbon Registry:** Across your current operational segment, total gross footprint is **{int(total_co2):,} MT CO₂**, balanced by a carbon mitigation offset of **{int(total_offset):,} MT CO₂**."
-        
+        return f"🍃 **Carbon Registry:** For your current filter, total gross footprint is **{int(total_co2):,} MT CO₂**, balanced by a carbon mitigation offset of **{int(total_offset):,} MT CO₂**."
     elif "summary" in raw or "overview" in raw or "stats" in raw:
         nodes_count = len(target_data)
         top_offset = target_data.loc[target_data['mitigation'].idxmax()]['unit']
         return f"📋 **Quick Status Briefing:** Currently evaluating **{nodes_count} plant profiles**. Total grid demand sums to **{target_data['grid_mvah'].sum():,.2f} MVAh**. Node **{top_offset}** leads the segment in renewable carbon mitigation offsets."
-        
     else:
-        return "🤖 *Telemetry prompt received.* I can help you instantly calculate context stats if you ask about: **'worst plant'**, **'highest efficiency'**, **'total emissions'**, or a **'summary'**."
+        return "🤖 I can help you instantly search analytics context if you ask about: **'worst plant'**, **'highest efficiency'**, **'total emissions'**, or a **'summary'**."
 
-# Layout constraints for the scrollable messaging box
-chat_box = st.container(height=300)
+# Scrollable historical box configuration
+chat_box = st.container(height=260)
 with chat_box:
     for message in st.session_state["chat_history"]:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-if prompt := st.chat_input("Query current node tracking matrices..."):
-    # Append user question
-    st.session_state["chat_history"].append({"role": "user", "content": prompt})
-    with chat_box:
-        with st.chat_message("user"):
-            st.markdown(prompt)
-            
-    # Calculate response from data metrics
-    response_out = evaluate_live_query(prompt, df_filtered)
+# FORM ELEMENT TRIGGER FIX: Blocks state leaks and captures inputs instantly
+with st.form(key="telemetry_chat_form", clear_on_submit=True):
+    col_input, col_submit = st.columns()
+    with col_input:
+        user_text = st.text_input(
+            label="Query Entry Input Field",
+            label_visibility="collapsed",
+            placeholder="Type your metric query here (e.g., summary, worst plant, emissions)..."
+        )
+    with col_submit:
+        submitted = st.form_submit_button("Ask Node Engine", use_container_width=True)
+
+if submitted and user_text:
+    st.session_state["chat_history"].append({"role": "user", "content": user_text})
+    response_out = evaluate_live_query(user_text, df_filtered)
     st.session_state["chat_history"].append({"role": "assistant", "content": response_out})
-    with chat_box:
-        with st.chat_message("assistant"):
-            st.markdown(response_out)
     st.rerun()
 
 st.markdown("---")
@@ -399,6 +425,7 @@ for idx, row in df_filtered.iterrows():
         
         st.markdown("<div style='margin-top: 12px;'></div>", unsafe_allow_html=True)
         col_s1, col_s2, col_s3, col_s4 = st.columns(4)
+        col_s1.metric("CAPEX / OPEX Capacities", f"{int(row['capex_capacity'])} / {int(row['opex_capacity'])} kWp")
         col_s1.metric("CAPEX / OPEX Capacities", f"{int(row['capex_capacity'])} / {int(row['opex_capacity'])} kWp")
         col_s2.metric("CAPEX Solar Generation", f"{row['capex_gen']:,.2f} MWh")
         col_s3.metric("OPEX Solar Generation", f"{row['opex_gen']:,.2f} MWh")
