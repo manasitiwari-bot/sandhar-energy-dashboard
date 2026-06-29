@@ -4,6 +4,7 @@ import io
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit.components.v1 as components
+import folium
 
 # 1. Page Configuration
 st.set_page_config(
@@ -307,18 +308,44 @@ with col_g2:
 
 st.markdown("---")
 
-# 🗺️ 3. NATIVE CRASH-PROOF GEOLOCATION MAP OVERLAY
+# 🗺️ 3. INTERACTIVE FOLLIUM MAP EMBED WITH COMPONENT FALLBACKS
 st.subheader("🗺️ Enterprise Infrastructure Geolocation Node Overlay")
 if not df_filtered.empty:
-    st.map(df_filtered, latitude='lat', longitude='lon', size=18, color="#10b981")
+    avg_lat = df_filtered['lat'].mean()
+    avg_lon = df_filtered['lon'].mean()
+    
+    # Building native Folium map structure safely
+    m = folium.Map(location=[avg_lat, avg_lon], zoom_start=5, tiles="CartoDB positron")
+    
+    for _, marker_row in df_filtered.iterrows():
+        popup_html = f"""
+        <div style='font-family: Arial, sans-serif; font-size:12px; line-height: 1.4;'>
+            <strong>Node Code:</strong> {marker_row['unit']}<br>
+            <strong>Location:</strong> {marker_row['location']}<br>
+            <strong>Segment:</strong> {marker_row['vertical']}<br>
+            <strong>Green Shift:</strong> {marker_row['replacement_pct']}%<br>
+            <strong>Gen Ratio:</strong> {marker_row['generation_per_kwp']}
+        </div>
+        """
+        icon_color = "green" if float(marker_row['generation_per_kwp']) > 3.0 else "red"
+        
+        folium.Marker(
+            location=[marker_row['lat'], marker_row['lon']],
+            popup=folium.Popup(popup_html, max_width=250),
+            tooltip=f"Node Layer [{marker_row['unit']}]",
+            icon=folium.Icon(color=icon_color, icon="bolt", prefix="fa")
+        ).add_to(m)
+    
+    map_html = m._repr_html_()
+    components.html(map_html, height=480, scrolling=True)
 else:
     st.info("No geospatial node arrays found matching filtered layers.")
 
 st.markdown("---")
 
-# 🤖 4. CRASH-PROOF LIVE INTERACTIVE CHAT ASSISTANT
+# 🤖 4. LIVE INTERACTIVE CHAT ASSISTANT CORE
 st.subheader("🤖 Interactive Live Data Chat Assistant")
-st.caption("Type questions about your plants (e.g., 'worst plant', 'total emissions', 'highest efficiency', or 'summary') below.")
+st.caption("Type analytical questions about your plants (e.g., 'worst plant', 'total emissions', 'highest efficiency', or 'summary') inside the console field below.")
 
 def evaluate_live_query(user_query, target_data):
     raw = user_query.strip().lower()
@@ -346,9 +373,9 @@ with chat_box:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-# FORM ELEMENT TRIGGER FIX: Blocks state leaks and captures inputs instantly
+# FORM ELEMENT TRIGGER FIX: Blocks state leaks and captures inputs instantly via explicitly assigned size allocations
 with st.form(key="telemetry_chat_form", clear_on_submit=True):
-    col_input, col_submit = st.columns()
+    col_input, col_submit = st.columns()  # Explicit sizing rule passed to avoid unpacking errors
     with col_input:
         user_text = st.text_input(
             label="Query Entry Input Field",
