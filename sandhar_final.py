@@ -3,8 +3,8 @@ import pandas as pd
 import io
 import plotly.express as px
 import plotly.graph_objects as go
-import streamlit.components.v1 as components
 import folium
+from streamlit_folium import st_folium
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
@@ -118,28 +118,13 @@ else:
 
 # 2. Portal Security Wall
 if not st.session_state["authenticated"]:
-    components.html("""
+    st.markdown(
+        """
         <div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#030712; overflow:hidden; z-index:-1; display:flex; justify-content:center; align-items:center;">
             <div id="globeContainer" style="width:500px; height:500px;"></div>
         </div>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-        <script>
-        const container = document.getElementById('globeContainer');
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
-        camera.position.z = 160;
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(500, 500);
-        container.appendChild(renderer.domElement);
-        const globeGroup = new THREE.Group();
-        scene.add(globeGroup);
-        const sphereGeo = new THREE.SphereGeometry(65, 30, 30);
-        const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x0ea5e9, wireframe: true, transparent: true, opacity: 0.15 });
-        globeGroup.add(new THREE.Mesh(sphereGeo, wireframeMat));
-        function animate() { requestAnimationFrame(animate); globeGroup.rotation.y += 0.004; renderer.render(scene, camera); }
-        animate();
-        </script>
-    """, height=510)
+        """, unsafe_allow_html=True
+    )
 
     _, col_center, _ = st.columns([1, 1.3, 1])
     with col_center:
@@ -170,7 +155,7 @@ Casting Machining & Tooling Business,ACM,Gurugram,3249.812,127,0,22,2200,525,236
 Corp. Office,CORP,Gurugram,232.695,25,0,14,0,24,169,0.0,33.483,28.4595,77.0266,9898,2.53,3.46
 Corp. Office,SASPL,Tamil Nadu,159.629,0,0,41,0,48,116,0.0,66.246,11.1271,78.6569,29313,2.65,3.71
 Automotive Business,SHP,Rajasthan,881.47,400,262,60,13021,381,641,346.631,1779.14,27.0238,74.2179,113748,3.67,5.02
-Automotive Business,SAH,Uttarakhand,5657.6,251,129,5,66015,197,4113,104.663,166.675,30.0668,79.0193,167105,1.21,0.00
+Automotive Business,SAH,Uttarakhand,5657.6,251,129,5,66015,17,4113,104.663,166.675,30.0668,79.0193,167105,1.21,0.00
 Casting Machining & Tooling Business,SCH,Tamil Nadu,18864.562,0,0,53,0,7304,13715,3979.8,0.0,11.1271,78.6569,0,2.14,2.71
 Automotive Business,SIO,Tamil Nadu,1271.13,125,0,9,15220,81,924,110.985,0.0,11.1271,78.6569,0,2.70,5.20
 Casting Machining & Tooling Business,SCA,Karnataka,4232.325,115,0,59,1111,1825,3077,0.0,88.659,15.3173,75.7139,45077,2.79,2.38
@@ -271,11 +256,8 @@ def generate_excel_report(dataframe):
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Ecosystem Data"
-    
-    # Corrected Sheet View Property Interface Reference
     ws.sheet_view.showGridLines = True
     
-    # Formatted Colors Matching Dashboard Aesthetics
     title_fill = PatternFill(start_color="1F2937", end_color="1F2937", fill_type="solid")
     header_fill = PatternFill(start_color="111827", end_color="111827", fill_type="solid")
     zebra_fill = PatternFill(start_color="F9FAFB", end_color="F9FAFB", fill_type="solid")
@@ -291,7 +273,6 @@ def generate_excel_report(dataframe):
         bottom=Side(style='thin', color='E5E7EB')
     )
     
-    # Title Block
     ws.merge_cells("A1:G1")
     ws["A1"] = "SANDHAR ECOSYSTEM DATA MANAGEMENT REPORT"
     ws["A1"].font = font_title
@@ -299,7 +280,6 @@ def generate_excel_report(dataframe):
     ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
     ws.row_dimensions.height = 35
     
-    # Table Headers
     cols = ["Vertical Segment", "Plant Node", "Location", "Grid (MVAh)", "Mitigation (MT)", "Emissions (MT)", "Yield Ratio"]
     for idx, text in enumerate(cols, 1):
         cell = ws.cell(row=3, column=idx, value=text)
@@ -308,7 +288,6 @@ def generate_excel_report(dataframe):
         cell.alignment = Alignment(horizontal="center", wrap_text=True)
     ws.row_dimensions.height = 24
     
-    # Populate Values Cleanly
     for r_idx, row in dataframe.reset_index().iterrows():
         r = r_idx + 4
         ws.cell(row=r, column=1, value=row['vertical']).font = font_data
@@ -337,7 +316,6 @@ def generate_excel_report(dataframe):
             if r_idx % 2 == 1:
                 cell.fill = zebra_fill
                 
-    # FIXED: Extracting index safely from first coordinate cell inside the tuple wrapper
     for col in ws.columns:
         max_len = max(len(str(cell.value or '')) for cell in col)
         col_letter = openpyxl.utils.get_column_letter(col.column)
@@ -346,7 +324,6 @@ def generate_excel_report(dataframe):
     wb.save(output)
     return output.getvalue()
 
-# Premium Download Interface Button
 excel_data = generate_excel_report(df_filtered)
 st.download_button(
     label="📥 Download Formatted Ecosystem Executive Report (.xlsx)",
@@ -391,7 +368,7 @@ with col_g2:
 
 st.markdown("---")
 
-# 🗺️ 3. INTERACTIVE FOLLIUM MAP EMBED WITH COMPONENT FALLBACKS
+# 🗺️ 3. INTERACTIVE FOLLIUM MAP EMBED
 st.subheader("🗺️ Enterprise Infrastructure Geolocation Node Overlay")
 if not df_filtered.empty:
     avg_lat = df_filtered['lat'].mean()
@@ -418,8 +395,8 @@ if not df_filtered.empty:
             icon=folium.Icon(color=icon_color, icon="bolt", prefix="fa")
         ).add_to(m)
     
-    map_html = m._repr_html_()
-    components.html(map_html, height=480, scrolling=True)
+    # 🟢 FIXED: Rendering natively to avoid asset dropouts
+    st_folium(m, height=480, width=None, use_container_width=True, key="sandhar_live_map")
 else:
     st.info("No geospatial node arrays found matching filtered layers.")
 
@@ -432,4 +409,73 @@ st.caption("Type analytical questions about your plants (e.g., 'worst plant', 't
 def evaluate_live_query(user_query, target_data):
     raw = user_query.strip().lower()
     if "worst" in raw or "inefficient" in raw or "lost" in raw:
-        worst_row
+        worst_row = target_data.loc[target_data['unit_lost_inefficiency'].idxmax()]
+        return f"🚨 **Anomaly Alert:** Node **{worst_row['unit']}** ({worst_row['location']}) has the highest systematic line leakage with **{int(worst_row['unit_lost_inefficiency']):,} units** lost to engineering inefficiencies."
+    elif "highest" in raw or "best" in raw or "efficient" in raw:
+        best_row = target_data.loc[target_data['generation_per_kwp'].idxmax()]
+        return f"🏆 **Efficiency Peak:** Node **{best_row['unit']}** has secured the highest performance threshold with a Generation/KWP ratio of **{best_row['generation_per_kwp']}**."
+    elif "emission" in raw or "carbon" in raw or "footprint" in raw:
+        total_co2 = target_data['emission'].sum()
+        total_offset = target_data['mitigation'].sum()
+        return f"🍃 **Carbon Registry:** For your current filter, total gross footprint is **{int(total_co2):,} MT CO₂**, balanced by a carbon mitigation offset of **{int(total_offset):,} MT CO₂**."
+    elif "summary" in raw or "overview" in raw or "stats" in raw:
+        nodes_count = len(target_data)
+        top_offset = target_data.loc[target_data['mitigation'].idxmax()]['unit']
+        return f"📋 **Quick Status Briefing:** Currently evaluating **{nodes_count} plant profiles**. Total grid demand sums to **{target_data['grid_mvah'].sum():,.2f} MVAh**. Node **{top_offset}** leads the segment in renewable carbon mitigation offsets."
+    else:
+        return "🤖 I can help you instantly search analytics context if you ask about: **'worst plant'**, **'highest efficiency'**, **'total emissions'**, or a **'summary'**."
+
+chat_box = st.container(height=260)
+with chat_box:
+    for message in st.session_state["chat_history"]:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+with st.form(key="telemetry_chat_form", clear_on_submit=True):
+    user_text = st.text_input(
+        "Query Entry Input Field:",
+        placeholder="Type your metric query here (e.g., summary, worst plant, emissions)..."
+    )
+    submitted = st.form_submit_button("Ask Node Engine", use_container_width=True)
+
+if submitted and user_text:
+    st.session_state["chat_history"].append({"role": "user", "content": user_text})
+    response_out = evaluate_live_query(user_text, df_filtered)
+    st.session_state["chat_history"].append({"role": "assistant", "content": response_out})
+    st.rerun()
+
+st.markdown("---")
+
+# 🏢 5. PLANT DETAILS LEDGER WITH FORMAT CONDITIONING
+st.subheader("📋 Infrastructure Node Register Ledger Details")
+for idx, row in df_filtered.iterrows():
+    unit_string = str(row['unit']).strip()
+    current_mon_val = 0
+    if unit_string in df_monthly.columns:
+        matching_rows = df_monthly.loc[df_monthly['Month'] == target_month, unit_string].values
+        if len(matching_rows) > 0 and pd.notna(matching_rows):
+            try:
+                current_mon_val = float(str(matching_rows).replace(',', ''))
+            except:
+                current_mon_val = 0
+            
+    card_title = f"📦 [{row['unit']}] Location: {row['location']} — Selected Month ({target_month}): {int(current_mon_val):,} Generation Units"
+    
+    with st.expander(card_title):
+        col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+        col_f1.metric("Yearly Grid Sourcing", f"{row['grid_mvah']:,.2f} MVAh")
+        col_f2.metric("Green Shift Percentage", f"{row['replacement_pct']}%")
+        col_f3.metric("Diesel (DG) Sideload", f"{int(row['dg']):,} Liters")
+        
+        yield_ratio = float(row['generation_per_kwp'])
+        if yield_ratio > 3.0:
+            col_f4.markdown(f"**Generation per KWP Ratio**<br><span style='color:#10b981; font-size:24px; font-weight:bold;'>🟢 {yield_ratio} Yield</span>", unsafe_allow_html=True)
+        else:
+            col_f4.markdown(f"**Generation per KWP Ratio**<br><span style='color:#ef4444; font-size:24px; font-weight:bold;'>🔴 {yield_ratio} Yield</span>", unsafe_allow_html=True)
+        
+        st.markdown("<div style='margin-top: 12px;'></div>", unsafe_allow_html=True)
+        col_s1, col_s2, col_s3, col_s4 = st.columns(4)
+        col_s1.metric("CAPEX / OPEX Capacities", f"{int(row['capex_capacity'])} / {int(row['opex_capacity'])} kWp")
+        col_s2.metric("CAPEX Solar Generation", f"{row['capex_gen']:,.2f} MWh")
+        col_s3.metric("OPEX Solar Generation", f"{row['opex_gen']:,.2f} MWh")
+        col_s4.metric("Lost Due to Inefficiency", f"{int(row['unit_lost_inefficiency']):,} Units", delta=f"-{int(row['unit_lost_inefficiency'])} Units", delta_color="inverse")
