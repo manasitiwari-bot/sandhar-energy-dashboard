@@ -277,4 +277,39 @@ def generate_excel_report(dataframe):
     # Formatted Colors Matching Dashboard Aesthetics
     title_fill = PatternFill(start_color="1F2937", end_color="1F2937", fill_type="solid")
     header_fill = PatternFill(start_color="111827", end_color="111827", fill_type="solid")
-    zebra_fill = PatternFill(start_color="F9FAFB", end_color="F9FAFB", fill
+    zebra_fill = PatternFill(start_color="F9FAFB", end_color="F9FAFB", fill_type="solid")
+    
+    font_title = Font(name="Segoe UI", size=14, bold=True, color="FFFFFF")
+    font_header = Font(name="Segoe UI", size=11, bold=True, color="FFFFFF")
+    font_data = Font(name="Segoe UI", size=10)
+    
+    thin_border = Border(
+        left=Side(style='thin', color='E5E7EB'),
+        right=Side(style='thin', color='E5E7EB'),
+        top=Side(style='thin', color='E5E7EB'),
+        bottom=Side(style='thin', color='E5E7EB')
+    )
+    
+    # Title Block
+    ws.merge_cells("A1:G1")
+    ws["A1"] = "SANDHAR ECOSYSTEM DATA MANAGEMENT REPORT"
+    ws["A1"].font = font_title
+    ws["A1"].fill = title_fill
+    ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions.height = 35
+    
+    # Table Headers
+    cols = ["Vertical Segment", "Plant Node", "Location", "Grid (MVAh)", "Mitigation (MT)", "Emissions (MT)", "Yield Ratio"]
+    for idx, text in enumerate(cols, 1):
+        cell = ws.cell(row=3, column=idx, value=text)
+        cell.font = font_header
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", wrap_text=True)
+    ws.row_dimensions.height = 24
+    
+    # Populate Values
+    for r_idx, row in dataframe.reset_index().iterrows():
+        r = r_idx + 4
+        ws.cell(row=r, column=1, value=row['vertical']).font = font_data
+        ws.cell(row=r, column=2, value=row['unit']).font = font_data
+        ws.cell(row=r
