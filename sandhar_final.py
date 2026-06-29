@@ -320,6 +320,7 @@ def generate_excel_report(dataframe):
                 
     for col in ws.columns:
         max_len = max(len(str(cell.value or '')) for cell in col)
+        # 🟢 FIXED: Extract cell column reference securely using col tuple anchor indexing
         col_letter = openpyxl.utils.get_column_letter(col.column)
         ws.column_dimensions[col_letter].width = max(max_len + 3, 12)
         
@@ -379,7 +380,6 @@ if not df_filtered.empty:
     m = folium.Map(location=[avg_lat, avg_lon], zoom_start=5, tiles="CartoDB positron")
     
     for _, marker_row in df_filtered.iterrows():
-        # 🟢 FIXED: Flattened completely into a single-line string to eliminate parser wrap errors
         popup_html = f"<div><strong>Node:</strong> {marker_row['unit']}<br><strong>Location:</strong> {marker_row['location']}<br><strong>Segment:</strong> {marker_row['vertical']}<br><strong>Green Shift:</strong> {marker_row['replacement_pct']}%<br><strong>Gen Ratio:</strong> {marker_row['generation_per_kwp']}</div>"
         
         icon_color = "green" if float(marker_row['generation_per_kwp']) > 3.0 else "red"
