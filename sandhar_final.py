@@ -5,6 +5,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit.components.v1 as components
 import folium
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 # 1. Page Configuration
 st.set_page_config(
@@ -251,7 +253,7 @@ df_filtered = df_master.copy() if selected_vertical == "All Segments" else df_ma
 
 target_month = st.sidebar.select_slider("Select Target Tracking Month (FY25-26)", options=list(df_monthly['Month']))
 
-# 🟢 1. BUBBLE KPI CARDS - REMOVED STRING INJECTION HTML TO PREVENT SYNTAX ISSUES COMPLETELY
+# 🟢 1. BUBBLE KPI CARDS 
 total_grid = df_filtered['grid_mvah'].sum()
 total_mit = df_filtered['mitigation'].sum()
 total_emi = df_filtered['emission'].sum()
@@ -262,151 +264,94 @@ col_metric_1.metric("⚡ Total Grid Sourced", f"{total_grid:,.1f} MVAh")
 col_metric_2.metric("🌱 Carbon Offset", f"{int(total_mit):,} MT CO₂")
 col_metric_3.metric("🏭 Gross Footprint", f"{int(total_emi):,} MT CO₂")
 
-st.markdown("---")
-
-# 📊 2. DYNAMIC VISUALIZATION GRAPH BLOCK
-st.subheader("📊 Dynamic Environmental Performance & Fleet Generation Metrics")
-col_g1, col_g2 = st.columns(2)
-
-with col_g1:
-    fig_bar = px.bar(
-        df_filtered, 
-        x='unit', 
-        y=['mitigation', 'emission'],
-        barmode='group',
-        title="Carbon Offset (Mitigation) vs Gross Footprint by Operational Node",
-        labels={'value': 'Metric Tons (CO₂)', 'unit': 'Plant Node Code'},
-        color_discrete_sequence=['#10b981', '#ef4444']
+# ================= AUTOMATED REPORT GENERATION ENGINE =================
+def generate_excel_report(dataframe):
+    output = io.BytesIO()
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Ecosystem Data"
+    ws.views.sheetView.showGridLines = True
+    
+    # Formatted Colors Matching Dashboard Aesthetics
+    title_fill = PatternFill(start_color="1F2937", end_color="1F2937", fill_type="solid")
+    header_fill = PatternFill(start_color="111827", end_color="111827", fill_type="solid")
+    zebra_fill = PatternFill(start_color="F9FAFB", end_color="F9FAFB", fill_type="solid")
+    
+    font_title = Font(name="Segoe UI", size=14, bold=True, color="FFFFFF")
+    font_header = Font(name="Segoe UI", size=11, bold=True, color="FFFFFF")
+    font_data = Font(name="Segoe UI", size=10)
+    
+    thin_border = Border(
+        left=Side(style='thin', color='E5E7EB'),
+        right=Side(style='thin', color='E5E7EB'),
+        top=Side(style='thin', color='E5E7EB'),
+        bottom=Side(style='thin', color='E5E7EB')
     )
-    fig_bar.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', legend_title_text='Metrics')
-    st.plotly_chart(fig_bar, use_container_width=True)
+    
+    # Title Block
+    ws.merge_cells("A1:G1")
+    ws["A1"] = "SANDHAR ECOSYSTEM DATA MANAGEMENT REPORT"
+    ws["A1"].font = font_title
+    ws["A1"].fill = title_fill
+    ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions.height = 35
+    
+    # Table Headers
+    cols = ["Vertical Segment", "Plant Node", "Location", "Grid (MVAh)", "Mitigation (MT)", "Emissions (MT)", "Yield Ratio"]
+    for idx, text in enumerate(cols, 1):
+        cell = ws.cell(row=3, column=idx, value=text)
+        cell.font = font_header
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", wrap_text=True)
+    ws.row_dimensions.height = 24
+    
+    # Populate Values
+    for r_idx, row in dataframe.reset_index().iterrows():
+        r = r_idx + 4
+        ws.cell(row=r, column=1, value=row['vertical']).font = font_data
+        ws.cell(row=r, column=2, value=row['unit']).font = font_data
+        ws.cell(row=r, column=3, value=row['location']).font = font_data
+        
+        c4 = ws.cell(row=r, column=4, value=row['grid_mvah'])
+        c4.number_format = "#,##0.00"
+        c4.font = font_data
+        
+        c5 = ws.cell(row=r, column=5, value=row['mitigation'])
+        c5.number_format = "#,##0"
+        c5.font = font_data
+        
+        c6 = ws.cell(row=r, column=6, value=row['emission'])
+        c6.number_format = "#,##0"
+        c6.font = font_data
+        
+        c7 = ws.cell(row=r, column=7, value=row['generation_per_kwp'])
+        c7.number_format = "0.00"
+        c7.font = font_data
+        
+        for c in range(1, 8):
+            cell = ws.cell(row=r, column=c)
+            cell.border = thin_border
+            if r_idx % 2 == 1:
+                cell.fill = zebra_fill
+                
+    for col in ws.columns:
+        max_len = max(len(str(cell.value or '')) for cell in col)
+        col_letter = openpyxl.utils.get_column_letter(col.column)
+        ws.column_dimensions[col_letter].width = max(max_len + 3, 12)
+        
+    wb.save(output)
+    return output.getvalue()
 
-with col_g2:
-    fig_scatter = px.scatter(
-        df_filtered,
-        x='grid_mvah',
-        y='generation_per_kwp',
-        size='unit_lost_inefficiency',
-        color='vertical',
-        hover_name='unit',
-        title='Generation Ratio vs Grid Sourcing (Bubble size = Inefficiency Losses)',
-        labels={'grid_mvah': 'Grid Sourced (MVAh)', 'generation_per_kwp': 'Gen/KWP Ratio'}
-    )
-    fig_scatter.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
-    st.plotly_chart(fig_scatter, use_container_width=True)
+# Premium Download Interface Button
+excel_data = generate_excel_report(df_filtered)
+st.download_button(
+    label="📥 Download Formatted Ecosystem Executive Report (.xlsx)",
+    data=excel_data,
+    file_name=f"Sandhar_Energy_Report_{target_month}.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    use_container_width=True
+)
 
 st.markdown("---")
 
-# 🗺️ 3. INTERACTIVE FOLLIUM MAP EMBED WITH COMPONENT FALLBACKS
-st.subheader("🗺️ Enterprise Infrastructure Geolocation Node Overlay")
-if not df_filtered.empty:
-    avg_lat = df_filtered['lat'].mean()
-    avg_lon = df_filtered['lon'].mean()
-    
-    m = folium.Map(location=[avg_lat, avg_lon], zoom_start=5, tiles="CartoDB positron")
-    
-    for _, marker_row in df_filtered.iterrows():
-        popup_html = f"""
-        <div style='font-family: Arial, sans-serif; font-size:12px; line-height: 1.4;'>
-            <strong>Node Code:</strong> {marker_row['unit']}<br>
-            <strong>Location:</strong> {marker_row['location']}<br>
-            <strong>Segment:</strong> {marker_row['vertical']}<br>
-            <strong>Green Shift:</strong> {marker_row['replacement_pct']}%<br>
-            <strong>Gen Ratio:</strong> {marker_row['generation_per_kwp']}
-        </div>
-        """
-        icon_color = "green" if float(marker_row['generation_per_kwp']) > 3.0 else "red"
-        
-        folium.Marker(
-            location=[marker_row['lat'], marker_row['lon']],
-            popup=folium.Popup(popup_html, max_width=250),
-            tooltip=f"Node Layer [{marker_row['unit']}]",
-            icon=folium.Icon(color=icon_color, icon="bolt", prefix="fa")
-        ).add_to(m)
-    
-    map_html = m._repr_html_()
-    components.html(map_html, height=480, scrolling=True)
-else:
-    st.info("No geospatial node arrays found matching filtered layers.")
-
-st.markdown("---")
-
-# 🤖 4. LIVE INTERACTIVE CHAT ASSISTANT CORE
-st.subheader("🤖 Interactive Live Data Chat Assistant")
-st.caption("Type analytical questions about your plants (e.g., 'worst plant', 'total emissions', 'highest efficiency', or 'summary') inside the console field below.")
-
-def evaluate_live_query(user_query, target_data):
-    raw = user_query.strip().lower()
-    if "worst" in raw or "inefficient" in raw or "lost" in raw:
-        worst_row = target_data.loc[target_data['unit_lost_inefficiency'].idxmax()]
-        return f"🚨 **Anomaly Alert:** Node **{worst_row['unit']}** ({worst_row['location']}) has the highest systematic line leakage with **{int(worst_row['unit_lost_inefficiency']):,} units** lost to engineering inefficiencies."
-    elif "highest" in raw or "best" in raw or "efficient" in raw:
-        best_row = target_data.loc[target_data['generation_per_kwp'].idxmax()]
-        return f"🏆 **Efficiency Peak:** Node **{best_row['unit']}** has secured the highest performance threshold with a Generation/KWP ratio of **{best_row['generation_per_kwp']}**."
-    elif "emission" in raw or "carbon" in raw or "footprint" in raw:
-        total_co2 = target_data['emission'].sum()
-        total_offset = target_data['mitigation'].sum()
-        return f"🍃 **Carbon Registry:** For your current filter, total gross footprint is **{int(total_co2):,} MT CO₂**, balanced by a carbon mitigation offset of **{int(total_offset):,} MT CO₂**."
-    elif "summary" in raw or "overview" in raw or "stats" in raw:
-        nodes_count = len(target_data)
-        top_offset = target_data.loc[target_data['mitigation'].idxmax()]['unit']
-        return f"📋 **Quick Status Briefing:** Currently evaluating **{nodes_count} plant profiles**. Total grid demand sums to **{target_data['grid_mvah'].sum():,.2f} MVAh**. Node **{top_offset}** leads the segment in renewable carbon mitigation offsets."
-    else:
-        return "🤖 I can help you instantly search analytics context if you ask about: **'worst plant'**, **'highest efficiency'**, **'total emissions'**, or a **'summary'**."
-
-# Scrollable historical box configuration
-chat_box = st.container(height=260)
-with chat_box:
-    for message in st.session_state["chat_history"]:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-# ABSOLUTE SAFEST CHAT ENGINE: Standardized input form with native components
-with st.form(key="telemetry_chat_form", clear_on_submit=True):
-    user_text = st.text_input(
-        "Query Entry Input Field:",
-        placeholder="Type your metric query here (e.g., summary, worst plant, emissions)..."
-    )
-    submitted = st.form_submit_button("Ask Node Engine", use_container_width=True)
-
-if submitted and user_text:
-    st.session_state["chat_history"].append({"role": "user", "content": user_text})
-    response_out = evaluate_live_query(user_text, df_filtered)
-    st.session_state["chat_history"].append({"role": "assistant", "content": response_out})
-    st.rerun()
-
-st.markdown("---")
-
-# 🏢 5. PLANT DETAILS LEDGER WITH FORMAT CONDITIONING
-st.subheader("📋 Infrastructure Node Register Ledger Details")
-for idx, row in df_filtered.iterrows():
-    unit_string = str(row['unit']).strip()
-    current_mon_val = 0
-    if unit_string in df_monthly.columns:
-        matching_rows = df_monthly.loc[df_monthly['Month'] == target_month, unit_string].values
-        if len(matching_rows) > 0 and pd.notna(matching_rows):
-            try:
-                current_mon_val = float(str(matching_rows).replace(',', ''))
-            except:
-                current_mon_val = 0
-            
-    card_title = f"📦 [{row['unit']}] Location: {row['location']} — Selected Month ({target_month}): {int(current_mon_val):,} Generation Units"
-    
-    with st.expander(card_title):
-        col_f1, col_f2, col_f3, col_f4 = st.columns(4)
-        col_f1.metric("Yearly Grid Sourcing", f"{row['grid_mvah']:,.2f} MVAh")
-        col_f2.metric("Green Shift Percentage", f"{row['replacement_pct']}%")
-        col_f3.metric("Diesel (DG) Sideload", f"{int(row['dg']):,} Liters")
-        
-        yield_ratio = float(row['generation_per_kwp'])
-        if yield_ratio > 3.0:
-            col_f4.markdown(f"**Generation per KWP Ratio**<br><span style='color:#10b981; font-size:24px; font-weight:bold;'>🟢 {yield_ratio} Yield</span>", unsafe_allow_html=True)
-        else:
-            col_f4.markdown(f"**Generation per KWP Ratio**<br><span style='color:#ef4444; font-size:24px; font-weight:bold;'>🔴 {yield_ratio} Yield</span>", unsafe_allow_html=True)
-        
-        st.markdown("<div style='margin-top: 12px;'></div>", unsafe_allow_html=True)
-        col_s1, col_s2, col_s3, col_s4 = st.columns(4)
-        col_s1.metric("CAPEX / OPEX Capacities", f"{int(row['capex_capacity'])} / {int(row['opex_capacity'])} kWp")
-        col_s2.metric("CAPEX Solar Generation", f"{row['capex_gen']:,.2f} MWh")
-        col_s3.metric("OPEX Solar Generation", f"{row['opex_gen']:,.2f} MWh")
-        col_s4.metric("Lost Due to Inefficiency", f"{int(row['unit_lost_inefficiency']):,} Units", delta=f"-{int(row['unit_lost_inefficiency'])} Units", delta_color="inverse")
+# 📊
