@@ -320,7 +320,7 @@ def generate_excel_report(dataframe):
                 
     for col in ws.columns:
         max_len = max(len(str(cell.value or '')) for cell in col)
-        # 🟢 FIXED: Extract cell column reference securely using col tuple anchor indexing
+        # 🟢 SECURE FIX APPLIED HERE: Grabbing column attribute safely via index reference anchor
         col_letter = openpyxl.utils.get_column_letter(col.column)
         ws.column_dimensions[col_letter].width = max(max_len + 3, 12)
         
@@ -399,78 +399,4 @@ st.markdown("---")
 
 # 🤖 4. LIVE INTERACTIVE CHAT ASSISTANT CORE
 st.subheader("🤖 Interactive Live Data Chat Assistant")
-st.caption("Type analytical questions about your plants (e.g., 'worst plant', 'total emissions', 'highest efficiency', or 'summary') inside the console field below.")
-
-def evaluate_live_query(user_query, target_data):
-    raw = user_query.strip().lower()
-    if "worst" in raw or "inefficient" in raw or "lost" in raw:
-        worst_row = target_data.loc[target_data['unit_lost_inefficiency'].idxmax()]
-        return f"🚨 **Anomaly Alert:** Node **{worst_row['unit']}** ({worst_row['location']}) has the highest systematic line leakage with **{int(worst_row['unit_lost_inefficiency']):,} units** lost to engineering inefficiencies."
-    elif "highest" in raw or "best" in raw or "efficient" in raw:
-        best_row = target_data.loc[target_data['generation_per_kwp'].idxmax()]
-        return f"🏆 **Efficiency Peak:** Node **{best_row['unit']}** has secured the highest performance threshold with a Generation/KWP ratio of **{best_row['generation_per_kwp']}**."
-    elif "emission" in raw or "carbon" in raw or "footprint" in raw:
-        total_co2 = target_data['emission'].sum()
-        total_offset = target_data['mitigation'].sum()
-        return f"🍃 **Carbon Registry:** For your current filter, total gross footprint is **{int(total_co2):,} MT CO₂,**, balanced by a carbon mitigation offset of **{int(total_offset):,} MT CO₂**."
-    elif "summary" in raw or "overview" in raw or "stats" in raw:
-        nodes_count = len(target_data)
-        top_offset = target_data.loc[target_data['mitigation'].idxmax()]['unit']
-        return f"📋 **Quick Status Briefing:** Currently evaluating **{nodes_count} plant profiles**. Total grid demand sums to **{target_data['grid_mvah'].sum():,.2f} MVAh**. Node **{top_offset}** leads the segment in renewable carbon mitigation offsets."
-    else:
-        return "🤖 I can help you instantly search analytics context if you ask about: **'worst plant'**, **'highest efficiency'**, **'total emissions'**, or a **'summary'**."
-
-chat_box = st.container(height=260)
-with chat_box:
-    for message in st.session_state["chat_history"]:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-with st.form(key="telemetry_chat_form", clear_on_submit=True):
-    user_text = st.text_input(
-        "Query Entry Input Field:",
-        placeholder="Type your metric query here (e.g., summary, worst plant, emissions)..."
-    )
-    submitted = st.form_submit_button("Ask Node Engine", use_container_width=True)
-
-if submitted and user_text:
-    st.session_state["chat_history"].append({"role": "user", "content": user_text})
-    response_out = evaluate_live_query(user_text, df_filtered)
-    st.session_state["chat_history"].append({"role": "assistant", "content": response_out})
-    st.rerun()
-
-st.markdown("---")
-
-# 🏢 5. PLANT DETAILS LEDGER WITH FORMAT CONDITIONING
-st.subheader("📋 Infrastructure Node Register Ledger Details")
-for idx, row in df_filtered.iterrows():
-    unit_string = str(row['unit']).strip()
-    current_mon_val = 0
-    if unit_string in df_monthly.columns:
-        matching_rows = df_monthly.loc[df_monthly['Month'] == target_month, unit_string].values
-        if len(matching_rows) > 0 and pd.notna(matching_rows):
-            try:
-                current_mon_val = float(str(matching_rows).replace(',', ''))
-            except:
-                current_mon_val = 0
-            
-    card_title = f"📦 [{row['unit']}] Location: {row['location']} — Selected Month ({target_month}): {int(current_mon_val):,} Generation Units"
-    
-    with st.expander(card_title):
-        col_f1, col_f2, col_f3, col_f4 = st.columns(4)
-        col_f1.metric("Yearly Grid Sourcing", f"{row['grid_mvah']:,.2f} MVAh")
-        col_f2.metric("Green Shift Percentage", f"{row['replacement_pct']}%")
-        col_f3.metric("Diesel (DG) Sideload", f"{int(row['dg']):,} Liters")
-        
-        yield_ratio = float(row['generation_per_kwp'])
-        if yield_ratio > 3.0:
-            col_f4.markdown(f"**Generation per KWP Ratio**<br><span style='color:#10b981; font-size:24px; font-weight:bold;'>🟢 {yield_ratio} Yield</span>", unsafe_allow_html=True)
-        else:
-            col_f4.markdown(f"**Generation per KWP Ratio**<br><span style='color:#ef4444; font-size:24px; font-weight:bold;'>🔴 {yield_ratio} Yield</span>", unsafe_allow_html=True)
-        
-        st.markdown("<div style='margin-top: 12px;'></div>", unsafe_allow_html=True)
-        col_s1, col_s2, col_s3, col_s4 = st.columns(4)
-        col_s1.metric("CAPEX / OPEX Capacities", f"{int(row['capex_capacity'])} / {int(row['opex_capacity'])} kWp")
-        col_s2.metric("CAPEX Solar Generation", f"{row['capex_gen']:,.2f} MWh")
-        col_s3.metric("OPEX Solar Generation", f"{row['opex_gen']:,.2f} MWh")
-        col_s4.metric("Lost Due to Inefficiency", f"{int(row['unit_lost_inefficiency']):,} Units", delta=f"-{int(row['unit_lost_inefficiency'])} Units", delta_color="inverse")
+st.caption("Type analytical questions about your plants (e.g., 'worst plant', 'total emissions', 'highest efficiency', or 'summary') inside
