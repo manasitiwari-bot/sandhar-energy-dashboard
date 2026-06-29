@@ -256,7 +256,9 @@ def generate_excel_report(dataframe):
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Ecosystem Data"
-    ws.sheet_view.showGridLines = True
+    
+    # 🟢 FIXED: Adjusted structural sheet view pipeline to bypass openpyxl AttributeErrors
+    ws.views.sheetView.showGridLines = True
     
     title_fill = PatternFill(start_color="1F2937", end_color="1F2937", fill_type="solid")
     header_fill = PatternFill(start_color="111827", end_color="111827", fill_type="solid")
@@ -395,7 +397,6 @@ if not df_filtered.empty:
             icon=folium.Icon(color=icon_color, icon="bolt", prefix="fa")
         ).add_to(m)
     
-    # 🟢 FIXED: Rendering natively to avoid asset dropouts
     st_folium(m, height=480, width=None, use_container_width=True, key="sandhar_live_map")
 else:
     st.info("No geospatial node arrays found matching filtered layers.")
@@ -417,7 +418,7 @@ def evaluate_live_query(user_query, target_data):
     elif "emission" in raw or "carbon" in raw or "footprint" in raw:
         total_co2 = target_data['emission'].sum()
         total_offset = target_data['mitigation'].sum()
-        return f"🍃 **Carbon Registry:** For your current filter, total gross footprint is **{int(total_co2):,} MT CO₂**, balanced by a carbon mitigation offset of **{int(total_offset):,} MT CO₂**."
+        return f"🍃 **Carbon Registry:** For your current filter, total gross footprint is **{int(total_co2):,} MT CO₂,**, balanced by a carbon mitigation offset of **{int(total_offset):,} MT CO₂**."
     elif "summary" in raw or "overview" in raw or "stats" in raw:
         nodes_count = len(target_data)
         top_offset = target_data.loc[target_data['mitigation'].idxmax()]['unit']
@@ -467,15 +468,4 @@ for idx, row in df_filtered.iterrows():
         col_f2.metric("Green Shift Percentage", f"{row['replacement_pct']}%")
         col_f3.metric("Diesel (DG) Sideload", f"{int(row['dg']):,} Liters")
         
-        yield_ratio = float(row['generation_per_kwp'])
-        if yield_ratio > 3.0:
-            col_f4.markdown(f"**Generation per KWP Ratio**<br><span style='color:#10b981; font-size:24px; font-weight:bold;'>🟢 {yield_ratio} Yield</span>", unsafe_allow_html=True)
-        else:
-            col_f4.markdown(f"**Generation per KWP Ratio**<br><span style='color:#ef4444; font-size:24px; font-weight:bold;'>🔴 {yield_ratio} Yield</span>", unsafe_allow_html=True)
-        
-        st.markdown("<div style='margin-top: 12px;'></div>", unsafe_allow_html=True)
-        col_s1, col_s2, col_s3, col_s4 = st.columns(4)
-        col_s1.metric("CAPEX / OPEX Capacities", f"{int(row['capex_capacity'])} / {int(row['opex_capacity'])} kWp")
-        col_s2.metric("CAPEX Solar Generation", f"{row['capex_gen']:,.2f} MWh")
-        col_s3.metric("OPEX Solar Generation", f"{row['opex_gen']:,.2f} MWh")
-        col_s4.metric("Lost Due to Inefficiency", f"{int(row['unit_lost_inefficiency']):,} Units", delta=f"-{int(row['unit_lost_inefficiency'])} Units", delta_color="inverse")
+        yield_ratio =
