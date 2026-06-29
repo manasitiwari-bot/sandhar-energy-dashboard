@@ -15,7 +15,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- GLOBAL STATIC MULTILINE CSV DATA MATRICES (Moved out of functions to avoid SyntaxErrors) ---
+# --- GLOBAL STATIC MULTILINE CSV DATA MATRICES ---
 MASTER_CSV_DATA = """vertical,unit,location,grid_mvah,capex_capacity,opex_capacity,replacement_pct,dg,mitigation,emission,capex_gen,opex_gen,lat,lon,unit_lost_inefficiency,generation_per_kwp,gen_kwp_27
 Automotive Business,SAG,Gurugram,2074.867,33,0,34,17386,515,1508,33.878,0.0,28.4595,77.0266,4933,2.81,3.16
 Plastic Business,SCD,Gurugram,2538.911,110,132,42,52045,772,1846,0.0,237.971,28.4595,77.0266,54539,1.93,2.92
@@ -376,4 +376,11 @@ if not df_filtered.empty:
     avg_lat = df_filtered['lat'].mean()
     avg_lon = df_filtered['lon'].mean()
     
-    m = folium.Map(location
+    # 🟢 FIXED: Re-added fully intact configuration initialization tuple wrapper safely
+    m = folium.Map(location=[avg_lat, avg_lon], zoom_start=5, tiles="CartoDB positron")
+    
+    for _, marker_row in df_filtered.iterrows():
+        popup_html = f"""
+        <div style='font-family: Arial, sans-serif; font-size:12px; line-height: 1.4;'>
+            <strong>Node Code:</strong> {marker_row['unit']}<br>
+            <strong>Location:</strong> {marker
