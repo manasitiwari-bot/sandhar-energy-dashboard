@@ -251,21 +251,107 @@ df_filtered = df_master.copy() if selected_vertical == "All Segments" else df_ma
 
 target_month = st.sidebar.select_slider("Select Target Tracking Month (FY25-26)", options=list(df_monthly['Month']))
 
-# 🟢 1. BUBBLE KPI CARDS
+# 🟢 1. BUBBLE KPI CARDS (Fixed string styling architecture to bypass the Python literal bug)
 total_grid = df_filtered['grid_mvah'].sum()
 total_mit = df_filtered['mitigation'].sum()
 total_emi = df_filtered['emission'].sum()
 
-st.markdown(f"""
-    <div class="bubble-wrapper">
-        <div class="kpi-circle-card">
-            <div class="bubble-title">⚡ Total Grid Sourced</div>
-            <div class="bubble-value">{total_grid:,.1f}<br><span style="font-size:11px; font-weight:normal; color:#475569;">MVAh</span></div>
+html_bubble_card_matrix = f"""
+<div class="bubble-wrapper">
+    <div class="kpi-circle-card">
+        <div class="bubble-title">⚡ Total Grid Sourced</div>
+        <div class="bubble-value">{total_grid:,.1f}<br><span style="font-size:11px; font-weight:normal; color:#475569;">MVAh</span></div>
+    </div>
+    <div class="kpi-circle-card">
+        <div class="bubble-title">🌱 Carbon Offset</div>
+        <div class="bubble-value">{int(total_mit):,}<br><span style="font-size:11px; font-weight:normal; color:#475569;">MT CO₂</span></div>
+    </div>
+    <div class="kpi-circle-card">
+        <div class="bubble-title">🏭 Gross Footprint</div>
+        <div class="bubble-value">{int(total_emi):,}<br><span style="font-size:11px; font-weight:normal; color:#475569;">MT CO₂</span></div>
+    </div>
+</div>
+"""
+st.markdown(html_bubble_card_matrix, unsafe_allow_html=True)
+
+st.markdown("---")
+
+# 📊 2. DYNAMIC VISUALIZATION GRAPH BLOCK
+st.subheader("📊 Dynamic Environmental Performance & Fleet Generation Metrics")
+col_g1, col_g2 = st.columns(2)
+
+with col_g1:
+    fig_bar = px.bar(
+        df_filtered, 
+        x='unit', 
+        y=['mitigation', 'emission'],
+        barmode='group',
+        title="Carbon Offset (Mitigation) vs Gross Footprint by Operational Node",
+        labels={'value': 'Metric Tons (CO₂)', 'unit': 'Plant Node Code'},
+        color_discrete_sequence=['#10b981', '#ef4444']
+    )
+    fig_bar.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', legend_title_text='Metrics')
+    st.plotly_chart(fig_bar, use_container_width=True)
+
+with col_g2:
+    fig_scatter = px.scatter(
+        df_filtered,
+        x='grid_mvah',
+        y='generation_per_kwp',
+        size='unit_lost_inefficiency',
+        color='vertical',
+        hover_name='unit',
+        title='Generation Ratio vs Grid Sourcing (Bubble size = Inefficiency Losses)',
+        labels={'grid_mvah': 'Grid Sourced (MVAh)', 'generation_per_kwp': 'Gen/KWP Ratio'}
+    )
+    fig_scatter.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
+    st.plotly_chart(fig_scatter, use_container_width=True)
+
+st.markdown("---")
+
+# 🗺️ 3. INTERACTIVE FOLLIUM MAP EMBED WITH COMPONENT FALLBACKS
+st.subheader("🗺️ Enterprise Infrastructure Geolocation Node Overlay")
+if not df_filtered.empty:
+    avg_lat = df_filtered['lat'].mean()
+    avg_lon = df_filtered['lon'].mean()
+    
+    m = folium.Map(location=[avg_lat, avg_lon], zoom_start=5, tiles="CartoDB positron")
+    
+    for _, marker_row in df_filtered.iterrows():
+        popup_html = f"""
+        <div style='font-family: Arial, sans-serif; font-size:12px; line-height: 1.4;'>
+            <strong>Node Code:</strong> {marker_row['unit']}<br>
+            <strong>Location:</strong> {marker_row['location']}<br>
+            <strong>Segment:</strong> {marker_row['vertical']}<br>
+            <strong>Green Shift:</strong> {marker_row['replacement_pct']}%<br>
+            <strong>Gen Ratio:</strong> {marker_row['generation_per_kwp']}
         </div>
-        <div class="kpi-circle-card">
-            <div class="bubble-title">🌱 Carbon Offset</div>
-            <div class="bubble-value">{int(total_mit):,}<br><span style="font-size:11px; font-weight:normal; color:#475569;">MT CO₂</span></div>
-        </div>
-        <div class="kpi-circle-card">
-            <div class="bubble-title">🏭 Gross Footprint</div>
-            <div class="bubble-value
+        """
+        icon_color = "green" if float(marker_row['generation_per_kwp']) > 3.0 else "red"
+        
+        folium.Marker(
+            location=[marker_row['lat'], marker_row['lon']],
+            popup=folium.Popup(popup_html, max_width=250),
+            tooltip=f"Node Layer [{marker_row['unit']}]",
+            icon=folium.Icon(color=icon_color, icon="bolt", prefix="fa")
+        ).add_to(m)
+    
+    map_html = m._repr_html_()
+    components.html(map_html, height=480, scrolling=True)
+else:
+    st.info("No geospatial node arrays found matching filtered layers.")
+
+st.markdown("---")
+
+# 🤖 4. LIVE INTERACTIVE CHAT ASSISTANT CORE
+st.subheader("🤖 Interactive Live Data Chat Assistant")
+st.caption("Type analytical questions about your plants (e.g., 'worst plant', 'total emissions', 'highest efficiency', or 'summary') inside the console field below.")
+
+def evaluate_live_query(user_query, target_data):
+    raw = user_query.strip().lower()
+    if "worst" in raw or "inefficient" in raw or "lost" in raw:
+        worst_row = target_data.loc[target_data['unit_lost_inefficiency'].idxmax()]
+        return f"🚨 **Anomaly Alert:** Node **{worst_row['unit']}** ({worst_row['location']}) has the highest systematic line leakage with **{int(worst_row['unit_lost_inefficiency']):,} units** lost to engineering inefficiencies."
+    elif "highest" in raw or "best" in raw or "efficient" in raw:
+        best_row = target_data.loc[target_data['generation_per_kwp'].idxmax()]
+        return f
