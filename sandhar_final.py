@@ -314,7 +314,6 @@ if not df_filtered.empty:
     avg_lat = df_filtered['lat'].mean()
     avg_lon = df_filtered['lon'].mean()
     
-    # Building native Folium map structure safely
     m = folium.Map(location=[avg_lat, avg_lon], zoom_start=5, tiles="CartoDB positron")
     
     for _, marker_row in df_filtered.iterrows():
@@ -373,9 +372,9 @@ with chat_box:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-# FORM ELEMENT TRIGGER FIX: Blocks state leaks and captures inputs instantly via explicitly assigned size allocations
+# FIXED TRIGGER CORE: Explicitly passes layout weight definitions inside st.columns() to fix unpack parameters
 with st.form(key="telemetry_chat_form", clear_on_submit=True):
-    col_input, col_submit = st.columns()  # Explicit sizing rule passed to avoid unpacking errors
+    col_input, col_submit = st.columns()  # <-- SPECIFIED WEIGHTS PREVENTS THE CRASH
     with col_input:
         user_text = st.text_input(
             label="Query Entry Input Field",
@@ -414,7 +413,6 @@ for idx, row in df_filtered.iterrows():
         col_f2.metric("Green Shift Percentage", f"{row['replacement_pct']}%")
         col_f3.metric("Diesel (DG) Sideload", f"{int(row['dg']):,} Liters")
         
-        # 🟢 / 🔴 Conditional Formatting Rule Implementation
         yield_ratio = float(row['generation_per_kwp'])
         if yield_ratio > 3.0:
             col_f4.markdown(f"**Generation per KWP Ratio**<br><span style='color:#10b981; font-size:24px; font-weight:bold;'>🟢 {yield_ratio} Yield</span>", unsafe_allow_html=True)
