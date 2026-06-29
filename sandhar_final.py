@@ -4,7 +4,6 @@ import io
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit.components.v1 as components
-import folium
 
 # 1. Page Configuration
 st.set_page_config(
@@ -308,38 +307,10 @@ with col_g2:
 
 st.markdown("---")
 
-# 🗺️ 3. HIGH-PERFORMANCE FOLLIUM MAP EMBED
+# 🗺️ 3. NATIVE CRASH-PROOF GEOLOCATION MAP OVERLAY
 st.subheader("🗺️ Enterprise Infrastructure Geolocation Node Overlay")
 if not df_filtered.empty:
-    avg_lat = df_filtered['lat'].mean()
-    avg_lon = df_filtered['lon'].mean()
-    
-    # Initialize basic map object
-    m = folium.Map(location=[avg_lat, avg_lon], zoom_start=5, tiles="CartoDB positron")
-    
-    for _, marker_row in df_filtered.iterrows():
-        popup_html = f"""
-        <div style='font-family: Arial, sans-serif; font-size:12px; line-height: 1.4;'>
-            <strong>Node Code:</strong> {marker_row['unit']}<br>
-            <strong>Location:</strong> {marker_row['location']}<br>
-            <strong>Segment:</strong> {marker_row['vertical']}<br>
-            <strong>Green Shift:</strong> {marker_row['replacement_pct']}%<br>
-            <strong>Gen Ratio:</strong> {marker_row['generation_per_kwp']}
-        </div>
-        """
-        icon_color = "green" if float(marker_row['generation_per_kwp']) > 3.0 else "red"
-        
-        folium.Marker(
-            location=[marker_row['lat'], marker_row['lon']],
-            popup=folium.Popup(popup_html, max_width=250),
-            tooltip=f"Node Layer [{marker_row['unit']}]",
-            icon=folium.Icon(color=icon_color, icon="bolt", prefix="fa")
-        ).add_to(m)
-    
-    # Generate the map's native HTML string and inject it as an iframe component
-    # This prevents package crashes on Streamlit Cloud completely.
-    map_html = m._repr_html_()
-    components.html(map_html, height=480, scrolling=True)
+    st.map(df_filtered, latitude='lat', longitude='lon', size=18, color="#10b981")
 else:
     st.info("No geospatial node arrays found matching filtered layers.")
 
@@ -425,7 +396,6 @@ for idx, row in df_filtered.iterrows():
         
         st.markdown("<div style='margin-top: 12px;'></div>", unsafe_allow_html=True)
         col_s1, col_s2, col_s3, col_s4 = st.columns(4)
-        col_s1.metric("CAPEX / OPEX Capacities", f"{int(row['capex_capacity'])} / {int(row['opex_capacity'])} kWp")
         col_s1.metric("CAPEX / OPEX Capacities", f"{int(row['capex_capacity'])} / {int(row['opex_capacity'])} kWp")
         col_s2.metric("CAPEX Solar Generation", f"{row['capex_gen']:,.2f} MWh")
         col_s3.metric("OPEX Solar Generation", f"{row['opex_gen']:,.2f} MWh")
