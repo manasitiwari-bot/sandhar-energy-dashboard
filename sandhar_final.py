@@ -4,8 +4,6 @@ import io
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit.components.v1 as components
-from streamlit_folium import st_folium
-import folium
 
 # 1. Page Configuration
 st.set_page_config(
@@ -20,7 +18,7 @@ if "authenticated" not in st.session_state:
 
 if "chat_history" not in st.session_state:
     st.session_state["chat_history"] = [
-        {"role": "assistant", "content": "Telemetry interface online. Ask me anything about your asset nodes, generation margins, or efficiency drop logs."}
+        {"role": "assistant", "content": "Telemetry interface fully online. Ask me about your worst-performing locations, total carbon emissions, or request a complete summary."}
     ]
 
 # 🎨 PREMIUM CSS OVERLAYS
@@ -206,7 +204,7 @@ May'26,3120,10500,19259,42113,17607,29168,2089,3900,14504,3946,0,34594,44353,187
 df_fy27 = pd.read_csv(io.StringIO(fy27_csv.strip()))
 
 
-# --- SIDEBAR & CHATBOT ECOSYSTEM ---
+# --- SIDEBAR CONTROL PANEL ---
 st.sidebar.markdown("🔒 **Telemetry Link Stable**")
 if st.sidebar.button("Log Out Context"):
     st.session_state["authenticated"] = False
@@ -214,36 +212,6 @@ if st.sidebar.button("Log Out Context"):
 
 st.sidebar.header("🗺️ Application Pages")
 app_page = st.sidebar.radio("Navigate Workspace", ["Main Tracking Panel", "FY26-27 Analytics & Horizon Panel"])
-
-st.sidebar.markdown("---")
-st.sidebar.subheader("🤖 Intelligence Query Core")
-
-def simulate_matrix_response(query):
-    query_clean = query.upper()
-    if "BEST" in query_clean or "HIGHEST" in query_clean:
-        top_node = df_master.loc[df_master['generation_per_kwp'].idxmax()]
-        return f"💡 Operational Telemetry shows plant unit **{top_node['unit']}** has the highest efficiency ratio with a value of **{top_node['generation_per_kwp']}**."
-    elif "WORST" in query_clean or "LOWEST" in query_clean:
-        low_node = df_master.loc[df_master['generation_per_kwp'].idxmin()]
-        return f"⚠️ Warning: Node **{low_node['unit']}** is reporting the lowest ratio value (**{low_node['generation_per_kwp']}**). It has dropped **{int(low_node['unit_lost_inefficiency']):,}** units due to internal line ineffectiveness."
-    elif "LOSS" in query_clean or "INEFFICIENCY" in query_clean:
-        total_lost = df_master['unit_lost_inefficiency'].sum()
-        return f"📉 Cumulative systemic load leakage equals **{int(total_lost):,} units** lost to plant inefficiencies across all tracked regions."
-    else:
-        return "🤖 Telemetry Context parsed. You can query me for 'highest generation ratio', 'worst performing unit', or 'efficiency loss patterns'."
-
-for msg in st.session_state["chat_history"]:
-    with st.sidebar.chat_message(msg["role"]):
-        st.write(msg["content"])
-
-if prompt_input := st.sidebar.chat_input("Query dashboard matrices..."):
-    st.session_state["chat_history"].append({"role": "user", "content": prompt_input})
-    with st.sidebar.chat_message("user"):
-        st.write(prompt_input)
-        
-    ai_reply = simulate_matrix_response(prompt_input)
-    st.session_state["chat_history"].append({"role": "assistant", "content": ai_reply})
-    st.rerun()
 
 
 # ================= PAGE 2: NEW ANALYTICS PANEL =================
@@ -339,37 +307,69 @@ with col_g2:
 
 st.markdown("---")
 
-# 🗺️ 3. RESTORED INFRASTRUCTURE GEOLOCATION MAP OVERLAY
+# 🗺️ 3. NATIVE CRASH-PROOF GEOLOCATION MAP OVERLAY
 st.subheader("🗺️ Enterprise Infrastructure Geolocation Node Overlay")
 if not df_filtered.empty:
-    avg_lat = df_filtered['lat'].mean()
-    avg_lon = df_filtered['lon'].mean()
-    m = folium.Map(location=[avg_lat, avg_lon], zoom_start=5, tiles="CartoDB positron")
-    
-    for _, marker_row in df_filtered.iterrows():
-        popup_html = f"""
-        <div style='font-family: Arial, sans-serif; font-size:12px;'>
-            <strong>Node Code:</strong> {marker_row['unit']}<br>
-            <strong>Location:</strong> {marker_row['location']}<br>
-            <strong>Vertical Segment:</strong> {marker_row['vertical']}<br>
-            <strong>Green Shift Ratio:</strong> {marker_row['replacement_pct']}%
-        </div>
-        """
-        icon_color = "green" if float(marker_row['generation_per_kwp']) > 3.0 else "red"
-        folium.Marker(
-            location=[marker_row['lat'], marker_row['lon']],
-            popup=folium.Popup(popup_html, max_width=300),
-            tooltip=f"Node Layer [{marker_row['unit']}]",
-            icon=folium.Icon(color=icon_color, icon="bolt", prefix="fa")
-        ).add_to(m)
-        
-    st_folium(m, width="100%", height=450, returned_objects=[])
+    st.map(df_filtered, latitude='lat', longitude='lon', size=18, color="#10b981")
 else:
     st.info("No geospatial node arrays found matching filtered layers.")
 
 st.markdown("---")
 
-# 🏢 4. PLANT DETAILS LEDGER WITH FORMAT CONDITIONING
+# 🤖 4. LIVE INTERACTIVE INTELLIGENCE CORE (CHATBOT MODULE)
+st.subheader("🤖 Interactive Live Data Chat Assistant")
+st.caption("Ask specific contextual analytics questions about your plants (e.g., 'worst plant', 'total emissions', 'highest efficiency', or 'summary').")
+
+# Data-Driven Analytics Query Logic
+def evaluate_live_query(user_query, target_data):
+    raw = user_query.strip().lower()
+    
+    if "worst" in raw or "inefficient" in raw or "lost" in raw:
+        worst_row = target_data.loc[target_data['unit_lost_inefficiency'].idxmax()]
+        return f"🚨 **Anomaly Alert:** Node **{worst_row['unit']}** ({worst_row['location']}) is reporting the worst systematic line leakage with **{int(worst_row['unit_lost_inefficiency']):,} units** lost to engineering inefficiencies."
+        
+    elif "highest" in raw or "best" in raw or "efficient" in raw:
+        best_row = target_data.loc[target_data['generation_per_kwp'].idxmax()]
+        return f"🏆 **Efficiency Peak:** Node **{best_row['unit']}** has secured the highest performance threshold with a Generation/KWP ratio of **{best_row['generation_per_kwp']}**."
+        
+    elif "emission" in raw or "carbon" in raw or "footprint" in raw:
+        total_co2 = target_data['emission'].sum()
+        total_offset = target_data['mitigation'].sum()
+        return f"🍃 **Carbon Registry:** Across your current operational segment, total gross footprint is **{int(total_co2):,} MT CO₂**, balanced by a carbon mitigation offset of **{int(total_offset):,} MT CO₂**."
+        
+    elif "summary" in raw or "overview" in raw or "stats" in raw:
+        nodes_count = len(target_data)
+        top_offset = target_data.loc[target_data['mitigation'].idxmax()]['unit']
+        return f"📋 **Quick Status Briefing:** Currently evaluating **{nodes_count} plant profiles**. Total grid demand sums to **{target_data['grid_mvah'].sum():,.2f} MVAh**. Node **{top_offset}** leads the segment in renewable carbon mitigation offsets."
+        
+    else:
+        return "🤖 *Telemetry prompt received.* I can help you instantly calculate context stats if you ask about: **'worst plant'**, **'highest efficiency'**, **'total emissions'**, or a **'summary'**."
+
+# Layout constraints for the scrollable messaging box
+chat_box = st.container(height=300)
+with chat_box:
+    for message in st.session_state["chat_history"]:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+if prompt := st.chat_input("Query current node tracking matrices..."):
+    # Append user question
+    st.session_state["chat_history"].append({"role": "user", "content": prompt})
+    with chat_box:
+        with st.chat_message("user"):
+            st.markdown(prompt)
+            
+    # Calculate response from data metrics
+    response_out = evaluate_live_query(prompt, df_filtered)
+    st.session_state["chat_history"].append({"role": "assistant", "content": response_out})
+    with chat_box:
+        with st.chat_message("assistant"):
+            st.markdown(response_out)
+    st.rerun()
+
+st.markdown("---")
+
+# 🏢 5. PLANT DETAILS LEDGER WITH FORMAT CONDITIONING
 st.subheader("📋 Infrastructure Node Register Ledger Details")
 for idx, row in df_filtered.iterrows():
     unit_string = str(row['unit']).strip()
