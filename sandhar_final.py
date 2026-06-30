@@ -215,7 +215,7 @@ st.sidebar.header("🗺️ Application Pages")
 app_page = st.sidebar.radio("Navigate Workspace", ["Main Tracking Panel", "FY26-27 Analytics & Horizon Panel"])
 
 
-# ================= PAGE 2: NEW ANALYTICS PANEL =================
+# ================= PAGE 2: ANALYTICS PANEL =================
 if app_page == "FY26-27 Analytics & Horizon Panel":
     st.title("🚀 FY26-27 Next Horizon Engine")
     st.caption("Active forecasting layers and validation horizons parsed from incoming live execution spreadsheets.")
@@ -251,7 +251,7 @@ df_filtered = df_master.copy() if selected_vertical == "All Segments" else df_ma
 
 target_month = st.sidebar.select_slider("Select Target Tracking Month (FY25-26)", options=list(df_monthly['Month']))
 
-# 🟢 1. BUBBLE KPI CARDS - REMOVED STRING INJECTION HTML TO PREVENT SYNTAX ISSUES COMPLETELY
+# 🟢 1. BUBBLE KPI CARDS
 total_grid = df_filtered['grid_mvah'].sum()
 total_mit = df_filtered['mitigation'].sum()
 total_emi = df_filtered['emission'].sum()
@@ -297,7 +297,47 @@ with col_g2:
 
 st.markdown("---")
 
-# 🗺️ 3. INTERACTIVE FOLLIUM MAP EMBED WITH COMPONENT FALLBACKS
+# 📈 NEW INTEGRATION: EXCEL MONTHLY GENERATION INTERACTIVE PROFILE (THE VERTICAL)
+st.subheader("📈 Interactive Timeline Matrix: Monthly Generation Profile (FY25-26)")
+active_nodes = list(df_filtered['unit'].unique())
+
+# Reshape long format only for the node units currently present in our filtered view
+available_nodes = [col for col in df_monthly.columns if col in active_nodes]
+
+if available_nodes:
+    df_melted_monthly = df_monthly.melt(
+        id_vars=["Month"],
+        value_vars=available_nodes,
+        var_name="Plant Node",
+        value_name="Generation Output (kWh)"
+    )
+    
+    col_chart, col_legend = st.columns([3, 1])
+    with col_chart:
+        fig_line = px.line(
+            df_melted_monthly,
+            x="Month",
+            y="Generation Output (kWh)",
+            color="Plant Node",
+            markers=True,
+            title=f"Monthly Energy Matrix Trend Tracking ({selected_vertical})",
+            template="plotly_dark"
+        )
+        fig_line.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
+        st.plotly_chart(fig_line, use_container_width=True)
+        
+    with col_legend:
+        st.markdown("##### Matrix Yield Segment Summary")
+        st.write("This timeline maps out variations across selected fleet operational nodes. Uncheck items in the graph map legend to focus view matrices.")
+        # Summary Dataframe Matrix
+        df_sum_view = df_melted_monthly.groupby("Plant Node")["Generation Output (kWh)"].sum().reset_index()
+        st.dataframe(df_sum_view.sort_values(by="Generation Output (kWh)", ascending=False), hide_index=True, use_container_width=True)
+else:
+    st.warning("No operational asset units found matching this chosen business segment timeline configuration.")
+
+st.markdown("---")
+
+# 🗺️ 3. INTERACTIVE FOLLIUM MAP EMBED
 st.subheader("🗺️ Enterprise Infrastructure Geolocation Node Overlay")
 if not df_filtered.empty:
     avg_lat = df_filtered['lat'].mean()
@@ -361,7 +401,7 @@ with chat_box:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-# ABSOLUTE SAFEST CHAT ENGINE: Standardized input form with native components
+# Standardized input form with native components
 with st.form(key="telemetry_chat_form", clear_on_submit=True):
     user_text = st.text_input(
         "Query Entry Input Field:",
@@ -386,7 +426,7 @@ for idx, row in df_filtered.iterrows():
         matching_rows = df_monthly.loc[df_monthly['Month'] == target_month, unit_string].values
         if len(matching_rows) > 0 and pd.notna(matching_rows):
             try:
-                current_mon_val = float(str(matching_rows).replace(',', ''))
+                current_mon_val = float(str(matching_rows[0]).replace(',', ''))
             except:
                 current_mon_val = 0
             
