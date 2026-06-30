@@ -297,15 +297,20 @@ with col_g2:
 
 st.markdown("---")
 
-# 📈 NEW INTEGRATION: EXCEL MONTHLY GENERATION INTERACTIVE PROFILE (THE VERTICAL)
+# 📈 INTEGRATION: EXCEL MONTHLY GENERATION PROFILE WITH AVERAGE GRAPH LINE OVERLAYS
 st.subheader("📈 Interactive Timeline Matrix: Monthly Generation Profile (FY25-26)")
 active_nodes = list(df_filtered['unit'].unique())
 
-# Reshape long format only for the node units currently present in our filtered view
+# Isolate columns matching filtered operational active units
 available_nodes = [col for col in df_monthly.columns if col in active_nodes]
 
 if available_nodes:
-    df_melted_monthly = df_monthly.melt(
+    # 1. Compute rolling row-wise mathematical average for active nodes
+    df_monthly_calc = df_monthly.copy()
+    df_monthly_calc['System Average'] = df_monthly_calc[available_nodes].mean(axis=1)
+    
+    # 2. Reshape wide dataset to long format for clean line chart execution
+    df_melted_monthly = df_monthly_calc.melt(
         id_vars=["Month"],
         value_vars=available_nodes,
         var_name="Plant Node",
@@ -314,22 +319,36 @@ if available_nodes:
     
     col_chart, col_legend = st.columns([3, 1])
     with col_chart:
+        # Base Line Visualization for Individual Nodes
         fig_line = px.line(
             df_melted_monthly,
             x="Month",
             y="Generation Output (kWh)",
             color="Plant Node",
             markers=True,
-            title=f"Monthly Energy Matrix Trend Tracking ({selected_vertical})",
+            title=f"Monthly Energy Matrix Trend Tracking with Active Averages ({selected_vertical})",
             template="plotly_dark"
         )
+        
+        # 3. Inject explicit bold visual Trace for computed system average metrics
+        fig_line.add_trace(
+            go.Scatter(
+                x=df_monthly_calc['Month'],
+                y=df_monthly_calc['System Average'],
+                mode='lines+markers',
+                name='⚠️ Segment Average',
+                line=dict(color='#00ffcc', width=4, dash='dash'),
+                marker=dict(size=8, symbol='diamond')
+            )
+        )
+        
         fig_line.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
         st.plotly_chart(fig_line, use_container_width=True)
         
     with col_legend:
         st.markdown("##### Matrix Yield Segment Summary")
-        st.write("This timeline maps out variations across selected fleet operational nodes. Uncheck items in the graph map legend to focus view matrices.")
-        # Summary Dataframe Matrix
+        st.write("The bright cyan dashed line highlights current structural generation baseline averages based on selected operational segment parameters.")
+        # Summary Aggregation Reference List Table
         df_sum_view = df_melted_monthly.groupby("Plant Node")["Generation Output (kWh)"].sum().reset_index()
         st.dataframe(df_sum_view.sort_values(by="Generation Output (kWh)", ascending=False), hide_index=True, use_container_width=True)
 else:
