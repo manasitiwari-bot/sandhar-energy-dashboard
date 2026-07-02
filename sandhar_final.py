@@ -316,62 +316,61 @@ active_nodes = list(df_filtered['unit'].unique())
 available_nodes = [col for col in df_monthly.columns if col in active_nodes]
 
 if available_nodes:
-    df_monthly_calc = df_monthly.copy()
-    
-    # Layer A: Calculate the dynamic Macro Segment Average line across all filtered active units
-    df_monthly_calc['Segment Average'] = df_monthly_calc[available_nodes].mean(axis=1)
-    
-    # Melt individual plants + the overall segment line into long format
-    plot_cols = available_nodes + ['Segment Average']
-    df_melted_monthly = df_monthly_calc.melt(
+    # 1. Melt raw dataset to capture active plant variations cleanly
+    df_melted_monthly = df_monthly.melt(
         id_vars=["Month"],
-        value_vars=plot_cols,
+        value_vars=available_nodes,
         var_name="Plant Node",
         value_name="Generation Output (kWh)"
     )
     
-    # Layer B: Calculate EACH individual plant's own historical average across all months
-    plant_averages = df_monthly[available_nodes].mean().to_dict()
-    
-    # Construct a tracking subset for individual baselines
-    df_indiv_averages = df_melted_monthly[df_melted_monthly["Plant Node"].isin(available_nodes)].copy()
-    df_indiv_averages["Generation Output (kWh)"] = df_indiv_averages["Plant Node"].map(plant_averages)
-    df_indiv_averages["Plant Node"] = df_indiv_averages["Plant Node"] + " (Own Avg)"
-    
-    # Merge all data matrix horizons (Actuals, Segment Average, and Individual Baselines)
-    df_plot_combined = pd.concat([df_melted_monthly, df_indiv_averages], ignore_index=True)
-    
-    # Establish dynamic synchronized color routing
+    # 2. Extract specific base colors from standard Plotly engine palette for explicit assignment
     base_colors = px.colors.qualitative.Plotly
-    color_map = {"Segment Average": "#00ffcc"}  # Segment Average locked to high-vis neon cyan
+    color_map = {}
     for i, node in enumerate(available_nodes):
-        color_idx = i % len(base_colors)
-        color_map[node] = base_colors[color_idx]
-        color_map[f"{node} (Own Avg)"] = base_colors[color_idx] # Color matched to parent line
-
+        color_map[node] = base_colors[i % len(base_colors)]
+        
+    # 3. Base Chart Generation (Solid Lines with markers)
+    fig_line = px.line(
+        df_melted_monthly,
+        x="Month",
+        y="Generation Output (kWh)",
+        color="Plant Node",
+        markers=True,
+        title=f"Monthly Energy Matrix Trend Tracking: Real vs Plant Yearly Averages vs Segment Average ({selected_vertical})",
+        template="plotly_dark",
+        color_discrete_map=color_map
+    )
+    
+    # 4. FIXED INDIVIDUAL YEARLY BASELINE: Plots flat horizontal lines across all months for each plant
+    for node in available_nodes:
+        # Calculate a single static mean value across all 12 months for this plant
+        plant_yearly_mean = df_monthly[node].mean()
+        node_color = color_map[node]
+        
+        fig_line.add_trace(go.Scatter(
+            x=df_monthly["Month"],
+            y=[plant_yearly_mean] * len(df_monthly),  # Straight flat row array matching the timeline
+            mode="lines",
+            name=f"{node} (Yearly Avg)",
+            line=dict(color=node_color, width=1.5, dash="dot"),
+            showlegend=True
+        ))
+        
+    # 5. Segment Average Line (Mean of all selected units calculated month over month)
+    segment_mean_series = df_monthly[available_nodes].mean(axis=1)
+    fig_line.add_trace(go.Scatter(
+        x=df_monthly["Month"],
+        y=segment_mean_series,
+        mode="lines+markers",
+        name="Segment Average",
+        line=dict(color="#00ffcc", width=4, dash="dash"),
+        marker=dict(symbol="diamond", size=8),
+        showlegend=True
+    ))
+    
     col_chart, col_legend = st.columns([3, 1])
     with col_chart:
-        fig_line = px.line(
-            df_plot_combined,
-            x="Month",
-            y="Generation Output (kWh)",
-            color="Plant Node",
-            markers=True,
-            title=f"Monthly Energy Matrix Trend Tracking: Real vs Plant Baselines vs Segment Average ({selected_vertical})",
-            template="plotly_dark",
-            color_discrete_map=color_map
-        )
-        
-        # Format tracing variations to establish a clean scannable layout architecture
-        def trace_formatter(t):
-            if t.name == "Segment Average":
-                t.update(line=dict(width=4.5, dash='dash'), markers=dict(visible=True, symbol="diamond"))
-            elif " (Own Avg)" in t.name:
-                t.update(line=dict(width=1.5, dash='dot'), markers=dict(visible=False))
-            else:
-                t.update(line=dict(width=2))
-
-        fig_line.for_each_trace(trace_formatter)
         fig_line.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
         st.plotly_chart(fig_line, use_container_width=True)
         
@@ -379,9 +378,10 @@ if available_nodes:
         st.markdown("##### Matrix Mean Baseline Metrics Summary")
         st.write("**Visual Key Indicators:**")
         st.write("* 🟢 **Solid Lines:** Real monthly production numbers.")
-        st.write("* 💬 **Dotted Lines:** Unique monthly averages for *just* that plant.")
-        st.write("* 💎 **Thick Cyan Dash:** Total average performance across the selection.")
+        st.write("* 💬 **Dotted Lines:** Completely flat, horizontal yearly average lines specific to each plant.")
+        st.write("* 💎 **Thick Cyan Dash:** Combined segment average line changing over time.")
         
+        plant_averages = df_monthly[available_nodes].mean().to_dict()
         df_summary_avg = pd.DataFrame(list(plant_averages.items()), columns=["Plant Node", "Historical Monthly Mean (kWh)"])
         st.dataframe(df_summary_avg.sort_values(by="Historical Monthly Mean (kWh)", ascending=False), hide_index=True, use_container_width=True)
 else:
@@ -395,9 +395,9 @@ if not df_filtered.empty:
     avg_lat = df_filtered['lat'].mean()
     avg_lon = df_filtered['lon'].mean()
     
-    m = folium.Map(location=[avg_lat, avg_lon], zoom_start=5, tiles="CartoDB positron")
+ m = folium.Map(location=[avg_lat, avg_lon], zoom_start=5, tiles="CartoDB positron")
     
-    for _, marker_row in df_filtered.iterrows():
+ for _, marker_row in df_filtered.iterrows():
         popup_html = f"""
         <div style='font-family: Arial, sans-serif; font-size:12px; line-height: 1.4;'>
             <strong>Node Code:</strong> {marker_row['unit']}<br>
@@ -416,7 +416,7 @@ if not df_filtered.empty:
             icon=folium.Icon(color=icon_color, icon="bolt", prefix="fa")
         ).add_to(m)
     
-    map_html = m._repr_html_()
+ map_html = m._repr_html_()
     components.html(map_html, height=480, scrolling=True)
 else:
     st.info("No geospatial node arrays found matching filtered layers.")
