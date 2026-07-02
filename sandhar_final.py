@@ -266,7 +266,7 @@ with col_g2:
 st.markdown("---")
 
 
-# 📈 3. MONTHLY ENERGY MATRIX TREND TRACKING WITH BOTH AVGS RE-ACTIVATED
+# 📈 3. MONTHLY ENERGY MATRIX TREND TRACKING WITH BOTH AVGS INTEGRATED Safely
 st.subheader("📈 Interactive Timeline Matrix: Monthly Generation Profile (FY25-26)")
 active_nodes = list(df_filtered['unit'].unique())
 available_nodes = [col for col in df_monthly.columns if col in active_nodes]
@@ -284,4 +284,124 @@ if available_nodes:
         df_melted_monthly,
         x="Month",
         y="Generation Output (kWh)",
-        color="
+        color="Plant Node",
+        markers=True,
+        title="Monthly Energy Generation Tracker",
+        template="plotly_dark"
+    )
+    
+    # 💎 1. SEGMENT AVERAGE LINE (Dynamic changing path over months)
+    segment_mean_series = df_monthly[available_nodes].mean(axis=1)
+    fig_line.add_trace(go.Scatter(
+        x=df_monthly["Month"],
+        y=segment_mean_series,
+        mode="lines+markers",
+        name="Segment Average",
+        line=dict(color="#00ffcc", width=4, dash="dash"),
+        marker=dict(symbol="diamond", size=8),
+        showlegend=True
+    ))
+    
+    # ⚠️ 2. AVERAGE PLANT AVERAGE YTD LINE (Flat static master baseline)
+    all_plants_yearly_ytd_mean = df_monthly[available_nodes].mean().mean()
+    fig_line.add_trace(go.Scatter(
+        x=df_monthly["Month"],
+        y=[all_plants_yearly_ytd_mean] * len(df_monthly),
+        mode="lines",
+        name="Average Plant Average YTD",
+        line=dict(color="#f43f5e", width=4, dash="dashdot"),
+        showlegend=True
+    ))
+    
+    # Split Layout: Graph on left (3/4 width), Sorted text table on right (1/4 width)
+    col_chart, col_legend = st.columns([3, 1])
+    with col_chart:
+        fig_line.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
+        st.plotly_chart(fig_line, use_container_width=True)
+        
+    with col_legend:
+        st.markdown("##### 📊 Yearly Plant Averages")
+        st.metric("Master YTD Average", f"{int(all_plants_yearly_ytd_mean):,} kWh")
+        
+        # Displays individual plant averages neatly on the side so lines don't stack up
+        plant_averages = df_monthly[available_nodes].mean().to_dict()
+        df_summary_avg = pd.DataFrame(list(plant_averages.items()), columns=["Plant Node", "Yearly Avg (kWh)"])
+        df_summary_avg["Yearly Avg (kWh)"] = df_summary_avg["Yearly Avg (kWh)"].apply(lambda x: f"{int(x):,}")
+        st.dataframe(df_summary_avg.sort_values(by="Plant Node"), hide_index=True, use_container_width=True)
+else:
+    st.warning("No operational assets found for this chosen configuration.")
+
+st.markdown("---")
+
+# 🗺️ 4. INTERACTIVE FOLLIUM MAP EMBED
+st.subheader("🗺️ Enterprise Infrastructure Geolocation Node Overlay")
+if not df_filtered.empty:
+    avg_lat = df_filtered['lat'].mean()
+    avg_lon = df_filtered['lon'].mean()
+    m = folium.Map(location=[avg_lat, avg_lon], zoom_start=5, tiles="CartoDB positron")
+    
+    for _, marker_row in df_filtered.iterrows():
+        popup_html = f"<strong>Node Code:</strong> {marker_row['unit']}<br><strong>Green Shift:</strong> {marker_row['replacement_pct']}%"
+        icon_color = "green" if float(marker_row['generation_per_kwp']) > 3.0 else "red"
+        folium.Marker(
+            location=[marker_row['lat'], marker_row['lon']],
+            popup=folium.Popup(popup_html, max_width=250),
+            icon=folium.Icon(color=icon_color, icon="bolt", prefix="fa")
+        ).add_to(m)
+    components.html(m._repr_html_(), height=480, scrolling=True)
+
+st.markdown("---")
+
+# 🤖 5. LIVE INTERACTIVE CHAT ASSISTANT CORE
+st.subheader("🤖 Interactive Live Data Chat Assistant")
+def evaluate_live_query(user_query, target_data):
+    raw = user_query.strip().lower()
+    if "worst" in raw or "inefficient" in raw:
+        worst_row = target_data.loc[target_data['unit_lost_inefficiency'].idxmax()]
+        return f"🚨 Node **{worst_row['unit']}** has lost **{int(worst_row['unit_lost_inefficiency']):,} units** to inefficiencies."
+    elif "highest" in raw or "best" in raw:
+        best_row = target_data.loc[target_data['generation_per_kwp'].idxmax()]
+        return f"🏆 Node **{best_row['unit']}** leads with a Gen/KWP ratio of **{best_row['generation_per_kwp']}**."
+    return "🤖 Try asking about **'worst plant'** or **'highest efficiency'**."
+
+chat_box = st.container(height=200)
+with chat_box:
+    for message in st.session_state["chat_history"]:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+with st.form(key="telemetry_chat_form", clear_on_submit=True):
+    user_text = st.text_input("Query Entry:", placeholder="Type query here...")
+    submitted = st.form_submit_button("Ask Node Engine", use_container_width=True)
+
+if submitted and user_text:
+    st.session_state["chat_history"].append({"role": "user", "content": user_text})
+    st.session_state["chat_history"].append({"role": "assistant", "content": evaluate_live_query(user_text, df_filtered)})
+    st.rerun()
+
+st.markdown("---")
+
+# 🏢 6. PLANT DETAILS LEDGER
+st.subheader("📋 Operational Node Ledger Details")
+for idx, row in df_filtered.iterrows():
+    unit_string = str(row['unit']).strip()
+    current_mon_val = 0
+    if unit_string in df_monthly.columns:
+        matching_rows = df_monthly.loc[df_monthly['Month'] == target_month, unit_string].values
+        if len(matching_rows) > 0:
+            current_mon_val = matching_rows[0]
+            
+    card_title = f"📦 [{row['unit']}] {row['location']} — {target_month}: {int(current_mon_val):,} Units"
+    with st.expander(card_title):
+        col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+        col_f1.metric("Yearly Grid Sourcing", f"{row['grid_mvah']:,.2f} MVAh")
+        col_f2.metric("Green Shift", f"{row['replacement_pct']}%")
+        col_f3.metric("Diesel (DG)", f"{int(row['dg']):,} L")
+        col_f4.metric("Gen/KWP Ratio", f"{row['generation_per_kwp']}")
+        
+        st.markdown("<div style='margin-top: 12px;'></div>", unsafe_allow_html=True)
+        col_s1, col_s2, col_s3, col_s4 = st.columns(4)
+        col_s1.metric("CAPEX/OPEX Capacity", f"{int(row['capex_capacity'])}/{int(row['opex_capacity'])} kWp")
+        col_s2.metric("CAPEX Gen", f"{row['capex_gen']:,.2f} MWh")
+        col_s3.metric("OPEX Gen", f"{row['opex_gen']:,.2f} MWh")
+        col_s4.metric("Lost Units", f"{int(row['unit_lost_inefficiency']):,}")
