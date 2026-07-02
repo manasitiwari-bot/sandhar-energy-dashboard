@@ -279,11 +279,9 @@ with col_g1:
         color_discrete_sequence=['#10b981', '#ef4444']
     )
     
-    # Calculate group benchmark averages for individual plants
     avg_mitigation = df_filtered['mitigation'].mean()
     avg_emission = df_filtered['emission'].mean()
     
-    # Inject reference threshold lines indicating static averages of individual active plants
     fig_bar.add_hline(y=avg_mitigation, line_dash="dash", line_color="#10b981", annotation_text=f"Avg Mitigation ({int(avg_mitigation)})", annotation_position="top left")
     fig_bar.add_hline(y=avg_emission, line_dash="dash", line_color="#ef4444", annotation_text=f"Avg Emission ({int(avg_emission)})", annotation_position="top right")
     
@@ -302,7 +300,6 @@ with col_g2:
         labels={'grid_mvah': 'Grid Sourced (MVAh)', 'generation_per_kwp': 'Gen/KWP Ratio'}
     )
     
-    # Inject baseline horizontal baseline reference metric indicating plant ratio configurations
     avg_gen_kwp = df_filtered['generation_per_kwp'].mean()
     fig_scatter.add_hline(y=avg_gen_kwp, line_dash="dot", line_color="#cbd5e1", annotation_text=f"Avg Gen Ratio ({avg_gen_kwp:.2f})")
     
@@ -311,7 +308,7 @@ with col_g2:
 
 st.markdown("---")
 
-# 📈 3. MONTHLY ENERGY MATRIX TREND TRACKING WITH ACTIVE PLANT AVERAGES
+# 📈 3. MONTHLY ENERGY MATRIX TREND TRACKING WITH BOTH COMPANION AVERAGES
 st.subheader("📈 Interactive Timeline Matrix: Monthly Generation Profile (FY25-26)")
 active_nodes = list(df_filtered['unit'].unique())
 
@@ -319,14 +316,13 @@ active_nodes = list(df_filtered['unit'].unique())
 available_nodes = [col for col in df_monthly.columns if col in active_nodes]
 
 if available_nodes:
-    # 1. Compute monthly average across individual plants
     df_monthly_calc = df_monthly.copy()
-    df_monthly_calc['Plant Average'] = df_monthly_calc[available_nodes].mean(axis=1)
     
-    # 2. Add 'Plant Average' right into the list of values to melt
-    plot_cols = available_nodes + ['Plant Average']
+    # Layer A: Calculate the dynamic Macro Segment Average line across all filtered active units
+    df_monthly_calc['Segment Average'] = df_monthly_calc[available_nodes].mean(axis=1)
     
-    # 3. Reshape dataset to long format
+    # Melt individual plants + the overall segment line into long format
+    plot_cols = available_nodes + ['Segment Average']
     df_melted_monthly = df_monthly_calc.melt(
         id_vars=["Month"],
         value_vars=plot_cols,
@@ -334,34 +330,60 @@ if available_nodes:
         value_name="Generation Output (kWh)"
     )
     
+    # Layer B: Calculate EACH individual plant's own historical average across all months
+    plant_averages = df_monthly[available_nodes].mean().to_dict()
+    
+    # Construct a tracking subset for individual baselines
+    df_indiv_averages = df_melted_monthly[df_melted_monthly["Plant Node"].isin(available_nodes)].copy()
+    df_indiv_averages["Generation Output (kWh)"] = df_indiv_averages["Plant Node"].map(plant_averages)
+    df_indiv_averages["Plant Node"] = df_indiv_averages["Plant Node"] + " (Own Avg)"
+    
+    # Merge all data matrix horizons (Actuals, Segment Average, and Individual Baselines)
+    df_plot_combined = pd.concat([df_melted_monthly, df_indiv_averages], ignore_index=True)
+    
+    # Establish dynamic synchronized color routing
+    base_colors = px.colors.qualitative.Plotly
+    color_map = {"Segment Average": "#00ffcc"}  # Segment Average locked to high-vis neon cyan
+    for i, node in enumerate(available_nodes):
+        color_idx = i % len(base_colors)
+        color_map[node] = base_colors[color_idx]
+        color_map[f"{node} (Own Avg)"] = base_colors[color_idx] # Color matched to parent line
+
     col_chart, col_legend = st.columns([3, 1])
     with col_chart:
-        # Base Line Visualization for Individual Plants + Combined Average Line
         fig_line = px.line(
-            df_melted_monthly,
+            df_plot_combined,
             x="Month",
             y="Generation Output (kWh)",
             color="Plant Node",
             markers=True,
-            title=f"Monthly Energy Matrix Trend Tracking with Active Averages ({selected_vertical})",
+            title=f"Monthly Energy Matrix Trend Tracking: Real vs Plant Baselines vs Segment Average ({selected_vertical})",
             template="plotly_dark",
-            color_discrete_map={"Plant Average": "#00ffcc"} # Distinct bold color for the average trend line
+            color_discrete_map=color_map
         )
         
-        # 4. Enhance the trace styling: make the Plant Average line thick & dashed
-        fig_line.for_each_trace(
-            lambda t: t.update(line=dict(width=4, dash='dash')) if t.name == 'Plant Average' else t.update(line=dict(width=1.5))
-        )
-        
+        # Format tracing variations to establish a clean scannable layout architecture
+        def trace_formatter(t):
+            if t.name == "Segment Average":
+                t.update(line=dict(width=4.5, dash='dash'), markers=dict(visible=True, symbol="diamond"))
+            elif " (Own Avg)" in t.name:
+                t.update(line=dict(width=1.5, dash='dot'), markers=dict(visible=False))
+            else:
+                t.update(line=dict(width=2))
+
+        fig_line.for_each_trace(trace_formatter)
         fig_line.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
         st.plotly_chart(fig_line, use_container_width=True)
         
     with col_legend:
-        st.markdown("##### Matrix Yield Segment Summary")
-        st.write("The neon dashed line displays the overall moving average across your selected plants month-over-month.")
-        # Summary Table (exemption added so the calculated average key doesn't mess with plant totals)
-        df_sum_view = df_melted_monthly[df_melted_monthly["Plant Node"] != "Plant Average"].groupby("Plant Node")["Generation Output (kWh)"].sum().reset_index()
-        st.dataframe(df_sum_view.sort_values(by="Generation Output (kWh)", ascending=False), hide_index=True, use_container_width=True)
+        st.markdown("##### Matrix Mean Baseline Metrics Summary")
+        st.write("**Visual Key Indicators:**")
+        st.write("* 🟢 **Solid Lines:** Real monthly production numbers.")
+        st.write("* 💬 **Dotted Lines:** Unique monthly averages for *just* that plant.")
+        st.write("* 💎 **Thick Cyan Dash:** Total average performance across the selection.")
+        
+        df_summary_avg = pd.DataFrame(list(plant_averages.items()), columns=["Plant Node", "Historical Monthly Mean (kWh)"])
+        st.dataframe(df_summary_avg.sort_values(by="Historical Monthly Mean (kWh)", ascending=False), hide_index=True, use_container_width=True)
 else:
     st.warning("No operational asset units found matching this chosen business segment timeline configuration.")
 
