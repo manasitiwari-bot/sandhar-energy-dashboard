@@ -264,7 +264,7 @@ col_metric_3.metric("🏭 Gross Footprint", f"{int(total_emi):,} MT CO₂")
 
 st.markdown("---")
 
-# 📊 2. DYNAMIC VISUALIZATION GRAPH BLOCK
+# 📊 2. DYNAMIC VISUALIZATION GRAPH BLOCK WITH AVERAGES
 st.subheader("📊 Dynamic Environmental Performance & Fleet Generation Metrics")
 col_g1, col_g2 = st.columns(2)
 
@@ -278,6 +278,15 @@ with col_g1:
         labels={'value': 'Metric Tons (CO₂)', 'unit': 'Plant Node Code'},
         color_discrete_sequence=['#10b981', '#ef4444']
     )
+    
+    # Calculate group benchmark averages for individual plants
+    avg_mitigation = df_filtered['mitigation'].mean()
+    avg_emission = df_filtered['emission'].mean()
+    
+    # Inject reference threshold lines indicating static averages of individual active plants
+    fig_bar.add_hline(y=avg_mitigation, line_dash="dash", line_color="#10b981", annotation_text=f"Avg Mitigation ({int(avg_mitigation)})", annotation_position="top left")
+    fig_bar.add_hline(y=avg_emission, line_dash="dash", line_color="#ef4444", annotation_text=f"Avg Emission ({int(avg_emission)})", annotation_position="top right")
+    
     fig_bar.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', legend_title_text='Metrics')
     st.plotly_chart(fig_bar, use_container_width=True)
 
@@ -292,12 +301,17 @@ with col_g2:
         title='Generation Ratio vs Grid Sourcing (Bubble size = Inefficiency Losses)',
         labels={'grid_mvah': 'Grid Sourced (MVAh)', 'generation_per_kwp': 'Gen/KWP Ratio'}
     )
+    
+    # Inject baseline horizontal baseline reference metric indicating plant ratio configurations
+    avg_gen_kwp = df_filtered['generation_per_kwp'].mean()
+    fig_scatter.add_hline(y=avg_gen_kwp, line_dash="dot", line_color="#cbd5e1", annotation_text=f"Avg Gen Ratio ({avg_gen_kwp:.2f})")
+    
     fig_scatter.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
     st.plotly_chart(fig_scatter, use_container_width=True)
 
 st.markdown("---")
 
-# 📈 INTEGRATION: EXCEL MONTHLY GENERATION PROFILE WITH AVERAGE GRAPH LINE OVERLAYS
+# 📈 INTEGRATION: EXCEL MONTHLY GENERATION PROFILE WITH TIMELINE AVERAGES
 st.subheader("📈 Interactive Timeline Matrix: Monthly Generation Profile (FY25-26)")
 active_nodes = list(df_filtered['unit'].unique())
 
