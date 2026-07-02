@@ -311,7 +311,7 @@ with col_g2:
 
 st.markdown("---")
 
-# 📈 INTEGRATION: EXCEL MONTHLY GENERATION PROFILE WITH TIMELINE AVERAGES
+# 📈 3. MONTHLY ENERGY MATRIX TREND TRACKING WITH ACTIVE PLANT AVERAGES
 st.subheader("📈 Interactive Timeline Matrix: Monthly Generation Profile (FY25-26)")
 active_nodes = list(df_filtered['unit'].unique())
 
@@ -321,19 +321,22 @@ available_nodes = [col for col in df_monthly.columns if col in active_nodes]
 if available_nodes:
     # 1. Compute rolling row-wise mathematical average for active nodes
     df_monthly_calc = df_monthly.copy()
-    df_monthly_calc['System Average'] = df_monthly_calc[available_nodes].mean(axis=1)
+    df_monthly_calc['Plant Average'] = df_monthly_calc[available_nodes].mean(axis=1)
     
-    # 2. Reshape wide dataset to long format for clean line chart execution
+    # 2. Include 'Plant Average' in the columns to melt so it becomes a permanent line plot
+    plot_cols = available_nodes + ['Plant Average']
+    
+    # 3. Reshape wide dataset to long format for clean line chart execution
     df_melted_monthly = df_monthly_calc.melt(
         id_vars=["Month"],
-        value_vars=available_nodes,
+        value_vars=plot_cols,
         var_name="Plant Node",
         value_name="Generation Output (kWh)"
     )
     
     col_chart, col_legend = st.columns([3, 1])
     with col_chart:
-        # Base Line Visualization for Individual Nodes
+        # Base Line Visualization for Individual Nodes + Plant Average Line
         fig_line = px.line(
             df_melted_monthly,
             x="Month",
@@ -341,20 +344,12 @@ if available_nodes:
             color="Plant Node",
             markers=True,
             title=f"Monthly Energy Matrix Trend Tracking with Active Averages ({selected_vertical})",
-            template="plotly_dark"
+            template="plotly_dark",
+            color_discrete_map={"Plant Average": "#00ffcc"} 
         )
         
-        # 3. Inject explicit bold visual Trace for computed system average metrics
-        fig_line.add_trace(
-            go.Scatter(
-                x=df_monthly_calc['Month'],
-                y=df_monthly_calc['System Average'],
-                mode='lines+markers',
-                name='⚠️ Segment Average',
-                line=dict(color='#00ffcc', width=4, dash='dash'),
-                marker=dict(size=8, symbol='diamond')
-            )
-        )
+        # 4. Enhance the 'Plant Average' trace formatting specifically so it looks like a bold dashed line
+        fig_line.for_each_trace(lambda t: t.update(line=dict(width=4, dash='dash')) if t.name == 'Plant Average' else t.update(line=dict(width=1.5)))
         
         fig_line.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
         st.plotly_chart(fig_line, use_container_width=True)
@@ -362,15 +357,15 @@ if available_nodes:
     with col_legend:
         st.markdown("##### Matrix Yield Segment Summary")
         st.write("The bright cyan dashed line highlights current structural generation baseline averages based on selected operational segment parameters.")
-        # Summary Aggregation Reference List Table
-        df_sum_view = df_melted_monthly.groupby("Plant Node")["Generation Output (kWh)"].sum().reset_index()
+        # Summary Aggregation Reference List Table (Excluding the average line row itself)
+        df_sum_view = df_melted_monthly[df_melted_monthly["Plant Node"] != "Plant Average"].groupby("Plant Node")["Generation Output (kWh)"].sum().reset_index()
         st.dataframe(df_sum_view.sort_values(by="Generation Output (kWh)", ascending=False), hide_index=True, use_container_width=True)
 else:
     st.warning("No operational asset units found matching this chosen business segment timeline configuration.")
 
 st.markdown("---")
 
-# 🗺️ 3. INTERACTIVE FOLLIUM MAP EMBED
+# 🗺️ 4. INTERACTIVE FOLLIUM MAP EMBED
 st.subheader("🗺️ Enterprise Infrastructure Geolocation Node Overlay")
 if not df_filtered.empty:
     avg_lat = df_filtered['lat'].mean()
@@ -404,7 +399,7 @@ else:
 
 st.markdown("---")
 
-# 🤖 4. LIVE INTERACTIVE CHAT ASSISTANT CORE
+# 🤖 5. LIVE INTERACTIVE CHAT ASSISTANT CORE
 st.subheader("🤖 Interactive Live Data Chat Assistant")
 st.caption("Type analytical questions about your plants (e.g., 'worst plant', 'total emissions', 'highest efficiency', or 'summary') inside the console field below.")
 
@@ -450,7 +445,7 @@ if submitted and user_text:
 
 st.markdown("---")
 
-# 🏢 5. PLANT DETAILS LEDGER WITH FORMAT CONDITIONING
+# 🏢 6. PLANT DETAILS LEDGER WITH FORMAT CONDITIONING
 st.subheader("📋 Infrastructure Node Register Ledger Details")
 for idx, row in df_filtered.iterrows():
     unit_string = str(row['unit']).strip()
