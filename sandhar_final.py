@@ -319,14 +319,14 @@ active_nodes = list(df_filtered['unit'].unique())
 available_nodes = [col for col in df_monthly.columns if col in active_nodes]
 
 if available_nodes:
-    # 1. Compute rolling row-wise mathematical average for active nodes
+    # 1. Compute monthly average across individual plants
     df_monthly_calc = df_monthly.copy()
     df_monthly_calc['Plant Average'] = df_monthly_calc[available_nodes].mean(axis=1)
     
-    # 2. Include 'Plant Average' in the columns to melt so it becomes a permanent line plot
+    # 2. Add 'Plant Average' right into the list of values to melt
     plot_cols = available_nodes + ['Plant Average']
     
-    # 3. Reshape wide dataset to long format for clean line chart execution
+    # 3. Reshape dataset to long format
     df_melted_monthly = df_monthly_calc.melt(
         id_vars=["Month"],
         value_vars=plot_cols,
@@ -336,7 +336,7 @@ if available_nodes:
     
     col_chart, col_legend = st.columns([3, 1])
     with col_chart:
-        # Base Line Visualization for Individual Nodes + Plant Average Line
+        # Base Line Visualization for Individual Plants + Combined Average Line
         fig_line = px.line(
             df_melted_monthly,
             x="Month",
@@ -345,19 +345,21 @@ if available_nodes:
             markers=True,
             title=f"Monthly Energy Matrix Trend Tracking with Active Averages ({selected_vertical})",
             template="plotly_dark",
-            color_discrete_map={"Plant Average": "#00ffcc"} 
+            color_discrete_map={"Plant Average": "#00ffcc"} # Distinct bold color for the average trend line
         )
         
-        # 4. Enhance the 'Plant Average' trace formatting specifically so it looks like a bold dashed line
-        fig_line.for_each_trace(lambda t: t.update(line=dict(width=4, dash='dash')) if t.name == 'Plant Average' else t.update(line=dict(width=1.5)))
+        # 4. Enhance the trace styling: make the Plant Average line thick & dashed
+        fig_line.for_each_trace(
+            lambda t: t.update(line=dict(width=4, dash='dash')) if t.name == 'Plant Average' else t.update(line=dict(width=1.5))
+        )
         
         fig_line.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
         st.plotly_chart(fig_line, use_container_width=True)
         
     with col_legend:
         st.markdown("##### Matrix Yield Segment Summary")
-        st.write("The bright cyan dashed line highlights current structural generation baseline averages based on selected operational segment parameters.")
-        # Summary Aggregation Reference List Table (Excluding the average line row itself)
+        st.write("The neon dashed line displays the overall moving average across your selected plants month-over-month.")
+        # Summary Table (exemption added so the calculated average key doesn't mess with plant totals)
         df_sum_view = df_melted_monthly[df_melted_monthly["Plant Node"] != "Plant Average"].groupby("Plant Node")["Generation Output (kWh)"].sum().reset_index()
         st.dataframe(df_sum_view.sort_values(by="Generation Output (kWh)", ascending=False), hide_index=True, use_container_width=True)
 else:
