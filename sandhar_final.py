@@ -9,7 +9,7 @@ import folium
 # 1. Page Configuration
 st.set_page_config(
     page_title="Sandhar Energy Ecosystem Dashboard",
-    page_icon="🌱",
+    page_icon,
     layout="wide"
 )
 
@@ -22,7 +22,7 @@ if "chat_history" not in st.session_state:
         {"role": "assistant", "content": "Telemetry interface fully online. Ask me about your worst-performing locations, total carbon emissions, or request a complete summary."}
     ]
 
-# 🎨 PREMIUM CSS OVERLAYS
+#PREMIUM CSS OVERLAYS
 if not st.session_state["authenticated"]:
     st.markdown("""
         <style>
@@ -162,22 +162,22 @@ df_fy27 = pd.read_csv(io.StringIO(fy27_csv.strip()))
 
 
 # --- SIDEBAR CONTROL PANEL ---
-st.sidebar.markdown("🔒 **Telemetry Link Stable**")
+st.sidebar.markdown("**Telemetry Link Stable**")
 if st.sidebar.button("Log Out Context"):
     st.session_state["authenticated"] = False
     st.rerun()
 
-st.sidebar.header("🗺️ Application Pages")
+st.sidebar.header("Application Pages")
 app_page = st.sidebar.radio("Navigate Workspace", ["Main Tracking Panel", "FY26-27 Analytics & Horizon Panel"])
 
 
 # ================= PAGE 2: ANALYTICS PANEL =================
 if app_page == "FY26-27 Analytics & Horizon Panel":
-    st.title("🚀 FY26-27 Next Horizon Engine")
+    st.title("FY26-27 Next Horizon Engine")
     st.caption("Active forecasting layers parsed from incoming spreadsheets.")
     st.markdown("---")
     
-    st.subheader("📋 Infrastructure Node Matrix Evaluation Ledger (FY26-27 Data Metrics)")
+    st.subheader("Infrastructure Node Matrix Evaluation Ledger (FY26-27 Data Metrics)")
     for idx, row in df_master.iterrows():
         unit_code = str(row['unit']).strip()
         apr_series = df_fy27.loc[df_fy27['Month'] == "April'26", unit_code].values
@@ -185,7 +185,7 @@ if app_page == "FY26-27 Analytics & Horizon Panel":
         apr_val = apr_series if len(apr_series) > 0 else 0
         may_val = may_series if len(may_series) > 0 else 0
         
-        with st.expander(f"🏢 Node Layer [{unit_code}] — Horizon Status Analysis"):
+        with st.expander(f"Node Layer [{unit_code}] — Horizon Status Analysis"):
             col_a, col_b, col_c = st.columns(3)
             col_a.metric("April'26 Yield Log", f"{int(apr_val):,} kWh")
             col_b.metric("May'26 Yield Log", f"{int(may_val):,} kWh")
@@ -199,7 +199,7 @@ if app_page == "FY26-27 Analytics & Horizon Panel":
 
 
 # ================= PAGE 1: MAIN TRACKING PANEL =================
-st.sidebar.header("🕹️ Selection Filters")
+st.sidebar.header("Selection Filters")
 selected_vertical = st.sidebar.selectbox(
     "Business Segment", 
     ["All Segments", "Average Plant Average YTD"] + list(df_master['vertical'].unique()), 
@@ -213,21 +213,21 @@ else:
 
 target_month = st.sidebar.select_slider("Select Target Tracking Month (FY25-26)", options=list(df_monthly['Month']))
 
-# 🟢 1. BUBBLE KPI CARDS
+# 1. BUBBLE KPI CARDS
 total_grid = df_filtered['grid_mvah'].sum()
 total_mit = df_filtered['mitigation'].sum()
 total_emi = df_filtered['emission'].sum()
 
-st.markdown("### 📊 Metrics Summary Grid")
+st.markdown("### Metrics Summary Grid")
 col_metric_1, col_metric_2, col_metric_3 = st.columns(3)
-col_metric_1.metric("⚡ Total Grid Sourced", f"{total_grid:,.1f} MVAh")
-col_metric_2.metric("🌱 Carbon Offset", f"{int(total_mit):,} MT CO₂")
-col_metric_3.metric("🏭 Gross Footprint", f"{int(total_emi):,} MT CO₂")
+col_metric_1.metric("Total Grid Sourced", f"{total_grid:,.1f} MVAh")
+col_metric_2.metric(" Carbon Offset", f"{int(total_mit):,} MT CO₂")
+col_metric_3.metric(" Gross Footprint", f"{int(total_emi):,} MT CO₂")
 
 st.markdown("---")
 
-# 📊 2. DYNAMIC VISUALIZATION GRAPH BLOCK WITH AVERAGES
-st.subheader("📊 Dynamic Environmental Performance & Fleet Generation Metrics")
+#  2. DYNAMIC VISUALIZATION GRAPH BLOCK WITH AVERAGES
+st.subheader("Dynamic Environmental Performance & Fleet Generation Metrics")
 col_g1, col_g2 = st.columns(2)
 
 with col_g1:
@@ -266,7 +266,7 @@ with col_g2:
 st.markdown("---")
 
 
-# 📈 3. MONTHLY ENERGY MATRIX TREND TRACKING WITH BOTH AVGS INTEGRATED Safely
+# 3. MONTHLY ENERGY MATRIX TREND TRACKING WITH BOTH AVGS INTEGRATED Safely
 st.subheader("📈 Interactive Timeline Matrix: Monthly Generation Profile (FY25-26)")
 active_nodes = list(df_filtered['unit'].unique())
 available_nodes = [col for col in df_monthly.columns if col in active_nodes]
@@ -290,7 +290,7 @@ if available_nodes:
         template="plotly_dark"
     )
     
-    # 💎 1. SEGMENT AVERAGE LINE (Dynamic changing path over months)
+    # 1. SEGMENT AVERAGE LINE (Dynamic changing path over months)
     segment_mean_series = df_monthly[available_nodes].mean(axis=1)
     fig_line.add_trace(go.Scatter(
         x=df_monthly["Month"],
@@ -302,7 +302,7 @@ if available_nodes:
         showlegend=True
     ))
     
-    # ⚠️ 2. AVERAGE PLANT AVERAGE YTD LINE (Flat static master baseline)
+    # 2. AVERAGE PLANT AVERAGE YTD LINE (Flat static master baseline)
     all_plants_yearly_ytd_mean = df_monthly[available_nodes].mean().mean()
     fig_line.add_trace(go.Scatter(
         x=df_monthly["Month"],
@@ -320,7 +320,7 @@ if available_nodes:
         st.plotly_chart(fig_line, use_container_width=True)
         
     with col_legend:
-        st.markdown("##### 📊 Yearly Plant Averages")
+        st.markdown("##### Yearly Plant Averages")
         st.metric("Master YTD Average", f"{int(all_plants_yearly_ytd_mean):,} kWh")
         
         # Displays individual plant averages neatly on the side so lines don't stack up
@@ -333,8 +333,8 @@ else:
 
 st.markdown("---")
 
-# 🗺️ 4. INTERACTIVE FOLLIUM MAP EMBED
-st.subheader("🗺️ Enterprise Infrastructure Geolocation Node Overlay")
+#  4. INTERACTIVE FOLLIUM MAP EMBED
+st.subheader("Enterprise Infrastructure Geolocation Node Overlay")
 if not df_filtered.empty:
     avg_lat = df_filtered['lat'].mean()
     avg_lon = df_filtered['lon'].mean()
@@ -352,17 +352,17 @@ if not df_filtered.empty:
 
 st.markdown("---")
 
-# 🤖 5. LIVE INTERACTIVE CHAT ASSISTANT CORE
-st.subheader("🤖 Interactive Live Data Chat Assistant")
+#  5. LIVE INTERACTIVE CHAT ASSISTANT CORE
+st.subheader("Interactive Live Data Chat Assistant")
 def evaluate_live_query(user_query, target_data):
     raw = user_query.strip().lower()
     if "worst" in raw or "inefficient" in raw:
         worst_row = target_data.loc[target_data['unit_lost_inefficiency'].idxmax()]
-        return f"🚨 Node **{worst_row['unit']}** has lost **{int(worst_row['unit_lost_inefficiency']):,} units** to inefficiencies."
+        return f"Node **{worst_row['unit']}** has lost **{int(worst_row['unit_lost_inefficiency']):,} units** to inefficiencies."
     elif "highest" in raw or "best" in raw:
         best_row = target_data.loc[target_data['generation_per_kwp'].idxmax()]
-        return f"🏆 Node **{best_row['unit']}** leads with a Gen/KWP ratio of **{best_row['generation_per_kwp']}**."
-    return "🤖 Try asking about **'worst plant'** or **'highest efficiency'**."
+        return f"Node **{best_row['unit']}** leads with a Gen/KWP ratio of **{best_row['generation_per_kwp']}**."
+    return " Try asking about **'worst plant'** or **'highest efficiency'**."
 
 chat_box = st.container(height=200)
 with chat_box:
@@ -381,8 +381,8 @@ if submitted and user_text:
 
 st.markdown("---")
 
-# 🏢 6. PLANT DETAILS LEDGER
-st.subheader("📋 Operational Node Ledger Details")
+# 6. PLANT DETAILS LEDGER
+st.subheader("Operational Node Ledger Details")
 for idx, row in df_filtered.iterrows():
     unit_string = str(row['unit']).strip()
     current_mon_val = 0
@@ -391,7 +391,7 @@ for idx, row in df_filtered.iterrows():
         if len(matching_rows) > 0:
             current_mon_val = matching_rows[0]
             
-    card_title = f"📦 [{row['unit']}] {row['location']} — {target_month}: {int(current_mon_val):,} Units"
+    card_title = f"[{row['unit']}] {row['location']} — {target_month}: {int(current_mon_val):,} Units"
     with st.expander(card_title):
         col_f1, col_f2, col_f3, col_f4 = st.columns(4)
         col_f1.metric("Yearly Grid Sourcing", f"{row['grid_mvah']:,.2f} MVAh")
