@@ -10,65 +10,72 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS for Animations, Glassmorphism, and Presentation Styling
+# Custom CSS for Light Presentation Theme & Animations
 st.markdown("""
     <style>
-    /* Smooth entrance animation for presentation feel */
+    /* Smooth entrance animation for presentation */
     @keyframes fadeInScale {
         0% { opacity: 0; transform: scale(0.98) translateY(10px); }
         100% { opacity: 1; transform: scale(1) translateY(0); }
     }
     
+    /* Clean Light Background */
     .stApp {
-        background-color: #0f172a;
-        color: #f8fafc;
+        background-color: #f8fafc;
+        color: #0f172a;
     }
 
-    /* Executive Glass Cards */
+    /* Executive White Cards */
     div[data-testid="stMetric"] {
-        background: rgba(30, 41, 59, 0.7);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
         border-radius: 12px;
-        padding: 16px 20px;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-        animation: fadeInScale 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-        backdrop-filter: blur(12px);
+        padding: 18px 22px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        animation: fadeInScale 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
     div[data-testid="stMetricLabel"] {
-        color: #94a3b8 !important;
+        color: #64748b !important;
         font-size: 0.85rem !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         letter-spacing: 0.5px;
         text-transform: uppercase;
     }
 
     div[data-testid="stMetricValue"] {
-        color: #f8fafc !important;
+        color: #0f172a !important;
         font-size: 1.8rem !important;
-        font-weight: 700 !important;
+        font-weight: 800 !important;
     }
 
-    /* Animated Ticker Bar */
+    /* Presentation Banner Ticker */
     .ticker-wrap {
         width: 100%;
-        background: rgba(30, 41, 59, 0.5);
-        border-left: 4px solid #0d9488;
-        padding: 12px 20px;
-        border-radius: 8px;
+        background: #ffffff;
+        border-left: 5px solid #0284c7;
+        border: 1px solid #e2e8f0;
+        border-left-width: 5px;
+        padding: 14px 20px;
+        border-radius: 10px;
         margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         animation: fadeInScale 0.4s ease-out;
     }
 
     .ticker-text {
         font-size: 0.95rem;
-        color: #cbd5e1;
+        color: #334155;
         font-weight: 500;
     }
 
     .highlight {
-        color: #38bdf8;
+        color: #0284c7;
         font-weight: 700;
+    }
+    
+    h1, h2, h3 {
+        color: #0f172a !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -93,12 +100,12 @@ df['CAPEX Solar Gen (KWh)'] = df.apply(
 )
 df['OPEX Solar Gen (KWh)'] = df['Capex & Opex (KWh)'] - df['CAPEX Solar Gen (KWh)']
 
-# 3. Header & Live Ticker
+# 3. Header & Live Ticker Banner
 st.title("⚡ Sandhar Group — Automotive Division")
 st.markdown("""
 <div class="ticker-wrap">
     <span class="ticker-text">
-        📡 <b>Live Performance Summary:</b> Evaluating <span class="highlight">7 Key Operational Assets</span> | Highest Grid Sourcing: <span class="highlight">SAH Node</span> | Total Green Power Offset: <span class="highlight">4,726,176 KWh</span>
+        📡 <b>Executive Summary:</b> Evaluating <span class="highlight">7 Key Operational Assets</span> | Highest Grid Sourcing: <span class="highlight">SAH Node</span> | Total Green Power Offset: <span class="highlight">4,726,176 KWh</span>
     </span>
 </div>
 """, unsafe_allow_html=True)
@@ -112,7 +119,7 @@ col4.metric("Open Access Green", f"{df['Open Access (KWh)'].sum():,.0f} KWh")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# 5. Side-by-Side Graph with Neutral Tones
+# 5. Side-by-Side Graph with Light Executive Palette
 st.subheader("📊 Plant-Level Energy Sourcing & Generation Profile")
 
 chart_df = df.melt(
@@ -130,14 +137,14 @@ fig = px.bar(
     barmode='group',
     labels={'Unit Code': 'Plant Node Code', 'Volume': 'Units (KWh / KVAh)'},
     color_discrete_map={
-        'CAPEX Solar Gen (KWh)': '#0d9488',         # Cool Sage Green
-        'OPEX Solar Gen (KWh)': '#64748b',          # Neutral Steel Slate
-        'Yearly Grid Consumption (KVAh)': '#3b82f6'  # Executive Steel Blue
+        'CAPEX Solar Gen (KWh)': '#0d9488',         # Clean Teal
+        'OPEX Solar Gen (KWh)': '#64748b',          # Neutral Slate Gray
+        'Yearly Grid Consumption (KVAh)': '#0284c7'  # Executive Steel Blue
     },
-    template="plotly_dark"
+    template="plotly_white"
 )
 
-# Smooth hover templates and chart layout tweaks
+# Smooth hover details
 fig.update_traces(
     hovertemplate="<b>%{x}</b><br>%{fullData.name}: <b>%{y:,.0f}</b><extra></extra>"
 )
@@ -145,8 +152,8 @@ fig.update_traces(
 fig.update_layout(
     height=480,
     xaxis_tickangle=0,
-    paper_bgcolor='rgba(0,0,0,0)',
-    plot_bgcolor='rgba(0,0,0,0)',
+    paper_bgcolor='#f8fafc',
+    plot_bgcolor='#ffffff',
     legend=dict(
         orientation="h",
         yanchor="bottom",
@@ -155,12 +162,12 @@ fig.update_layout(
         x=1,
         title_text=""
     ),
-    font=dict(family="Inter, sans-serif", color="#e2e8f0")
+    font=dict(family="Inter, sans-serif", color="#1e293b", size=13)
 )
 
 st.plotly_chart(fig, use_container_width=True)
 
-# 6. Executive Summary Table
+# 6. Presentation Ledger Table
 st.markdown("---")
 st.subheader("📋 Operational Node Ledger")
 
