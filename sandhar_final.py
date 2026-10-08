@@ -13,9 +13,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- INITIAL STATE MANAGEMENT ---
+# --- INITIAL STATE MANAGEMENT (Authentication set to True by default) ---
 if "authenticated" not in st.session_state:
-    st.session_state["authenticated"] = False
+    st.session_state["authenticated"] = True
 
 if "chat_history" not in st.session_state:
     st.session_state["chat_history"] = [
@@ -101,7 +101,7 @@ if not st.session_state["authenticated"]:
         username = st.text_input("Matrix Operator Key", placeholder="Username ID")
         password = st.text_input("Access Authorization Token", type="password", placeholder="••••••••")
         if st.button("Initialize Energy Workspace", type="primary", use_container_width=True):
-            if username == "sandhar" and password == "telemetry2026":
+            if username.strip().lower() == "sandhar" and password.strip() == "telemetry2026":
                 st.session_state["authenticated"] = True
                 st.rerun()
             else:
@@ -160,9 +160,6 @@ df_fy27 = pd.read_csv(io.StringIO(fy27_csv.strip()))
 
 # --- SIDEBAR CONTROL PANEL ---
 st.sidebar.markdown("**Telemetry Link Stable**")
-if st.sidebar.button("Log Out Context"):
-    st.session_state["authenticated"] = False
-    st.rerun()
 
 st.sidebar.header("Application Pages")
 app_page = st.sidebar.radio("Navigate Workspace", ["Main Tracking Panel", "FY26-27 Analytics & Horizon Panel"])
