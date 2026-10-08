@@ -3,396 +3,184 @@ import pandas as pd
 import io
 import plotly.express as px
 import plotly.graph_objects as go
-import streamlit.components.v1 as components
-import folium
 
-# 1. Page Configuration
+# -----------------------------------------------------------------------------
+# 1. PAGE CONFIGURATION
+# -----------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Sandhar Energy Ecosystem Dashboard",
-    page_icon="🌱",
+    page_title="Sandhar Energy Management Portal",
+    page_icon="⚡",
     layout="wide"
 )
 
-# --- INITIAL STATE MANAGEMENT (Authentication set to True by default) ---
+# Bypass auth by default so app renders instantly
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = True
 
-if "chat_history" not in st.session_state:
-    st.session_state["chat_history"] = [
-        {"role": "assistant", "content": "Telemetry interface fully online. Ask me about your worst-performing locations, total carbon emissions, or request a complete summary."}
-    ]
-
-# PREMIUM CSS OVERLAYS
-if not st.session_state["authenticated"]:
-    st.markdown("""
-        <style>
-        .stApp {
-            background: #030712 !important;
-            overflow: hidden;
-        }
-        div[data-testid="stVerticalBlock"] > div:has(.auth-card-wrap) {
-            background: rgba(8, 14, 32, 0.65) !important;
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 24px;
-            padding: 40px !important;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7), inset 0 1px 2px rgba(255,255,255,0.1);
-            z-index: 10;
-            position: relative;
-            margin-top: 10px;
-        }
-        .portal-banner h2 {
-            color: #00ffcc !important;
-            font-weight: 800 !important;
-            text-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
-            letter-spacing: 0.5px;
-        }
-        .portal-banner p {
-            color: #94a3b8 !important;
-        }
-        label {
-            color: #cbd5e1 !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-else:
-    st.markdown("""
-        <style>
-        @keyframes smoothScaleUp {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .bubble-wrapper, .stExpander {
-            animation: smoothScaleUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-
-# 2. Portal Security Wall
-if not st.session_state["authenticated"]:
-    components.html("""
-        <div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#030712; overflow:hidden; z-index:-1; display:flex; justify-content:center; align-items:center;">
-            <div id="globeContainer" style="width:500px; height:500px;"></div>
-        </div>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-        <script>
-        const container = document.getElementById('globeContainer');
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
-        camera.position.z = 160;
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(500, 500);
-        container.appendChild(renderer.domElement);
-        const globeGroup = new THREE.Group();
-        scene.add(globeGroup);
-        const sphereGeo = new THREE.SphereGeometry(65, 30, 30);
-        const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x0ea5e9, wireframe: true, transparent: true, opacity: 0.15 });
-        globeGroup.add(new THREE.Mesh(sphereGeo, wireframeMat));
-        function animate() { requestAnimationFrame(animate); globeGroup.rotation.y += 0.004; renderer.render(scene, camera); }
-        animate();
-        </script>
-    """, height=510)
-
-    _, col_center, _ = st.columns([1, 1.3, 1])
-    with col_center:
-        st.markdown('<div class="auth-card-wrap"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="portal-banner" style="text-align: center; margin-bottom:20px;"><h2>🌱 Sandhar Energy Portal</h2><p>Ecosystem Identity Verification Matrix</p></div>', unsafe_allow_html=True)
-        username = st.text_input("Matrix Operator Key", placeholder="Username ID")
-        password = st.text_input("Access Authorization Token", type="password", placeholder="••••••••")
-        if st.button("Initialize Energy Workspace", type="primary", use_container_width=True):
-            if username.strip().lower() == "sandhar" and password.strip() == "telemetry2026":
-                st.session_state["authenticated"] = True
-                st.rerun()
-            else:
-                st.error("System access codes rejected.")
-    st.stop()
-
-# 3. Load Datasets
+# -----------------------------------------------------------------------------
+# 2. LOAD DATASET FROM NEW SHEET
+# -----------------------------------------------------------------------------
 @st.cache_data
-def load_energy_data_matrices():
-    master_csv = """vertical,unit,location,grid_mvah,capex_capacity,opex_capacity,replacement_pct,dg,mitigation,emission,capex_gen,opex_gen,lat,lon,unit_lost_inefficiency,generation_per_kwp,gen_kwp_27
-Automotive Business,SAG,Gurugram,2074.867,33,0,34,17386,515,1508,33.878,0.0,28.4595,77.0266,4933,2.81,3.16
-Plastic Business,SCD,Gurugram,2538.911,110,132,42,52045,772,1846,0.0,237.971,28.4595,77.0266,54539,1.93,2.92
-Sheet Metal & Allied Business,SEB,Gurugram,2955.38,50,300,12,0,265,2149,364.741,0.0,28.4595,77.0266,0,3.28,4.50
-Automotive Business,SAD,Gurugram,4614.016,138,218,34,43194,1139,3354,36.582,106.451,28.4595,77.0266,54909,2.86,3.88
-Casting Machining & Tooling Business,SCR,Gurugram,12081.709,50,0,30,5730,2653,8783,0.0,8.865,28.4595,77.0266,24938,2.79,4.02
-Casting Machining & Tooling Business,STPL,Gurugram,394.008,36,0,8,55432,24,286,0.0,33.266,28.4595,77.0266,0,2.20,4.56
-Casting Machining & Tooling Business,ACM,Gurugram,3249.812,127,0,22,2200,525,2363,0.0,122.96,28.4595,77.0266,51085,0.49,1.26
-Corp. Office,CORP,Gurugram,232.695,25,0,14,0,24,169,0.0,33.483,28.4595,77.0266,9898,2.53,3.46
-Corp. Office,SASPL,Tamil Nadu,159.629,0,0,41,0,48,116,0.0,66.246,11.1271,78.6569,29313,2.65,3.71
-Automotive Business,SHP,Rajasthan,881.47,400,262,60,13021,381,641,346.631,1779.14,27.0238,74.2179,113748,3.67,5.02
-Automotive Business,SAH,Uttarakhand,5657.6,251,129,5,66015,197,4113,104.663,166.675,30.0668,79.0193,167105,1.21,0.00
-Casting Machining & Tooling Business,SCH,Tamil Nadu,18864.562,0,0,53,0,7304,13715,3979.8,0.0,11.1271,78.6569,0,2.14,2.71
-Automotive Business,SIO,Tamil Nadu,1271.13,125,0,9,15220,81,924,110.985,0.0,11.1271,78.6569,0,2.70,5.20
-Casting Machining & Tooling Business,SCA,Karnataka,4232.325,115,0,59,1111,1825,3077,0.0,88.659,15.3173,75.7139,45077,2.79,2.38
-Automotive Business,SAB,Karnataka,1779.327,0,340,93,10120,1204,1294,442.802,0.0,15.3173,75.7139,0,2.31,4.90
-Sheet Metal & Allied Business,SCY,Karnataka,2695.544,0,634,33,0,642,1960,883.541,0.0,15.3173,75.7139,0,3.05,3.46
-Cabin & Fabrication Division,SIP,Pune,377.270,717,0,236,3490,648,274,891.451,0.0,18.5204,73.8567,13106,2.77,2.62
-Cabin & Fabrication Division,SIA,Karnataka,1506.093,115,0,2,6470,22,1095,0.0,29.61,15.3173,75.7139,39572,2.11,1.67
-Casting Machining & Tooling Business,SKC,Pune,1653.615,0,604,23,11891,277,1202,381.131,381.131,18.5204,73.8567,0,3.55,4.34
-Sheet Metal & Allied Business,SHN,Tamil Nadu,2079.137,0,624,19,15522,290,1512,398.942,0.0,11.1271,78.6569,0,3.66,4.34"""
-    
-    monthly_csv = """Month,SAG,SCD,SEB,SAD,SCR,STPL,ACM,CORP,SASPL,SHP,SAH,SCH,SIO,SCA,SAB,SCY,SIP,SIA,SKC,SHN
-April'25,3485,10249,17726,40557,15257,0,1264,3601,15245,3706,9800,31944,0,20850,0,39342,10218,12227,42814,86464
-May'25,3687,9419,17707,36932,14781,0,1190,2933,12851,3638,8940,32448,0,19683,0,37537,11909,11436,40013,82349
-June'25,3391,8710,15864,31688,13223,0,1018,3049,11281,2992,8220,28288,0,16839,0,35972,13190,10015,35427,61745
-July'25,2869,5484,14493,30147,12845,0,460,2646,8561,2909,4560,28240,25768,14725,0,32358,12390,8971,30837,62178
-Aug'25,2752,6140,13680,26324,11196,0,393,2053,6889,2635,4440,26032,29749,15949,0,31728,12157,7923,31711,65369
-September'25,2891,6060,13844,36867,14327,15410,611,2466,9763,3142,7860,29400,14113,24714,0,33104,11837,8969,33565,63908
-October'25,2250,7097,9495,26940,11282,14092,797,2779,10306,2723,7950,32049,16986,29842,11447,32291,9577,7854,35547,72851
-November'25,2340,5260,8922,19260,8443,13167,761,2297,10119,2048,5220,26651,14814,28687,12762,25974,8800,5768,30739,52266
-December'25,2280,2275,9758,23075,7946,9703,339,2202,7651,1998,5076,19608,13483,20253,9214,27711,8983,5155,35319,57275
-January'26,2412,2669,9791,26570,8569,8815,160,2349,6286,1998,4036,12138,17977,21261,9772,22537,7800,3233,36920,75108
-February'26,2412,5870,12243,28750,8867,12288,527,2961,10810,2577,0,22518,26434,26236,12536,25500,8688,3274,40764,78627
-March'26,2980,8118,14945,37631,13787,21774,1345,3750,13198,3110,0,24377,31963,15633,16825,30604,10728,3834,46710,89358"""
+def load_new_energy_matrix():
+    raw_csv = """Business Vertical,Unit Code,Contract Load (KVA),Capex (KWp),Opex (KWp),Open Access (KWp),Capex & Opex (KWh),Open Access (KWh),Yearly Grid Consumption (KVAh),Total Units Generation Green Energy (KWh),Green Energy Capacity (KWp)
+Automotive Business,SAD & SPB,1300,138,218,950,143033,1423100,5144314,1566133,1306
+Automotive Business,SAG & SEG & SRD,600,33,0,450,33878,674100,0,707978,483
+Automotive Business,SAH,1250,251,129,0,271338,0,6249956,271338,380
+Automotive Business,SAB,470,0,340,810,442802,1213380,2028994,1656182,1150
+Automotive Business,SAESPL,0,0,0,0,0,0,0,0,0
+Automotive Business,SAP,120,0,0,0,0,0,98516,0,0
+Automotive Business,SHP,800,400,262,0,524545,0,950145,524545,662
+Automotive Business,SAT,195,0,0,0,0,0,515518,0,0
+Sheet Metal & Allied Business,SEB & SAESPL,800,50,300,0,364741,0,2940138,364741,350
+Sheet Metal & Allied Business,SCK,950,0,0,1222,0,1830556,3089595,1830556,1222
+Sheet Metal & Allied Business,SCY,750,0,634,0,883541,0,2689597,883541,634
+Sheet Metal & Allied Business,SEK / SMA-PLT / MFG,1600,0,0,2434,0,3646132,5170330,3646132,2434
+Sheet Metal & Allied Business,SMD,99,0,0,0,0,0,308388,0,0
+Sheet Metal & Allied Business,SEH / SCG,400,0,0,0,0,0,891140,0,427
+Sheet Metal & Allied Business,SMN,80,0,0,0,0,0,139210,0,0
+Sheet Metal & Allied Business,SMO,0,0,0,0,23029,0,1641744,23029,0
+Sheet Metal & Allied Business,SHN / SCN,650,0,624,0,398942,0,2257322,398942,624
+Casting Machining & Tooling Business,ACM (SCM),650,127,0,400,122960,599200,3419576,722160,527
+Casting Machining & Tooling Business,ACR (SCR),2100,50,0,2430,8865,3640140,12040981,3649005,2480
+Casting Machining & Tooling Business,ATPL (STPL),205,36,0,0,33266,0,453030,33266,36
+Casting Machining & Tooling Business,SMK,900,0,0,1617,0,2422266,3882610,2422266,1617
+Casting Machining & Tooling Business,ACA (SCA),600,115,0,1617,88659,2422266,3652400,2510925,1732
+Casting Machining & Tooling Business,SKC,560,0,604,0,381131,0,2022556,381131,604
+Casting Machining & Tooling Business,SMT,1200,0,0,1765,0,2643970,5110672,2643970,1765
+Casting Machining & Tooling Business,ADH (SCH),2400,0,336,3795,1434144,5684910,13731825,7119054,4131
+Casting Machining & Tooling Business,ACO (SCO),1000,0,0,850,0,1273300,274368,1273300,850
+Casting Machining & Tooling Business,ACH,3500,0,0,4050,3979800,6066900,18864562,10046700,6998
+Cabin & Fabrication Division,SIA,550,115,0,0,29610,0,1997840,29610,115
+Cabin & Fabrication Division,SID,750,0,0,0,0,0,1568476,0,0
+Cabin & Fabrication Division,SIP,650,0,717,0,891451,0,191883,891451,717
+Cabin & Fabrication Division,SIJ,800,0,0,0,0,0,3132454,0,0
+Cabin & Fabrication Division,SIO,600,0,125,0,110985,0,150803,110985,125
+Corp. Office,CORP,310,25,0,0,33483,0,245015,33483,25
+Corp. Office,SASPL,250,150,0,0,66246,0,157164,66246,150
+Joint Venture Business,JSW,0,0,0,0,0,0,102080,0,0
+Joint Venture Business,SHG / SHT,301,0,0,0,0,0,533451,0,0
+Joint Venture Business,SHA,50,0,0,0,0,0,48971,0,0
+Joint Venture Business,JWS,0,0,0,0,0,0,101507,0,0
+Joint Venture Business,SAM,350,0,0,0,0,0,490180,0,0
+Joint Venture Business,SHC,360,0,0,0,0,0,792536,0,0
+Plastic Business,SCD,600,0,550,0,237971,823900,2664678,1061871,792
+"""
+    return pd.read_csv(io.StringIO(raw_csv.strip()))
 
-    df_m = pd.read_csv(io.StringIO(master_csv.strip()))
-    df_t = pd.read_csv(io.StringIO(monthly_csv.strip()))
-    return df_m, df_t
+df = load_new_energy_matrix()
 
-df_master, df_monthly = load_energy_data_matrices()
+# Calculate CAPEX and OPEX Generations explicitly from capacity proportions
+df['Capex_Gen_kWh'] = df.apply(
+    lambda r: (r['Capex (KWp)'] / (r['Capex (KWp)'] + r['Opex (KWp)'])) * r['Capex & Opex (KWh)'] 
+    if (r['Capex (KWp)'] + r['Opex (KWp)']) > 0 else 0, axis=1
+)
+df['Opex_Gen_kWh'] = df['Capex & Opex (KWh)'] - df['Capex_Gen_kWh']
 
-fy27_csv = """Month,SAG,SCD,SEB,SAD,SCR,STPL,ACM,CORP,SASPL,SHP,SAH,SCH,SIO,SCA,SAB,SCY,SIP,SIA,SKC,SHN
-April'26,3245,9079,16958,40627,16232,27557,1742,3696,14271,3704,0,31789,38692,17552,18763,35156,10373,5437,44884,85838
-May'26,3120,10500,19259,42113,17607,29168,2089,3900,14504,3946,0,34594,44353,18785,19767,35751,9605,6270,45175,81833"""
-df_fy27 = pd.read_csv(io.StringIO(fy27_csv.strip()))
-
-# --- SIDEBAR CONTROL PANEL ---
-st.sidebar.markdown("**Telemetry Link Stable**")
-
-st.sidebar.header("Application Pages")
-app_page = st.sidebar.radio("Navigate Workspace", ["Main Tracking Panel", "FY26-27 Analytics & Horizon Panel"])
-
-# ================= PAGE 2: ANALYTICS PANEL =================
-if app_page == "FY26-27 Analytics & Horizon Panel":
-    st.title("FY26-27 Next Horizon Engine")
-    st.caption("Active forecasting layers parsed from incoming spreadsheets.")
-    st.markdown("---")
-    
-    st.subheader("Infrastructure Node Matrix Evaluation Ledger (FY26-27 Data Metrics)")
-    for idx, row in df_master.iterrows():
-        unit_code = str(row['unit']).strip()
-        apr_series = df_fy27.loc[df_fy27['Month'] == "April'26", unit_code].values
-        may_series = df_fy27.loc[df_fy27['Month'] == "May'26", unit_code].values
-        apr_val = apr_series[0] if len(apr_series) > 0 else 0
-        may_val = may_series[0] if len(may_series) > 0 else 0
-        
-        with st.expander(f"Node Layer [{unit_code}] — Horizon Status Analysis"):
-            col_a, col_b, col_c = st.columns(3)
-            col_a.metric("April'26 Yield Log", f"{int(apr_val):,} kWh")
-            col_b.metric("May'26 Yield Log", f"{int(may_val):,} kWh")
-            
-            y_ratio27 = float(row['gen_kwp_27'])
-            if y_ratio27 > 3.0:
-                col_c.markdown(f"**Generation per KWP**<br><span style='color:#10b981; font-size:24px; font-weight:bold;'>🟢 {y_ratio27} Yield</span>", unsafe_allow_html=True)
-            else:
-                col_c.markdown(f"**Generation per KWP**<br><span style='color:#ef4444; font-size:24px; font-weight:bold;'>🔴 {y_ratio27} Yield</span>", unsafe_allow_html=True)
-    st.stop()
-
-# ================= PAGE 1: MAIN TRACKING PANEL =================
-st.sidebar.header("Selection Filters")
+# -----------------------------------------------------------------------------
+# 3. SIDEBAR CONTROLS
+# -----------------------------------------------------------------------------
+st.sidebar.title("⚡ Navigation & Filters")
 selected_vertical = st.sidebar.selectbox(
-    "Business Segment", 
-    ["All Segments", "Average Plant Average YTD"] + list(df_master['vertical'].unique()), 
-    key="main_vert"
+    "Select Business Vertical",
+    ["All Verticals"] + list(df['Business Vertical'].unique())
 )
 
-if selected_vertical == "All Segments" or selected_vertical == "Average Plant Average YTD":
-    df_filtered = df_master.copy()
+if selected_vertical != "All Verticals":
+    filtered_df = df[df['Business Vertical'] == selected_vertical].copy()
 else:
-    df_filtered = df_master[df_master['vertical'] == selected_vertical].copy()
+    filtered_df = df.copy()
 
-target_month = st.sidebar.select_slider("Select Target Tracking Month (FY25-26)", options=list(df_monthly['Month']))
+# Remove aggregate zero-rows for cleaner charts
+filtered_df = filtered_df[filtered_df['Unit Code'].str.contains("Total") == False]
 
-# 1. BUBBLE KPI CARDS
-total_grid = df_filtered['grid_mvah'].sum()
-total_mit = df_filtered['mitigation'].sum()
-total_emi = df_filtered['emission'].sum()
+# -----------------------------------------------------------------------------
+# 4. DASHBOARD HEADER & KPI CARDS
+# -----------------------------------------------------------------------------
+st.title("🌱 Sandhar Group - Energy Generation & Grid Sourcing Matrix")
+st.caption("Live comparison showing CAPEX Generation, OPEX Generation, and Yearly Grid Sourcing across plant nodes.")
 
-st.markdown("### Metrics Summary Grid")
-col_metric_1, col_metric_2, col_metric_3 = st.columns(3)
-col_metric_1.metric("Total Grid Sourced", f"{total_grid:,.1f} MVAh")
-col_metric_2.metric("Carbon Offset", f"{int(total_mit):,} MT CO₂")
-col_metric_3.metric("Gross Footprint", f"{int(total_emi):,} MT CO₂")
+kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+kpi1.metric("Total Grid Sourced", f"{filtered_df['Yearly Grid Consumption (KVAh)'].sum():,.0f} KVAh")
+kpi2.metric("Total Green Energy", f"{filtered_df['Total Units Generation Green Energy (KWh)'].sum():,.0f} KWh")
+kpi3.metric("CAPEX & OPEX Generation", f"{filtered_df['Capex & Opex (KWh)'].sum():,.0f} KWh")
+kpi4.metric("Open Access Green Power", f"{filtered_df['Open Access (KWh)'].sum():,.0f} KWh")
 
-st.markdown("---")
+st.divider()
 
-# 2. DYNAMIC VISUALIZATION GRAPH BLOCK WITH AVERAGES
-st.subheader("Dynamic Environmental Performance & Fleet Generation Metrics")
-col_g1, col_g2 = st.columns(2)
+# -----------------------------------------------------------------------------
+# 5. MAIN GRAPH: CAPEX VS OPEX VS GRID CONSUMPTION COMPARISON
+# -----------------------------------------------------------------------------
+st.subheader("📊 Plant-Wise Comparison: CAPEX Gen vs OPEX Gen vs Grid Consumption")
 
-with col_g1:
-    fig_bar = px.bar(
-        df_filtered, 
-        x='unit', 
-        y=['mitigation', 'emission'],
-        barmode='group',
-        title="Carbon Offset (Mitigation) vs Gross Footprint",
-        labels={'value': 'Metric Tons (CO₂)', 'unit': 'Plant Node Code'},
-        color_discrete_sequence=['#10b981', '#ef4444']
-    )
-    avg_mitigation = df_filtered['mitigation'].mean()
-    avg_emission = df_filtered['emission'].mean()
-    fig_bar.add_hline(y=avg_mitigation, line_dash="dash", line_color="#10b981", annotation_text=f"Avg Mitigation ({int(avg_mitigation)})", annotation_position="top left")
-    fig_bar.add_hline(y=avg_emission, line_dash="dash", line_color="#ef4444", annotation_text=f"Avg Emission ({int(avg_emission)})", annotation_position="top right")
-    fig_bar.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', legend_title_text='Metrics')
-    st.plotly_chart(fig_bar, use_container_width=True)
+# Reshape data into long format for grouped Plotly bar chart
+chart_df = filtered_df.melt(
+    id_vars=['Unit Code', 'Business Vertical'],
+    value_vars=['Capex_Gen_kWh', 'Opex_Gen_kWh', 'Yearly Grid Consumption (KVAh)'],
+    var_name='Energy Source',
+    value_name='Energy (KWh/KVAh)'
+)
 
-with col_g2:
-    fig_scatter = px.scatter(
-        df_filtered,
-        x='grid_mvah',
-        y='generation_per_kwp',
-        size='unit_lost_inefficiency',
-        color='vertical',
-        hover_name='unit',
-        title='Generation Ratio vs Grid Sourcing',
-        labels={'grid_mvah': 'Grid Sourced (MVAh)', 'generation_per_kwp': 'Gen/KWP Ratio'}
-    )
-    avg_gen_kwp = df_filtered['generation_per_kwp'].mean()
-    fig_scatter.add_hline(y=avg_gen_kwp, line_dash="dot", line_color="#cbd5e1", annotation_text=f"Avg Gen Ratio ({avg_gen_kwp:.2f})")
-    fig_scatter.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
-    st.plotly_chart(fig_scatter, use_container_width=True)
+# Clean labels for chart legend
+label_map = {
+    'Capex_Gen_kWh': 'CAPEX Solar Gen (KWh)',
+    'Opex_Gen_kWh': 'OPEX Solar Gen (KWh)',
+    'Yearly Grid Consumption (KVAh)': 'Yearly Grid Consumption (KVAh)'
+}
+chart_df['Energy Source'] = chart_df['Energy Source'].map(label_map)
 
-st.markdown("---")
+fig_grouped = px.bar(
+    chart_df,
+    x='Unit Code',
+    y='Energy (KWh/KVAh)',
+    color='Energy Source',
+    barmode='group',
+    title=f"Energy Profile Comparison across Plants ({selected_vertical})",
+    labels={'Unit Code': 'Plant Node Code', 'Energy (KWh/KVAh)': 'Energy Volume'},
+    color_discrete_map={
+        'CAPEX Solar Gen (KWh)': '#10b981',
+        'OPEX Solar Gen (KWh)': '#3b82f6',
+        'Yearly Grid Consumption (KVAh)': '#ef4444'
+    },
+    template="plotly_dark"
+)
 
-# 3. MONTHLY ENERGY MATRIX TREND TRACKING WITH BOTH AVGS INTEGRATED
-st.subheader("📈 Interactive Timeline Matrix: Monthly Generation Profile (FY25-26)")
-active_nodes = list(df_filtered['unit'].unique())
-available_nodes = [col for col in df_monthly.columns if col in active_nodes]
+fig_grouped.update_layout(
+    xaxis_tickangle=-45,
+    height=550,
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+)
 
-if available_nodes:
-    df_melted_monthly = df_monthly.melt(
-        id_vars=["Month"],
-        value_vars=available_nodes,
-        var_name="Plant Node",
-        value_name="Generation Output (kWh)"
-    )
-    
-    # Base Line Chart
-    fig_line = px.line(
-        df_melted_monthly,
-        x="Month",
-        y="Generation Output (kWh)",
-        color="Plant Node",
-        markers=True,
-        title="Monthly Energy Generation Tracker",
-        template="plotly_dark"
-    )
-    
-    # 1. SEGMENT AVERAGE LINE (Dynamic changing path over months)
-    segment_mean_series = df_monthly[available_nodes].mean(axis=1)
-    fig_line.add_trace(go.Scatter(
-        x=df_monthly["Month"],
-        y=segment_mean_series,
-        mode="lines+markers",
-        name="Segment Average",
-        line=dict(color="#00ffcc", width=4, dash="dash"),
-        marker=dict(symbol="diamond", size=8),
-        showlegend=True
-    ))
-    
-    # 2. AVERAGE PLANT AVERAGE YTD LINE (Flat static master baseline)
-    all_plants_yearly_ytd_mean = df_monthly[available_nodes].mean().mean()
-    fig_line.add_trace(go.Scatter(
-        x=df_monthly["Month"],
-        y=[all_plants_yearly_ytd_mean] * len(df_monthly),
-        mode="lines",
-        name="Average Plant Average YTD",
-        line=dict(color="#f43f5e", width=4, dash="dashdot"),
-        showlegend=True
-    ))
-    
-    # Split Layout: Graph on left (3/4 width), Sorted text table on right (1/4 width)
-    col_chart, col_legend = st.columns([3, 1])
-    with col_chart:
-        fig_line.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
-        st.plotly_chart(fig_line, use_container_width=True)
-        
-    with col_legend:
-        st.markdown("##### Yearly Plant Averages")
-        st.metric("Master YTD Average", f"{int(all_plants_yearly_ytd_mean):,} kWh")
-        
-        # Displays individual plant averages neatly on the side so lines don't stack up
-        plant_averages = df_monthly[available_nodes].mean().to_dict()
-        df_summary_avg = pd.DataFrame(list(plant_averages.items()), columns=["Plant Node", "Yearly Avg (kWh)"])
-        df_summary_avg["Yearly Avg (kWh)"] = df_summary_avg["Yearly Avg (kWh)"].apply(lambda x: f"{int(x):,}")
-        st.dataframe(df_summary_avg.sort_values(by="Plant Node"), hide_index=True, use_container_width=True)
-else:
-    st.warning("No operational assets found for this chosen configuration.")
+st.plotly_chart(fig_grouped, use_container_width=True)
 
-st.markdown("---")
+st.divider()
 
-# 4. INTERACTIVE FOLLIUM MAP EMBED
-st.subheader("Enterprise Infrastructure Geolocation Node Overlay")
-if not df_filtered.empty:
-    avg_lat = df_filtered['lat'].mean()
-    avg_lon = df_filtered['lon'].mean()
-    m = folium.Map(location=[avg_lat, avg_lon], zoom_start=5, tiles="CartoDB positron")
-    
-    for _, marker_row in df_filtered.iterrows():
-        popup_html = f"<strong>Node Code:</strong> {marker_row['unit']}<br><strong>Green Shift:</strong> {marker_row['replacement_pct']}%"
-        icon_color = "green" if float(marker_row['generation_per_kwp']) > 3.0 else "red"
-        folium.Marker(
-            location=[marker_row['lat'], marker_row['lon']],
-            popup=folium.Popup(popup_html, max_width=250),
-            icon=folium.Icon(color=icon_color, icon="bolt", prefix="fa")
-        ).add_to(m)
-    components.html(m._repr_html_(), height=480, scrolling=True)
+# -----------------------------------------------------------------------------
+# 6. DETAILED DATA LEDGER TABLE
+# -----------------------------------------------------------------------------
+st.subheader("📋 Operational Node Energy Ledger")
 
-st.markdown("---")
+display_cols = [
+    'Business Vertical', 'Unit Code', 'Contract Load (KVA)', 
+    'Capex_Gen_kWh', 'Opex_Gen_kWh', 'Open Access (KWh)', 
+    'Yearly Grid Consumption (KVAh)', 'Total Units Generation Green Energy (KWh)'
+]
 
-# 5. LIVE INTERACTIVE CHAT ASSISTANT CORE
-st.subheader("Interactive Live Data Chat Assistant")
-def evaluate_live_query(user_query, target_data):
-    raw = user_query.strip().lower()
-    if "worst" in raw or "inefficient" in raw:
-        worst_row = target_data.loc[target_data['unit_lost_inefficiency'].idxmax()]
-        return f"Node **{worst_row['unit']}** has lost **{int(worst_row['unit_lost_inefficiency']):,} units** to inefficiencies."
-    elif "highest" in raw or "best" in raw:
-        best_row = target_data.loc[target_data['generation_per_kwp'].idxmax()]
-        return f"Node **{best_row['unit']}** leads with a Gen/KWP ratio of **{best_row['generation_per_kwp']}**."
-    return "Try asking about **'worst plant'** or **'highest efficiency'**."
+table_df = filtered_df[display_cols].copy()
+table_df.columns = [
+    'Vertical', 'Node', 'Contract (KVA)', 
+    'CAPEX Gen (KWh)', 'OPEX Gen (KWh)', 'Open Access (KWh)', 
+    'Grid Consumption (KVAh)', 'Total Green Units (KWh)'
+]
 
-chat_box = st.container(height=200)
-with chat_box:
-    for message in st.session_state["chat_history"]:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-with st.form(key="telemetry_chat_form", clear_on_submit=True):
-    user_text = st.text_input("Query Entry:", placeholder="Type query here...")
-    submitted = st.form_submit_button("Ask Node Engine", use_container_width=True)
-
-if submitted and user_text:
-    st.session_state["chat_history"].append({"role": "user", "content": user_text})
-    st.session_state["chat_history"].append({"role": "assistant", "content": evaluate_live_query(user_text, df_filtered)})
-    st.rerun()
-
-st.markdown("---")
-
-# 6. PLANT DETAILS LEDGER
-st.subheader("Operational Node Ledger Details")
-for idx, row in df_filtered.iterrows():
-    unit_string = str(row['unit']).strip()
-    current_mon_val = 0
-    if unit_string in df_monthly.columns:
-        matching_rows = df_monthly.loc[df_monthly['Month'] == target_month, unit_string].values
-        if len(matching_rows) > 0:
-            current_mon_val = matching_rows[0]
-            
-    card_title = f"[{row['unit']}] {row['location']} — {target_month}: {int(current_mon_val):,} Units"
-    with st.expander(card_title):
-        col_f1, col_f2, col_f3, col_f4 = st.columns(4)
-        col_f1.metric("Yearly Grid Sourcing", f"{row['grid_mvah']:,.2f} MVAh")
-        col_f2.metric("Green Shift", f"{row['replacement_pct']}%")
-        col_f3.metric("Diesel (DG)", f"{int(row['dg']):,} L")
-        col_f4.metric("Gen/KWP Ratio", f"{row['generation_per_kwp']}")
-        
-        st.markdown("<div style='margin-top: 12px;'></div>", unsafe_allow_html=True)
-        col_s1, col_s2, col_s3, col_s4 = st.columns(4)
-        col_s1.metric("CAPEX/OPEX Capacity", f"{int(row['capex_capacity'])}/{int(row['opex_capacity'])} kWp")
-        col_s2.metric("CAPEX Gen", f"{row['capex_gen']:,.2f} MWh")
-        col_s3.metric("OPEX Gen", f"{row['opex_gen']:,.2f} MWh")
-        col_s4.metric("Lost Units", f"{int(row['unit_lost_inefficiency']):,}")
+st.dataframe(
+    table_df.style.format({
+        'Contract (KVA)': '{:,.0f}',
+        'CAPEX Gen (KWh)': '{:,.0f}',
+        'OPEX Gen (KWh)': '{:,.0f}',
+        'Open Access (KWh)': '{:,.0f}',
+        'Grid Consumption (KVAh)': '{:,.0f}',
+        'Total Green Units (KWh)': '{:,.0f}'
+    }),
+    use_container_width=True,
+    hide_index=True
+)
