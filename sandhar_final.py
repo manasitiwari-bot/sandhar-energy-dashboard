@@ -2,27 +2,16 @@ import streamlit as st
 import pandas as pd
 import io
 import plotly.express as px
-import plotly.graph_objects as go
 
-# -----------------------------------------------------------------------------
-# 1. PAGE CONFIGURATION
-# -----------------------------------------------------------------------------
+# 1. Page Configuration
 st.set_page_config(
-    page_title="Sandhar Energy Management Portal",
+    page_title="Sandhar Energy Ecosystem Dashboard",
     page_icon="⚡",
     layout="wide"
 )
 
-# Bypass auth by default so app renders instantly
-if "authenticated" not in st.session_state:
-    st.session_state["authenticated"] = True
-
-# -----------------------------------------------------------------------------
-# 2. LOAD DATASET FROM NEW SHEET
-# -----------------------------------------------------------------------------
-@st.cache_data
-def load_new_energy_matrix():
-    raw_csv = """Business Vertical,Unit Code,Contract Load (KVA),Capex (KWp),Opex (KWp),Open Access (KWp),Capex & Opex (KWh),Open Access (KWh),Yearly Grid Consumption (KVAh),Total Units Generation Green Energy (KWh),Green Energy Capacity (KWp)
+# 2. Raw Dataset Embed
+raw_csv = """Business Vertical,Unit Code,Contract Load (KVA),Capex (KWp),Opex (KWp),Open Access (KWp),Capex & Opex (KWh),Open Access (KWh),Yearly Grid Consumption (KVAh),Total Units Generation Green Energy (KWh),Green Energy Capacity (KWp)
 Automotive Business,SAD & SPB,1300,138,218,950,143033,1423100,5144314,1566133,1306
 Automotive Business,SAG & SEG & SRD,600,33,0,450,33878,674100,0,707978,483
 Automotive Business,SAH,1250,251,129,0,271338,0,6249956,271338,380
@@ -65,122 +54,67 @@ Joint Venture Business,SAM,350,0,0,0,0,0,490180,0,0
 Joint Venture Business,SHC,360,0,0,0,0,0,792536,0,0
 Plastic Business,SCD,600,0,550,0,237971,823900,2664678,1061871,792
 """
-    return pd.read_csv(io.StringIO(raw_csv.strip()))
 
-df = load_new_energy_matrix()
+df = pd.read_csv(io.StringIO(raw_csv.strip()))
 
-# Calculate CAPEX and OPEX Generations explicitly from capacity proportions
-df['Capex_Gen_kWh'] = df.apply(
+# Split CAPEX and OPEX Generation ratios
+df['CAPEX Solar Gen (KWh)'] = df.apply(
     lambda r: (r['Capex (KWp)'] / (r['Capex (KWp)'] + r['Opex (KWp)'])) * r['Capex & Opex (KWh)'] 
     if (r['Capex (KWp)'] + r['Opex (KWp)']) > 0 else 0, axis=1
 )
-df['Opex_Gen_kWh'] = df['Capex & Opex (KWh)'] - df['Capex_Gen_kWh']
+df['OPEX Solar Gen (KWh)'] = df['Capex & Opex (KWh)'] - df['CAPEX Solar Gen (KWh)']
 
-# -----------------------------------------------------------------------------
-# 3. SIDEBAR CONTROLS
-# -----------------------------------------------------------------------------
-st.sidebar.title("⚡ Navigation & Filters")
-selected_vertical = st.sidebar.selectbox(
-    "Select Business Vertical",
-    ["All Verticals"] + list(df['Business Vertical'].unique())
-)
+# 3. Sidebar Filter
+st.sidebar.header("Filter Segment")
+vertical = st.sidebar.selectbox("Business Segment", ["All Segments"] + list(df['Business Vertical'].unique()))
 
-if selected_vertical != "All Verticals":
-    filtered_df = df[df['Business Vertical'] == selected_vertical].copy()
-else:
-    filtered_df = df.copy()
+filtered_df = df if vertical == "All Segments" else df[df['Business Vertical'] == vertical]
 
-# Remove aggregate zero-rows for cleaner charts
-filtered_df = filtered_df[filtered_df['Unit Code'].str.contains("Total") == False]
+# 4. Header & Top Metrics
+st.title("⚡ Sandhar Energy Management Portal")
+st.markdown("### 📊 Enterprise Energy Metrics Summary")
 
-# -----------------------------------------------------------------------------
-# 4. DASHBOARD HEADER & KPI CARDS
-# -----------------------------------------------------------------------------
-st.title("🌱 Sandhar Group - Energy Generation & Grid Sourcing Matrix")
-st.caption("Live comparison showing CAPEX Generation, OPEX Generation, and Yearly Grid Sourcing across plant nodes.")
+col1, col2, col3 = st.columns(3)
+col1.metric("Grid Consumption", f"{filtered_df['Yearly Grid Consumption (KVAh)'].sum():,.0f} KVAh")
+col2.metric("CAPEX + OPEX Solar Gen", f"{filtered_df['Capex & Opex (KWh)'].sum():,.0f} KWh")
+col3.metric("Open Access Green Energy", f"{filtered_df['Open Access (KWh)'].sum():,.0f} KWh")
 
-kpi1, kpi2, kpi3, kpi4 = st.columns(4)
-kpi1.metric("Total Grid Sourced", f"{filtered_df['Yearly Grid Consumption (KVAh)'].sum():,.0f} KVAh")
-kpi2.metric("Total Green Energy", f"{filtered_df['Total Units Generation Green Energy (KWh)'].sum():,.0f} KWh")
-kpi3.metric("CAPEX & OPEX Generation", f"{filtered_df['Capex & Opex (KWh)'].sum():,.0f} KWh")
-kpi4.metric("Open Access Green Power", f"{filtered_df['Open Access (KWh)'].sum():,.0f} KWh")
+st.markdown("---")
 
-st.divider()
-
-# -----------------------------------------------------------------------------
-# 5. MAIN GRAPH: CAPEX VS OPEX VS GRID CONSUMPTION COMPARISON
-# -----------------------------------------------------------------------------
+# 5. Side-by-Side Comparison Graph (Green, Blue, Amber Palette)
 st.subheader("📊 Plant-Wise Comparison: CAPEX Gen vs OPEX Gen vs Grid Consumption")
 
-# Reshape data into long format for grouped Plotly bar chart
 chart_df = filtered_df.melt(
-    id_vars=['Unit Code', 'Business Vertical'],
-    value_vars=['Capex_Gen_kWh', 'Opex_Gen_kWh', 'Yearly Grid Consumption (KVAh)'],
-    var_name='Energy Source',
-    value_name='Energy (KWh/KVAh)'
+    id_vars=['Unit Code'],
+    value_vars=['CAPEX Solar Gen (KWh)', 'OPEX Solar Gen (KWh)', 'Yearly Grid Consumption (KVAh)'],
+    var_name='Energy Stream',
+    value_name='Volume'
 )
 
-# Clean labels for chart legend
-label_map = {
-    'Capex_Gen_kWh': 'CAPEX Solar Gen (KWh)',
-    'Opex_Gen_kWh': 'OPEX Solar Gen (KWh)',
-    'Yearly Grid Consumption (KVAh)': 'Yearly Grid Consumption (KVAh)'
-}
-chart_df['Energy Source'] = chart_df['Energy Source'].map(label_map)
-
-fig_grouped = px.bar(
+fig = px.bar(
     chart_df,
     x='Unit Code',
-    y='Energy (KWh/KVAh)',
-    color='Energy Source',
+    y='Volume',
+    color='Energy Stream',
     barmode='group',
-    title=f"Energy Profile Comparison across Plants ({selected_vertical})",
-    labels={'Unit Code': 'Plant Node Code', 'Energy (KWh/KVAh)': 'Energy Volume'},
+    title="Comparison per Operational Unit",
+    labels={'Unit Code': 'Plant Node Code', 'Volume': 'Units (KWh / KVAh)'},
     color_discrete_map={
-        'CAPEX Solar Gen (KWh)': '#10b981',
-        'OPEX Solar Gen (KWh)': '#3b82f6',
-        'Yearly Grid Consumption (KVAh)': '#ef4444'
+        'CAPEX Solar Gen (KWh)': '#10b981',        # Emerald Green
+        'OPEX Solar Gen (KWh)': '#3b82f6',         # Royal Blue
+        'Yearly Grid Consumption (KVAh)': '#f59e0b' # Warm Amber (No red)
     },
     template="plotly_dark"
 )
 
-fig_grouped.update_layout(
-    xaxis_tickangle=-45,
-    height=550,
-    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-)
+fig.update_layout(height=520, xaxis_tickangle=-45)
+st.plotly_chart(fig, use_container_width=True)
 
-st.plotly_chart(fig_grouped, use_container_width=True)
-
-st.divider()
-
-# -----------------------------------------------------------------------------
-# 6. DETAILED DATA LEDGER TABLE
-# -----------------------------------------------------------------------------
-st.subheader("📋 Operational Node Energy Ledger")
-
-display_cols = [
-    'Business Vertical', 'Unit Code', 'Contract Load (KVA)', 
-    'Capex_Gen_kWh', 'Opex_Gen_kWh', 'Open Access (KWh)', 
-    'Yearly Grid Consumption (KVAh)', 'Total Units Generation Green Energy (KWh)'
-]
-
-table_df = filtered_df[display_cols].copy()
-table_df.columns = [
-    'Vertical', 'Node', 'Contract (KVA)', 
-    'CAPEX Gen (KWh)', 'OPEX Gen (KWh)', 'Open Access (KWh)', 
-    'Grid Consumption (KVAh)', 'Total Green Units (KWh)'
-]
-
+# 6. Simple Ledger Table
+st.markdown("---")
+st.subheader("📋 Plant Ledger")
 st.dataframe(
-    table_df.style.format({
-        'Contract (KVA)': '{:,.0f}',
-        'CAPEX Gen (KWh)': '{:,.0f}',
-        'OPEX Gen (KWh)': '{:,.0f}',
-        'Open Access (KWh)': '{:,.0f}',
-        'Grid Consumption (KVAh)': '{:,.0f}',
-        'Total Green Units (KWh)': '{:,.0f}'
-    }),
+    filtered_df[['Business Vertical', 'Unit Code', 'CAPEX Solar Gen (KWh)', 'OPEX Solar Gen (KWh)', 'Yearly Grid Consumption (KVAh)']],
     use_container_width=True,
     hide_index=True
 )
