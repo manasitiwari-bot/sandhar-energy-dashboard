@@ -41,7 +41,7 @@ col3.metric("Open Access Green Energy", f"{df['Open Access (KWh)'].sum():,.0f} K
 
 st.markdown("---")
 
-# 4. Plant Comparison Graph (Clean & Professional Colors)
+# 4. Plant Comparison Graph (Executive Palette: Blue, Green, Violet)
 st.subheader("📊 Automotive Plants: CAPEX Gen vs OPEX Gen vs Grid Consumption")
 
 chart_df = df.melt(
@@ -60,9 +60,9 @@ fig = px.bar(
     title="Energy Comparison per Operational Unit",
     labels={'Unit Code': 'Plant Node Code', 'Volume': 'Units (KWh / KVAh)'},
     color_discrete_map={
-        'CAPEX Solar Gen (KWh)': '#3B82F6',        # Slate Blue
-        'OPEX Solar Gen (KWh)': '#10B981',         # Mint Teal
-        'Yearly Grid Consumption (KVAh)': '#F59E0B' # Warm Amber
+        'CAPEX Solar Gen (KWh)': '#059669',        # Emerald Green
+        'OPEX Solar Gen (KWh)': '#7C3AED',         # Purple / Violet
+        'Yearly Grid Consumption (KVAh)': '#2563EB' # Royal / Deep Blue
     },
     template="plotly_dark"
 )
