@@ -64,9 +64,10 @@ df['CAPEX Solar Gen (KWh)'] = df.apply(
 )
 df['OPEX Solar Gen (KWh)'] = df['Capex & Opex (KWh)'] - df['CAPEX Solar Gen (KWh)']
 
-# 3. Sidebar Filter
-st.sidebar.header("Filter Segment")
+# 3. Sidebar Controls & High Visibility Toggle
+st.sidebar.header("🕹️ Controls")
 vertical = st.sidebar.selectbox("Business Segment", ["All Segments"] + list(df['Business Vertical'].unique()))
+use_log_scale = st.sidebar.checkbox("🔍 Enable Logarithmic Scale (Makes small CAPEX/OPEX bars visible)", value=True)
 
 filtered_df = df if vertical == "All Segments" else df[df['Business Vertical'] == vertical]
 
@@ -81,8 +82,8 @@ col3.metric("Open Access Green Energy", f"{filtered_df['Open Access (KWh)'].sum(
 
 st.markdown("---")
 
-# 5. Side-by-Side Comparison Graph (Green, Blue, Amber Palette)
-st.subheader("📊 Plant-Wise Comparison: CAPEX Gen vs OPEX Gen vs Grid Consumption")
+# 5. Side-by-Side High Contrast Comparison Graph
+st.subheader("📊 Plant-Wise Comparison: High Visibility CAPEX Gen vs OPEX Gen vs Grid Consumption")
 
 chart_df = filtered_df.melt(
     id_vars=['Unit Code'],
@@ -100,14 +101,20 @@ fig = px.bar(
     title="Comparison per Operational Unit",
     labels={'Unit Code': 'Plant Node Code', 'Volume': 'Units (KWh / KVAh)'},
     color_discrete_map={
-        'CAPEX Solar Gen (KWh)': '#10b981',        # Emerald Green
-        'OPEX Solar Gen (KWh)': '#3b82f6',         # Royal Blue
-        'Yearly Grid Consumption (KVAh)': '#f59e0b' # Warm Amber (No red)
+        'CAPEX Solar Gen (KWh)': '#00FF66',        # Neon Green (High Contrast)
+        'OPEX Solar Gen (KWh)': '#00E5FF',         # Bright Cyan (High Contrast)
+        'Yearly Grid Consumption (KVAh)': '#FF9900' # Bright Amber/Orange
     },
+    log_y=use_log_scale,
     template="plotly_dark"
 )
 
-fig.update_layout(height=520, xaxis_tickangle=-45)
+fig.update_layout(
+    height=550, 
+    xaxis_tickangle=-45,
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+)
+
 st.plotly_chart(fig, use_container_width=True)
 
 # 6. Simple Ledger Table
