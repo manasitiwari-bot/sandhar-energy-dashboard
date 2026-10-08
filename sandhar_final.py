@@ -9,7 +9,7 @@ import folium
 # 1. Page Configuration
 st.set_page_config(
     page_title="Sandhar Energy Ecosystem Dashboard",
-    page_icon,
+    page_icon="🌱",
     layout="wide"
 )
 
@@ -22,7 +22,7 @@ if "chat_history" not in st.session_state:
         {"role": "assistant", "content": "Telemetry interface fully online. Ask me about your worst-performing locations, total carbon emissions, or request a complete summary."}
     ]
 
-#PREMIUM CSS OVERLAYS
+# PREMIUM CSS OVERLAYS
 if not st.session_state["authenticated"]:
     st.markdown("""
         <style>
@@ -69,7 +69,6 @@ else:
         </style>
         """, unsafe_allow_html=True)
 
-
 # 2. Portal Security Wall
 if not st.session_state["authenticated"]:
     components.html("""
@@ -108,7 +107,6 @@ if not st.session_state["authenticated"]:
             else:
                 st.error("System access codes rejected.")
     st.stop()
-
 
 # 3. Load Datasets
 @st.cache_data
@@ -160,7 +158,6 @@ April'26,3245,9079,16958,40627,16232,27557,1742,3696,14271,3704,0,31789,38692,17
 May'26,3120,10500,19259,42113,17607,29168,2089,3900,14504,3946,0,34594,44353,18785,19767,35751,9605,6270,45175,81833"""
 df_fy27 = pd.read_csv(io.StringIO(fy27_csv.strip()))
 
-
 # --- SIDEBAR CONTROL PANEL ---
 st.sidebar.markdown("**Telemetry Link Stable**")
 if st.sidebar.button("Log Out Context"):
@@ -169,7 +166,6 @@ if st.sidebar.button("Log Out Context"):
 
 st.sidebar.header("Application Pages")
 app_page = st.sidebar.radio("Navigate Workspace", ["Main Tracking Panel", "FY26-27 Analytics & Horizon Panel"])
-
 
 # ================= PAGE 2: ANALYTICS PANEL =================
 if app_page == "FY26-27 Analytics & Horizon Panel":
@@ -182,8 +178,8 @@ if app_page == "FY26-27 Analytics & Horizon Panel":
         unit_code = str(row['unit']).strip()
         apr_series = df_fy27.loc[df_fy27['Month'] == "April'26", unit_code].values
         may_series = df_fy27.loc[df_fy27['Month'] == "May'26", unit_code].values
-        apr_val = apr_series if len(apr_series) > 0 else 0
-        may_val = may_series if len(may_series) > 0 else 0
+        apr_val = apr_series[0] if len(apr_series) > 0 else 0
+        may_val = may_series[0] if len(may_series) > 0 else 0
         
         with st.expander(f"Node Layer [{unit_code}] — Horizon Status Analysis"):
             col_a, col_b, col_c = st.columns(3)
@@ -196,7 +192,6 @@ if app_page == "FY26-27 Analytics & Horizon Panel":
             else:
                 col_c.markdown(f"**Generation per KWP**<br><span style='color:#ef4444; font-size:24px; font-weight:bold;'>🔴 {y_ratio27} Yield</span>", unsafe_allow_html=True)
     st.stop()
-
 
 # ================= PAGE 1: MAIN TRACKING PANEL =================
 st.sidebar.header("Selection Filters")
@@ -221,12 +216,12 @@ total_emi = df_filtered['emission'].sum()
 st.markdown("### Metrics Summary Grid")
 col_metric_1, col_metric_2, col_metric_3 = st.columns(3)
 col_metric_1.metric("Total Grid Sourced", f"{total_grid:,.1f} MVAh")
-col_metric_2.metric(" Carbon Offset", f"{int(total_mit):,} MT CO₂")
-col_metric_3.metric(" Gross Footprint", f"{int(total_emi):,} MT CO₂")
+col_metric_2.metric("Carbon Offset", f"{int(total_mit):,} MT CO₂")
+col_metric_3.metric("Gross Footprint", f"{int(total_emi):,} MT CO₂")
 
 st.markdown("---")
 
-#  2. DYNAMIC VISUALIZATION GRAPH BLOCK WITH AVERAGES
+# 2. DYNAMIC VISUALIZATION GRAPH BLOCK WITH AVERAGES
 st.subheader("Dynamic Environmental Performance & Fleet Generation Metrics")
 col_g1, col_g2 = st.columns(2)
 
@@ -265,8 +260,7 @@ with col_g2:
 
 st.markdown("---")
 
-
-# 3. MONTHLY ENERGY MATRIX TREND TRACKING WITH BOTH AVGS INTEGRATED Safely
+# 3. MONTHLY ENERGY MATRIX TREND TRACKING WITH BOTH AVGS INTEGRATED
 st.subheader("📈 Interactive Timeline Matrix: Monthly Generation Profile (FY25-26)")
 active_nodes = list(df_filtered['unit'].unique())
 available_nodes = [col for col in df_monthly.columns if col in active_nodes]
@@ -333,7 +327,7 @@ else:
 
 st.markdown("---")
 
-#  4. INTERACTIVE FOLLIUM MAP EMBED
+# 4. INTERACTIVE FOLLIUM MAP EMBED
 st.subheader("Enterprise Infrastructure Geolocation Node Overlay")
 if not df_filtered.empty:
     avg_lat = df_filtered['lat'].mean()
@@ -352,7 +346,7 @@ if not df_filtered.empty:
 
 st.markdown("---")
 
-#  5. LIVE INTERACTIVE CHAT ASSISTANT CORE
+# 5. LIVE INTERACTIVE CHAT ASSISTANT CORE
 st.subheader("Interactive Live Data Chat Assistant")
 def evaluate_live_query(user_query, target_data):
     raw = user_query.strip().lower()
@@ -362,7 +356,7 @@ def evaluate_live_query(user_query, target_data):
     elif "highest" in raw or "best" in raw:
         best_row = target_data.loc[target_data['generation_per_kwp'].idxmax()]
         return f"Node **{best_row['unit']}** leads with a Gen/KWP ratio of **{best_row['generation_per_kwp']}**."
-    return " Try asking about **'worst plant'** or **'highest efficiency'**."
+    return "Try asking about **'worst plant'** or **'highest efficiency'**."
 
 chat_box = st.container(height=200)
 with chat_box:
